@@ -1,24 +1,40 @@
-# Logs
-logs
-*.log
+# --- Dépendances (Le plus important, c'est très lourd) ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build & Dist (Ce qui est généré par Vite) ---
+dist/
+build/
+coverage/
+
+# --- Variables d'environnement (SÉCURITÉ MAXIMALE) ---
+# Ne jamais commiter tes clés API ou mots de passe DB !
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Logs et Debug ---
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# --- Fichiers Système & Editeurs ---
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Fichiers Temporaires Word (Vu sur ton screen) ---
+# Ça évite de commiter les fichiers cachés bizarres quand ton Word est ouvert
+~$*.docx
+~$*.doc
