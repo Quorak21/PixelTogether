@@ -6,15 +6,15 @@ function Chatbox({ toggleChatbox, chatboxIsVisible }) {
     const nodeRef = React.useRef(null);
 
 
-    
+
 
     return (
         chatboxIsVisible ? (
             <Draggable
                 nodeRef={nodeRef}
-                handle=".drag-handle" // 👈 MAGIE : Seule la barre avec cette classe permet de bouger
-                defaultPosition={{ x: 0, y: 0 }} // Position de départ
-                bounds="parent" // Empêche la fenêtre de sortir de l'écran
+                handle=".drag-handle"
+                defaultPosition={{ x: 0, y: 0 }}
+                bounds="parent"
             >
 
                 <div ref={nodeRef} className="chatbox w-80 bg-base-100 p-4 shadow-lg z-50 absolute right-5 bottom-5 rounded-lg">

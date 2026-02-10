@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-// Charger les variables d'environnement (plus tard)
+
 dotenv.config();
 
 const app = express();
@@ -32,7 +32,7 @@ io.on('connection', (socket) => {
   // On place les écouteurs DANS la connexion
   socket.on('createCanvas', (data) => {
     console.log(`Demande de canvas reçue : ${data.width}x${data.height}`);
-    
+
     // On répond au client
     socket.emit('canvasCreated', {
       width: data.width,

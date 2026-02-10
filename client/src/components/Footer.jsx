@@ -2,8 +2,8 @@
 
 function Footer() {
   return (
-    <div className="footer footer-center p-4 bg-yellow-100 text-base-content border-t border-black-200 relative items-center h-16">
-      <div className ="absolute mb-5">
+    <div className="footer footer-center p-4 bg-base-100 shadow text-base-content border-t border-black-200 relative items-center h-16">
+      <div className="absolute mb-5">
         <h2 className="font-bold text-lg text-primary">Dokk Corp. © 2026</h2>
       </div>
       <div className="absolute mt-5">
