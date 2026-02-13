@@ -1,7 +1,7 @@
 import Draggable from 'react-draggable';
 import React from 'react';
 
-function Chatbox({ toggleChatbox, chatboxIsVisible }) {
+function Chatbox({ }) {
 
     const nodeRef = React.useRef(null);
 

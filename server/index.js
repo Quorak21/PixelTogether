@@ -1,51 +1,64 @@
 import express from 'express';
-import http from 'http';
+import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import 'dotenv/config';
 
-
-dotenv.config();
+import User from './models/User.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. Middleware (Sécurité et JSON)
 app.use(cors());
 app.use(express.json());
 
-// 2. Création du serveur HTTP (Nécessaire pour Socket.io)
-const server = http.createServer(app);
+// Connexion à la Base de Données via .env
+mongoose.connect(process.env.MONGOURL)
+  .then(() => console.log('✅ Connecté à MongoDB'))
+  .catch(err => console.error('❌ Erreur MongoDB:', err));
 
-// 3. Configuration de Socket.io
-const io = new Server(server, {
+// Route API pour tester la DB
+app.post('/api/test-db', async (req, res) => {
+  console.log("📩 Données reçues du Front :", req.body);
+
+  try {
+    const nouveauJoueur = new User({
+      pseudo: req.body.pseudo,
+      password: req.body.password
+    });
+
+    await nouveauJoueur.save();
+    console.log("✅ Sauvegardé dans MongoDB !");
+
+    res.json({ message: "C'est tout bon, c'est dans la boîte !" });
+
+  } catch (err) {
+    console.error("❌ Erreur :", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// Laisser tel quel pour l'instant, juste pour tester. Passage par Auth.js avec cryptage et tout le tsoin-tsoin
+
+// Création du serveur HTTP & Socket.io
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173", // L'adresse de ton React (Vite)
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"]
   }
 });
 
+// Connection avec socket
 io.on('connection', (socket) => {
-  // Ici, 'socket' existe ! C'est la ligne directe avec CE joueur précis.
-  console.log(`Un utilisateur s'est connecté : ${socket.id}`);
-
-  // On place les écouteurs DANS la connexion
-  socket.on('createCanvas', (data) => {
-    console.log(`Demande de canvas reçue : ${data.width}x${data.height}`);
-
-    // On répond au client
-    socket.emit('canvasCreated', {
-      width: data.width,
-      height: data.height,
-      id: 'nouvelle-id-unique'
-    });
-  });
+  console.log(`🟢 Joueur connecté : ${socket.id}`);
 
   socket.on('disconnect', () => {
-    console.log('Utilisateur parti');
+    console.log(`🔴 Joueur déconnecté : ${socket.id}`);
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`✅ Le serveur tourne sur http://localhost:${PORT}`);
+//Lancement du serveur
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
 });

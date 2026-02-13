@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-function Canvas({ width, height }) {
+function Canvas({ }) {
 
     const canvasRef = useRef(null);
     const PIXEL_SIZE = 20;
