@@ -1,12 +1,14 @@
 import { useUI } from '../context/UIProvider';
 import Navbar from '../components/features/Navbar';
-import Sidebar from '../components/features/Sidebar';
 import Footer from '../components/features/Footer';
+import GridCreation from '../components/features/GridCreation';
 import LoginForm from '../components/features/LoginForm';
+import GameView from '../views/GameView';
+import LobbyView from '../views/LobbyView';
+import Sidebar from '../components/features/Sidebar';
 
-const MainLayout = ({ children }) => {
-    const { gameMode } = useUI();
-    const { isLoginOpen } = useUI();
+const MainLayout = ({ }) => {
+    const { gameMode, login, gridCreate } = useUI();
 
     return (
         <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
@@ -16,23 +18,30 @@ const MainLayout = ({ children }) => {
             </header>
 
             <div className="flex flex-1 overflow-hidden relative">
-
-                <div className="h-full flex-none">
-                    <Sidebar />
-                </div>
+                {gameMode
+                    ? <Sidebar />
+                    : null
+                }
 
                 <main className="flex-1 relative flex justify-center items-center bg-gray-50">
-                    {children}
+
+                    {/* Les fenetres dynamiques */}
+                    {login.isOpen && (
+                        <LoginForm />
+                    )}
+                    {gridCreate.isOpen && (
+                        <GridCreation />
+                    )}
+                    {/* En jeu, ou sur le lobby*/}
+                    {gameMode
+                        ? <GameView />
+                        : <LobbyView />
+                    }
+
                 </main>
 
             </div>
 
-            {/* Les fenetres dynamiques */}
-            {isLoginOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <LoginForm />
-                </div>
-            )}
 
             <footer className="flex-none z-40">
                 <Footer />

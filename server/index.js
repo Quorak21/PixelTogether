@@ -10,6 +10,7 @@ import User from './models/User.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 app.use(cors());
 app.use(express.json());
 
@@ -49,9 +50,40 @@ const io = new Server(httpServer, {
   }
 });
 
+
+
 // Connection avec socket
 io.on('connection', (socket) => {
   console.log(`🟢 Joueur connecté : ${socket.id}`);
+
+
+  //Création du Canvas
+  socket.on('newGrid', (data) => {
+    const idGrid = crypto.randomUUID(); // On lui donne une ID
+    console.log(`Donnée canvas : ${data.width} et ${data.height}, nom : ${data.name}. id: ${idGrid}`)
+
+    //Save du Canvas
+    const actualCanvas = {
+      iD: idGrid,
+      name: data.name,
+      width: data.width,
+      height: data.height,
+      pixels: {}
+    }
+
+    io.emit('createCanvas', { width: data.width, height: data.height, roomName: data.name, id: idGrid })
+  });
+
+  //Placement de pixel
+  socket.on('pixelPlaced', (data) => {
+    console.log(`Pixel placé : ${data.x}:${data.y} avec la couleur ${data.color}`)
+
+    //Ajout du pixel dans le canvas
+    actualCanvas.pixels[`${data.x},${data.y}`] = data.color;
+
+    io.emit('drawPixel', { x: data.x, y: data.y, color: data.color })
+  });
+
 
   socket.on('disconnect', () => {
     console.log(`🔴 Joueur déconnecté : ${socket.id}`);
