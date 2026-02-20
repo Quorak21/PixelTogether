@@ -8,7 +8,7 @@ import LobbyView from '../views/LobbyView';
 import Sidebar from '../components/features/Sidebar';
 
 const MainLayout = ({ }) => {
-    const { gameMode, login, gridCreate } = useUI();
+    const { gameMode, currentRoomID, login, gridCreate } = useUI();
 
     return (
         <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
@@ -34,7 +34,7 @@ const MainLayout = ({ }) => {
                     )}
                     {/* En jeu, ou sur le lobby*/}
                     {gameMode
-                        ? <GameView />
+                        ? <GameView roomID={currentRoomID} />
                         : <LobbyView />
                     }
 

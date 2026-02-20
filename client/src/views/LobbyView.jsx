@@ -1,27 +1,47 @@
 import { useEffect, useState } from 'react';
-import { Grid3x3 } from 'lucide-react';
+import { Grid3x3, RefreshCcw } from 'lucide-react';
 import { useUI } from "../context/UIProvider";
 import { socket } from '../socket';
 import RoomCard from '../components/UI/RoomCard';
 
 function LobbyView({ }) {
 
-    const { gridCreate } = useUI();
+    const { gridCreate, joinGame } = useUI();
 
     const [rooms, setRooms] = useState([]);
 
-    useEffect(() => {
-        const handleRoomCreation = (data) => {
-            setRooms(prev => [...prev, data]);
-            console.log(data.roomName);
-        };
+    // Demande au serveur de renvoyer la liste des rooms
+    const handleRefresh = () => {
+        socket.emit('getActiveGrids');
+    };
 
-        socket.on('createCanvas', handleRoomCreation);
+    useEffect(() => {
+
+        // On demande les rooms dès qu'on arrive sur le lobby
+        socket.emit('getActiveGrids');
+
+        // Au lancement du lobby, on demande les rooms
+        socket.on('activeGrids', (data) => {
+            setRooms(Object.values(data));
+        });
+
+        // En temps réel, quand on a une create
+        socket.on('createCanvas', (data) => {
+            setRooms(prev => [...prev, data]);
+        });
+
+        // pareil mais quand une grid est fermée
+        socket.on('roomClosed', (roomId) => {
+            setRooms(prev => prev.filter(room => room.id !== roomId));
+        });
+
 
         return () => {
-            socket.off('createCanvas', handleRoomCreation);
+            socket.off('activeGrids');
+            socket.off('createCanvas');
+            socket.off('roomClosed');
         };
-    }, []); // [] = exécute une seule fois au montage
+    }, []);
 
     return (
 
@@ -39,21 +59,26 @@ function LobbyView({ }) {
 
                         {rooms.map((room) => (
                             <RoomCard
-                                key={room.roomName}
-                                roomName={room.roomName}
-                                onJoin={(name) => {
-                                    console.log("Click sur rejoindre :", name);
-
+                                key={room.id}
+                                roomName={room.name}
+                                roomId={room.id}
+                                host={room.host}
+                                onJoin={(id, host) => {
+                                    console.log("Click sur rejoindre, id:", id);
+                                    joinGame(id, host);
                                 }}
                             />
                         ))}
 
-                        {/* Si pas de rooms, un petit message sympa */}
+                        {/* Si pas de rooms, un petit message */}
                         {rooms.length === 0 && (
                             <div className="col-span-full text-center text-slate-500 py-10 italic">
                                 Aucune partie en cours. Créez-en une !
                             </div>
                         )}
+
+                        {/* Un bouton pour refresh pour avoir a faire f5 */}
+                        <button onClick={handleRefresh} className="btn btn-primary aspect-square rounded-3xl top-5 right-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
 
                     </div>
                 </div>

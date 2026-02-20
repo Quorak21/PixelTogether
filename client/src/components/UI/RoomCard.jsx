@@ -1,6 +1,6 @@
 import { Grid3x3 } from 'lucide-react';
 
-function RoomCard({ roomName, onJoin }) {
+function RoomCard({ roomName, roomId, host, onJoin }) {
 
 
   return (
@@ -33,7 +33,7 @@ function RoomCard({ roomName, onJoin }) {
         {/* w-full : prend toute la largeur */}
         {/* active:scale-[0.98] : petit effet d'enfoncement au clic */}
         <button
-          onClick={() => onJoin(roomName)}
+          onClick={() => onJoin(roomId, host)}
           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:ring-4 focus:ring-blue-500/30"
         >
           Rejoindre

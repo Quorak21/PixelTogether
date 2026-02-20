@@ -1,0 +1,1347 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+client/eslint.config.js
+client/index.html
+client/package.json
+client/README.md
+client/src/App.jsx
+client/src/components/features/Canvas.jsx
+client/src/components/features/Chatbox.jsx
+client/src/components/features/ColorPalette.jsx
+client/src/components/features/Footer.jsx
+client/src/components/features/GridCreation.jsx
+client/src/components/features/LoginForm.jsx
+client/src/components/features/Navbar.jsx
+client/src/components/features/Sidebar.jsx
+client/src/components/UI/RoomCard.jsx
+client/src/context/AuthProvider.jsx
+client/src/context/GameProvider.jsx
+client/src/context/UIProvider.jsx
+client/src/index.css
+client/src/layouts/MainLayout.jsx
+client/src/main.jsx
+client/src/socket.js
+client/src/views/GameView.jsx
+client/src/views/LobbyView.jsx
+client/vite.config.js
+package.json
+PixelTogether_GameDesign.docx
+server/index.js
+server/models/Grid.js
+server/models/User.js
+server/package.json
+server/routes/auth.js
+server/routes/grid.js
+server/services/socketManager.js
+Technique_Et_Donnees.docx
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="client/eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+</file>
+
+<file path="client/index.html">
+<!doctype html>
+<html lang="en" data-theme="nord">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Together</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="client/package.json">
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.24",
+    "daisyui": "^5.5.17",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.2.4"
+  }
+}
+</file>
+
+<file path="client/README.md">
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+</file>
+
+<file path="client/src/components/features/Chatbox.jsx">
+import Draggable from 'react-draggable';
+import React from 'react';
+
+function Chatbox({ }) {
+
+    const nodeRef = React.useRef(null);
+
+
+
+
+    return (
+        chatboxIsVisible ? (
+            <Draggable
+                nodeRef={nodeRef}
+                handle=".drag-handle"
+                defaultPosition={{ x: 0, y: 0 }}
+                bounds="parent"
+            >
+
+                <div ref={nodeRef} className="chatbox w-80 bg-base-100 p-4 shadow-lg z-50 absolute right-5 bottom-5 rounded-lg">
+                    <h2 className="drag-handle cursor-move font-bold text-center text-lg mb-4 text-primary">Chatbox</h2>
+                    <button onClick={toggleChatbox} className="btn absolute top-2 right-2 bg-transparent border-0 text-xl">❌</button>
+                    <div className="chat-messages h-48 overflow-auto mb-4 p-2 border rounded-lg bg-gray-50">
+                        <div className="message mb-2">
+                            <span className="font-bold text-sm text-primary">Alice:</span>
+                            <span className="ml-2 text-sm text-gray-700">Salut tout le monde !</span>
+                        </div>
+                        <div className="message mb-2">
+                            <span className="font-bold text-sm text-primary">Bob:</span>
+                            <span className="ml-2 text-sm text-gray-700">Salut Alice !</span>
+                        </div>
+                    </div>
+                    <div className="chat-input flex">
+                        <input type="text" placeholder="Tapez votre message..." className="input input-bordered w-full" />
+                        <button className="btn btn-primary ml-2">Envoyer</button>
+                    </div>
+                </div>
+            </Draggable>
+        ) : null
+    )
+}
+
+export default Chatbox
+</file>
+
+<file path="client/src/components/features/GridCreation.jsx">
+import React, { useState } from 'react';
+import { useUI } from '../../context/UIProvider';
+import { X } from 'lucide-react';
+import { socket } from '../../socket.js';
+
+function GridCreation({ }) {
+    //Variables size grid
+    const [xSize, setXSize] = useState(40);
+    const [ySize, setYSize] = useState(40);
+    const [gridName, setGridName] = useState('');
+
+    const nodeRef = React.useRef(null);
+
+    // Fermeture
+    const { gridCreate, joinGame } = useUI();
+
+    // Envoi info au serveur
+    const createNewGrid = async (e) => {
+        e.preventDefault();
+
+        console.log('Envoi des valeurs : ', { xSize, ySize, gridName })
+
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
+            gridCreate.close()
+            joinGame(response.id, response.host)
+        })
+
+    };
+
+
+
+    return (
+        gridCreate.isOpen ? (
+            <div ref={nodeRef} className="w-80 bg-base-100 p-4 shadow-lg z-49 absolute item-center rounded-lg">
+                {/*Haut de la fenêtre*/}
+                <h2 className="font-bold text-center text-lg mb-4 text-primary">Création de la grille</h2>
+
+                <button onClick={gridCreate.close} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+                    <X size={24} />
+                </button>
+
+                <div className="text-center bg-white rounded-2xl shadow-2xl pt-2 pb-2">
+                    <p className="text-lg">Entrez les dimensions voulues :</p>
+                    <p className="text-xs">Minimum : 20 / Maximum : 100</p>
+                    <form onSubmit={createNewGrid} className="space-y-4">
+
+                        <div className="flex flex-col justify-center items-center my-3 gap-3">
+                            <label htmlFor="gridName">Nom du salon :</label>
+                            <input
+                                id="gridName"
+                                type="text"
+                                className="text-center mt-1 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={gridName}
+                                onChange={(e) => setGridName(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex">
+
+
+                            <div className="my-3">
+                                <label htmlFor="largeurGrille" >Largeur : </label>
+                                <input
+                                    id="largeurGrille"
+                                    type="number"
+                                    min="20"
+                                    max="100"
+                                    className="text-center mt-1 w-17 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={xSize}
+                                    onChange={(e) => setXSize(parseInt(e.target.value))} />
+                            </div>
+                            <div className="my-3">
+                                <label htmlFor="hauteurGrille">Hauteur : </label>
+                                <input
+                                    id="hauteurGrille"
+                                    type="number"
+                                    min="20"
+                                    max="100"
+                                    className="text-center mt-1 w-17 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={ySize}
+                                    onChange={(e) => setYSize(parseInt(e.target.value))} />
+                            </div>
+                        </div>
+                        <button type="submit" className="w-55 mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">
+                            Créer
+                        </button>
+                    </form>
+                </div >
+
+
+            </div >
+
+        ) : null
+    )
+}
+
+export default GridCreation
+</file>
+
+<file path="client/src/components/UI/RoomCard.jsx">
+import { Grid3x3 } from 'lucide-react';
+
+function RoomCard({ roomName, roomId, host, onJoin }) {
+
+
+  return (
+    // LA CARTE GLOBALE
+    <div className="group bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-default flex flex-col">
+
+      {/* 1. ZONE IMAGE (LE HAUT DE LA CARTE) */}
+      {/* h-48 : Hauteur fixe pour que toutes les cartes soient alignées */}
+      <div className="h-30 bg-slate-100 flex items-center justify-center group-hover:bg-blue-50/50 transition-colors relative overflow-hidden relative">
+
+        {/* Un petit fond abstrait pour faire joli (optionnel) */}
+        <div className="absolute inset-0 bg-grid-slate-200/[0.5] bg-[length:20px_20px]" />
+        <Grid3x3 size={75} />
+
+      </div>
+
+      {/* 2. ZONE CONTENU (LE BAS DE LA CARTE) */}
+      {/* flex-1 : pousse le contenu pour remplir la carte si besoin */}
+      <div className="p-5 flex flex-col gap-4 justify-between border-t border-slate-100">
+        <div>
+
+          {/* LE NOM DE LA ROOM */}
+          {/* 'truncate' est VITAL : coupe le texte avec "..." s'il est trop long */}
+          <h3 className="text-xl font-bold text-slate-800 truncate" title={roomName}>
+            {roomName}
+          </h3>
+        </div>
+
+        {/* 3. LE BOUTON REJOINDRE */}
+        {/* w-full : prend toute la largeur */}
+        {/* active:scale-[0.98] : petit effet d'enfoncement au clic */}
+        <button
+          onClick={() => onJoin(roomId, host)}
+          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:ring-4 focus:ring-blue-500/30"
+        >
+          Rejoindre
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default RoomCard
+</file>
+
+<file path="client/src/context/AuthProvider.jsx">
+import { createContext, useContext, useState } from 'react';
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null); // null = pas connecté
+
+    return (
+        <AuthContext.Provider value={{ user, setUser }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => useContext(AuthContext);
+</file>
+
+<file path="client/src/context/GameProvider.jsx">
+
+</file>
+
+<file path="client/src/index.css">
+@import "tailwindcss";
+@plugin "daisyui" {
+    themes: light --default, dark --prefersdark, cupcake, nord, retro;
+};
+</file>
+
+<file path="client/src/main.jsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+<file path="client/src/socket.js">
+import io from 'socket.io-client';
+
+export const socket = io('http://localhost:3000');
+</file>
+
+<file path="client/vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(), // <--- C'est ici que la magie opère
+  ],
+})
+</file>
+
+<file path="server/models/Grid.js">
+
+</file>
+
+<file path="server/routes/auth.js">
+
+</file>
+
+<file path="server/routes/grid.js">
+
+</file>
+
+<file path="server/services/socketManager.js">
+
+</file>
+
+<file path=".gitignore">
+# --- Dépendances (Le plus important, c'est très lourd) ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build & Dist (Ce qui est généré par Vite) ---
+dist/
+build/
+coverage/
+
+# --- Variables d'environnement (SÉCURITÉ MAXIMALE) ---
+# Ne jamais commiter tes clés API ou mots de passe DB !
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Logs et Debug ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# --- Fichiers Système & Editeurs ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Fichiers Temporaires Word (Vu sur ton screen) ---
+# Ça évite de commiter les fichiers cachés bizarres quand ton Word est ouvert
+~$*.docx
+~$*.doc
+</file>
+
+<file path="client/src/components/features/Canvas.jsx">
+import { useEffect, useRef, useState } from 'react';
+import { socket } from '../../socket.js';
+import { useUI } from '../../context/UIProvider';
+
+function Canvas({ roomID }) {
+
+    const canvasRef = useRef(null);
+    const PIXEL_SIZE = 20;
+    const { selectedColor, exitGame } = useUI();
+    const [roomName, setRoomName] = useState('');
+
+
+    // Dessin d'un pixel au clic
+    const drawPixel = (event) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+
+        // Position du clic par rapport au canvas
+        const coordX = event.clientX - rect.left
+        const coordY = event.clientY - rect.top
+
+        // Convertir en coordonnées de la grid
+        const x = Math.floor(coordX / PIXEL_SIZE)
+        const y = Math.floor(coordY / PIXEL_SIZE)
+
+        console.log(`Coordonnée ${x}:${y} | Couleur: ${selectedColor}`)
+
+        // Dessiner localement
+        const ctx = canvasRef.current.getContext('2d')
+        ctx.fillStyle = selectedColor
+        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+
+        // Redessiner la bordure si on met du blanc
+        if (selectedColor.startsWith('#ffffff')) {
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+        }
+
+        // Envoyer au serveur
+        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
+    };
+
+
+    // Création du canvas
+    useEffect(() => {
+
+        // On rejoint la room socket avec notre roomID reçu via le choix de lobby
+        socket.emit('joinRoom', { roomId: roomID });
+
+        // On reçoit l'état de la grid
+        socket.on('gridState', (data) => {
+            if (!canvasRef.current) return;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d')
+            const width = data.width;
+            const height = data.height;
+            setRoomName(data.name);
+
+            // On dimensionne le canvas
+            canvas.width = width * PIXEL_SIZE;
+            canvas.height = height * PIXEL_SIZE;
+
+            // On dessine le quadrillage
+            ctx.beginPath()
+            ctx.strokeStyle = '#ddd'
+            ctx.lineWidth = 1
+            for (let gx = 0; gx <= width; gx++) {
+                ctx.moveTo(gx * PIXEL_SIZE, 0)
+                ctx.lineTo(gx * PIXEL_SIZE, height * PIXEL_SIZE)
+            }
+            for (let gy = 0; gy <= height; gy++) {
+                ctx.moveTo(0, gy * PIXEL_SIZE)
+                ctx.lineTo(width * PIXEL_SIZE, gy * PIXEL_SIZE)
+            }
+            ctx.stroke()
+
+            // On dessine les pixels existants (s'il y en a)
+            for (const coords in data.pixels) {
+                const pixelColor = data.pixels[coords];
+                const [x, y] = coords.split(',');
+                ctx.fillStyle = pixelColor;
+                ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            }
+        });
+
+        // écoute de ce que font les autres + dessin
+        socket.on('drawPixel', (data) => {
+            console.log(`Pixel reçu : ${data.x}:${data.y} avec la couleur ${data.color}`)
+            const ctx = canvasRef.current.getContext('2d')
+            ctx.fillStyle = data.color
+            ctx.fillRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+
+            // Redessiner la bordure si c'est blanc
+            if (data.color.startsWith('#ffffff')) {
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            }
+        });
+
+        // Si l'host ferme la room, on retourne au lobby
+        socket.on('roomClosed', () => {
+            exitGame();
+        });
+
+        // Nettoyage quand le composant se démonte
+        return () => {
+            socket.off('drawPixel')
+            socket.off('gridState')
+            socket.off('roomClosed')
+        };
+
+    }, []);
+
+    return (
+        <>
+            <div className="flex justify-center mt-5">
+                <h1 className="font-bold uppercase text-xl ">{roomName}</h1>
+            </div>
+            <div className="w-max h-max min-w-full min-h-full flex items-center justify-center p-8">
+                <canvas
+                    ref={canvasRef}
+                    onClick={drawPixel}
+                    className="bg-white shadow-2xl shrink-0"
+                />
+            </div >
+        </>
+    )
+};
+
+export default Canvas
+</file>
+
+<file path="client/src/components/features/ColorPalette.jsx">
+import Draggable from 'react-draggable';
+import React from 'react';
+import { useUI } from "../../context/UIProvider";
+import { X } from 'lucide-react';
+
+function ColorPalette({ }) {
+
+    const nodeRef = React.useRef(null);
+    const { palette, selectColor } = useUI();
+
+    const colors = ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29']
+
+    return (
+        palette.isOpen ? (
+            <Draggable
+                nodeRef={nodeRef}
+                handle=".drag-handle"
+                defaultPosition={{ x: 0, y: 0 }}
+                bounds="parent"
+            >
+
+                <div ref={nodeRef} className="w-95 bg-base-200 p-4 shadow-lg z-48 absolute item-center rounded-lg">
+
+                    <button
+                        onClick={palette.close}
+                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+                    >
+                        <X size={30} color="#ff0000" />
+                    </button>
+
+                    <h2 className="drag-handle cursor-move font-bold text-center text-lg mb-4 text-primary">
+                        Couleurs
+                    </h2>
+
+                    <div className="flex bg-gray-100 justify-center gap-3 p-3">
+                        {colors.map(color => (
+                            <button key={color} onClick={() => { selectColor(color); palette.close(); }} className="btn active:scale-90 w-9 h-9 rounded-full hover:brightness-90 hover:scale-110" style={{ backgroundColor: color }}></button>
+                        ))}
+                    </div>
+
+                </div>
+
+            </Draggable>
+        ) : null
+    )
+}
+
+export default ColorPalette
+</file>
+
+<file path="client/src/components/features/Footer.jsx">
+// client/src/components/Footer.jsx
+
+function Footer() {
+  return (
+    <div className="footer footer-center p-4 bg-base-100 shadow-lg text-base-content border-t border-black-200 relative items-center h-16">
+      <div className="absolute mb-5">
+        <h2 className="font-bold text-lg text-primary">Dokk Corp. © 2026</h2>
+      </div>
+      <div className="absolute mt-5">
+        <h3 className="text-sm text-gray-500">Version pré-alpha 0.0.01</h3>
+      </div>
+    </div>
+
+  )
+}
+
+export default Footer
+</file>
+
+<file path="client/src/components/features/LoginForm.jsx">
+import React from 'react';
+import { useUI } from '../../context/UIProvider';
+import { X } from 'lucide-react';
+import { useState } from 'react';
+
+function LoginForm({ }) {
+    const { login } = useUI();
+
+    const nodeRef = React.useRef(null);
+
+    // Fonction pour basculer entre inscription et connexion
+    const [isRegistering, setIsRegistering] = useState(false);
+    const toggleRegister = () => { setIsRegistering(prev => !prev); setError(''); };
+
+    //Variables pour stocker les inputs
+    const [pseudo, setPseudo] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+
+    //Fonction pour envoyer dans la DB
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Empêche le rechargement de la page par défaut
+        setError("");
+
+        try {
+            const response = await fetch('http://localhost:3000/api/test-db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pseudo, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Si le serveur répond une erreur
+                throw new Error(data.message || "Une erreur est survenue");
+            }
+
+            // SI TOUT EST OK :
+            console.log("Succès :", data);
+            if (isRegistering) {
+                alert("Compte créé ! Connecte-toi maintenant.");
+                toggleRegister(); // On bascule vers le login
+            } else {
+                alert("Connecté ! (Token à gérer plus tard)");
+                login.close();
+            }
+
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return ( //Interface de la page de connexion
+        login.isOpen ? (
+            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
+
+                {/* 1. La Croix pour fermer */}
+                <button
+                    onClick={login.close}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+                >
+                    <X size={24} />
+                </button>
+
+                {/* 2. Le Titre */}
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+                    {isRegistering ? "Inscription" : "Connexion"}
+                </h2>
+
+                {/* 3. Le Formulaire*/}
+                <form onSubmit={handleSubmit} className="space-y-4">
+
+                    {/* Champ Pseudo */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ton pseudo..."
+                            value={pseudo}
+                            onChange={(e) => setPseudo(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Champ Mot de passe */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                        <input
+                            type="password"
+                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Bouton Valider */}
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition"
+                    >
+                        {isRegistering ? "S'inscrire" : "Se connecter"}
+                    </button>
+
+                </form>
+
+                {/* 4. Le petit lien en bas */}
+                <div className="mt-4 text-center text-sm text-gray-500">
+                    {isRegistering
+                        ? <>Déjà un compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">Se connecter</span></>
+                        : <>Pas encore de compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">S'inscrire</span></>
+                    }
+                </div>
+
+            </div>
+
+        ) : null
+    )
+}
+
+export default LoginForm
+</file>
+
+<file path="client/src/components/features/Navbar.jsx">
+import { useUI } from "../../context/UIProvider";
+import { socket } from '../../socket.js';
+
+function Navbar() {
+  const { login, exitGame, currentRoomID, currentHost } = useUI();
+
+  const handleExit = () => {
+    if (currentRoomID) {
+      // Si c'est l'host qui quitte → on ferme la room pour tout le monde
+      if (socket.id === currentHost) {
+        socket.emit('closeRoom', { roomId: currentRoomID });
+      } else {
+        // Si c'est un joueur → il quitte juste la room
+        socket.emit('exitGame', { roomId: currentRoomID });
+      }
+    }
+    exitGame();
+  };
+
+  return (
+    <div className="navbar bg-base-100 shadow-lg z-50 relative">
+      <div className="flex-1">
+        <a onClick={handleExit} className="btn btn-ghost text-xl text-primary font-bold uppercase">Pixel Together</a>
+      </div>
+      <div className="flex-none">
+        <button onClick={login.open} className="btn btn-primary font-bold text-white">Connexion</button>
+      </div>
+    </div>
+  )
+}
+
+export default Navbar
+</file>
+
+<file path="client/src/components/features/Sidebar.jsx">
+import { Palette, Eraser, MessageCircle } from 'lucide-react';
+import { useUI } from "../../context/UIProvider";
+
+function Sidebar() {
+
+  const { palette, selectedColor, selectColor } = useUI();
+
+
+
+  return (
+    <div className="w-30 h-full bg-base-100 p-4 shadow-lg z-10 hidden md:block">
+      <ul className="menu bg-base-100 w-full rounded-box p-0">
+        <div className="flex flex-col justify-center items-center w-full">
+          <h3 className="font-bold text-lg ">Palette</h3>
+          <li><button onClick={palette.open} className="btn btn-primary my-2 w-16 text-white"><Palette /></button></li>
+          <div className="w-6 h-6 rounded-full" style={{ backgroundColor: selectedColor }}></div>
+          <h3 className="font-bold text-lg ">Gomme</h3>
+          <li><button onClick={() => selectColor('#ffffff')} className="btn btn-primary my-2 w-16 text-white"><Eraser color="#ffffff" /></button></li>
+          <h3 className="font-bold text-lg text-left">Chat</h3>
+          <li><button className="btn btn-primary my-2 w-16 text-white"><MessageCircle color="#ffffff" /></button></li>
+        </div>
+      </ul>
+    </div>
+  )
+}
+
+export default Sidebar
+</file>
+
+<file path="client/src/context/UIProvider.jsx">
+import { createContext, useContext, useState } from 'react';
+
+const UIContext = createContext();
+
+// Hook réutilisable pour tout ce qui s'ouvre/se ferme
+function useToggle(initial = false) {
+    const [isOpen, setIsOpen] = useState(initial);
+    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false) };
+}
+
+export const UIProvider = ({ children }) => {
+    // Mode de jeu
+    const [gameMode, setGameMode] = useState(false);
+    const [currentRoomID, setCurrentRoomID] = useState(null);
+    const [currentHost, setCurrentHost] = useState(null);
+    const newGame = () => setGameMode(true);
+    const joinGame = (roomID, host) => { setCurrentRoomID(roomID); setCurrentHost(host); setGameMode(true); };
+    const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
+
+    // Fenêtres dynamiques
+    const login = useToggle();
+    const gridCreate = useToggle();
+    const palette = useToggle();
+
+    // Couleur
+    const [selectedColor, setSelectedColor] = useState('#ffffffff');
+    const selectColor = (color) => setSelectedColor(color);
+
+
+    return (
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, selectedColor, selectColor }}>
+            {children}
+        </UIContext.Provider>
+    );
+};
+
+export const useUI = () => useContext(UIContext);
+</file>
+
+<file path="client/src/layouts/MainLayout.jsx">
+import { useUI } from '../context/UIProvider';
+import Navbar from '../components/features/Navbar';
+import Footer from '../components/features/Footer';
+import GridCreation from '../components/features/GridCreation';
+import LoginForm from '../components/features/LoginForm';
+import GameView from '../views/GameView';
+import LobbyView from '../views/LobbyView';
+import Sidebar from '../components/features/Sidebar';
+
+const MainLayout = ({ }) => {
+    const { gameMode, currentRoomID, login, gridCreate } = useUI();
+
+    return (
+        <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
+
+            <header className="flex-none z-50">
+                <Navbar />
+            </header>
+
+            <div className="flex flex-1 overflow-hidden relative">
+                {gameMode
+                    ? <Sidebar />
+                    : null
+                }
+
+                <main className="flex-1 relative flex justify-center items-center bg-gray-50">
+
+                    {/* Les fenetres dynamiques */}
+                    {login.isOpen && (
+                        <LoginForm />
+                    )}
+                    {gridCreate.isOpen && (
+                        <GridCreation />
+                    )}
+                    {/* En jeu, ou sur le lobby*/}
+                    {gameMode
+                        ? <GameView roomID={currentRoomID} />
+                        : <LobbyView />
+                    }
+
+                </main>
+
+            </div>
+
+
+            <footer className="flex-none z-40">
+                <Footer />
+            </footer>
+
+        </div>
+    );
+};
+
+export default MainLayout;
+</file>
+
+<file path="client/src/views/GameView.jsx">
+import React from 'react';
+import Canvas from '../components/features/Canvas'
+import ColorPalette from '../components/features/ColorPalette';
+import { useUI } from '../context/UIProvider'
+
+function GameView({ roomID }) {
+    const { palette } = useUI();
+
+    return (
+        <div >
+            <div className="absolute inset-0 overflow-auto bg-slate-200">
+                <Canvas roomID={roomID} />
+            </div>
+            {/* Les fenêtres */}
+            {palette.isOpen && (
+                <ColorPalette />
+            )}
+        </div>
+    )
+}
+
+export default GameView
+</file>
+
+<file path="client/src/views/LobbyView.jsx">
+import { useEffect, useState } from 'react';
+import { Grid3x3, RefreshCcw } from 'lucide-react';
+import { useUI } from "../context/UIProvider";
+import { socket } from '../socket';
+import RoomCard from '../components/UI/RoomCard';
+
+function LobbyView({ }) {
+
+    const { gridCreate, joinGame } = useUI();
+
+    const [rooms, setRooms] = useState([]);
+
+    // Demande au serveur de renvoyer la liste des rooms
+    const handleRefresh = () => {
+        socket.emit('getActiveGrids');
+    };
+
+    useEffect(() => {
+
+        // On demande les rooms dès qu'on arrive sur le lobby
+        socket.emit('getActiveGrids');
+
+        // Au lancement du lobby, on demande les rooms
+        socket.on('activeGrids', (data) => {
+            setRooms(Object.values(data));
+        });
+
+        // En temps réel, quand on a une create
+        socket.on('createCanvas', (data) => {
+            setRooms(prev => [...prev, data]);
+        });
+
+        // pareil mais quand une grid est fermée
+        socket.on('roomClosed', (roomId) => {
+            setRooms(prev => prev.filter(room => room.id !== roomId));
+        });
+
+
+        return () => {
+            socket.off('activeGrids');
+            socket.off('createCanvas');
+            socket.off('roomClosed');
+        };
+    }, []);
+
+    return (
+
+
+        <div className="flex w-full bg-neutral-content h-full text-center">
+            <div className="flex flex-col items-center h-screen-max w-1/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl">
+                <h1 className="font-bold uppercase text-xl pt-4">New Game</h1>
+                <button onClick={gridCreate.open} className="btn btn-primary w-full max-w-xs h-auto aspect-square rounded-3xl mt-5"><Grid3x3 size={500} color="#ffffffff" /></button>
+            </div>
+
+            <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl">
+                <div className="p-8">
+                    <h1 className="text-3xl font-bold text-slate-800 mb-8">Salons disponibles</h1>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                        {rooms.map((room) => (
+                            <RoomCard
+                                key={room.id}
+                                roomName={room.name}
+                                roomId={room.id}
+                                host={room.host}
+                                onJoin={(id, host) => {
+                                    console.log("Click sur rejoindre, id:", id);
+                                    joinGame(id, host);
+                                }}
+                            />
+                        ))}
+
+                        {/* Si pas de rooms, un petit message */}
+                        {rooms.length === 0 && (
+                            <div className="col-span-full text-center text-slate-500 py-10 italic">
+                                Aucune partie en cours. Créez-en une !
+                            </div>
+                        )}
+
+                        {/* Un bouton pour refresh pour avoir a faire f5 */}
+                        <button onClick={handleRefresh} className="btn btn-primary aspect-square rounded-3xl top-5 right-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    )
+}
+
+export default LobbyView
+</file>
+
+<file path="package.json">
+{
+  "dependencies": {
+    "lucide-react": "^0.563.0",
+    "mongoose": "^9.2.0",
+    "react-draggable": "^4.5.0"
+  }
+}
+</file>
+
+<file path="server/models/User.js">
+import mongoose from 'mongoose';
+
+const userSchema = new mongoose.Schema({
+    pseudo: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    gridID: { type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: null },
+    myGrids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: [] }],
+    colors: { type: [String], default: ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29'] }
+});
+
+const User = mongoose.model('User', userSchema);
+
+export default User;
+</file>
+
+<file path="server/package.json">
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.1.1",
+    "socket.io": "^4.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
+</file>
+
+<file path="client/src/App.jsx">
+import { AuthProvider } from './context/AuthProvider';
+import { UIProvider } from './context/UIProvider';
+import MainLayout from './layouts/MainLayout';
+
+
+function App() {
+
+
+
+
+  return (
+    <AuthProvider>
+      <UIProvider>
+        <MainLayout>
+
+
+
+        </MainLayout>
+      </UIProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
+</file>
+
+<file path="server/index.js">
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import 'dotenv/config';
+
+import User from './models/User.js';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+
+app.use(cors());
+app.use(express.json());
+
+// Connexion à la Base de Données via .env
+mongoose.connect(process.env.MONGOURL)
+  .then(() => console.log('✅ Connecté à MongoDB'))
+  .catch(err => console.error('❌ Erreur MongoDB:', err));
+
+// Route API pour tester la DB
+app.post('/api/test-db', async (req, res) => {
+  console.log("📩 Données reçues du Front :", req.body);
+
+  try {
+    const nouveauJoueur = new User({
+      pseudo: req.body.pseudo,
+      password: req.body.password
+    });
+
+    await nouveauJoueur.save();
+    console.log("✅ Sauvegardé dans MongoDB !");
+
+    res.json({ message: "C'est tout bon, c'est dans la boîte !" });
+
+  } catch (err) {
+    console.error("❌ Erreur :", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// Laisser tel quel pour l'instant, juste pour tester. Passage par Auth.js avec cryptage et tout le tsoin-tsoin
+
+// Création du serveur HTTP & Socket.io
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
+});
+
+
+// BDD des Canvas sur le serveur
+const activeGrids = {};
+
+// Connection avec socket
+io.on('connection', (socket) => {
+  console.log(`🟢 Joueur connecté : ${socket.id}`);
+
+
+  // Envoi quand demandé
+  socket.on('getActiveGrids', () => {
+    socket.emit('activeGrids', activeGrids);
+  });
+
+  //Création du Canvas avec callback pour renvoyer direct l'ID
+  socket.on('newGrid', (data, callback) => {
+    const idGrid = crypto.randomUUID(); // On lui donne une ID randomn mais unique
+    console.log(`Donnée canvas : ${data.width} et ${data.height}, nom : ${data.name}. id: ${idGrid}`)
+
+    //Save du Canvas
+    activeGrids[idGrid] = {
+      id: idGrid,
+      host: socket.id,
+      name: data.name,
+      width: data.width,
+      height: data.height,
+      pixels: {}
+    }
+
+    // le host rejoint la room
+    socket.join(idGrid)
+
+    // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
+    io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: idGrid, host: socket.id })
+
+    // On répond au host avec l'ID de sa room (comme un return)
+    callback({ id: idGrid, name: data.name, host: socket.id })
+  });
+
+  //Placement de pixel
+  socket.on('pixelPlaced', (data) => {
+    console.log(`Pixel placé : ${data.x}:${data.y} avec la couleur ${data.color} et id: ${data.roomId}`)
+
+    // Pour eviter les crash TEMPORAIRE 
+    if (!activeGrids[data.roomId]) {
+      console.log(`⚠️ Room ${data.roomId} introuvable (le serveur a peut-être redémarré)`)
+      return;
+    }
+
+    //Ajout du pixel dans le canvas
+    activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
+
+    // Envoie du pixel à tous les joueurs de la room
+    io.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
+
+  });
+
+  // Rejoindre room
+  socket.on('joinRoom', (data) => {
+    console.log(`Le joueur ${socket.id} a rejoint la room id: ${data.roomId}`)
+    socket.join(data.roomId)
+
+    // Envoi de l'état de la Grid au joueur qui vient de rejoindre
+    const grid = activeGrids[data.roomId];
+    socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name });
+  })
+
+  // Joueur quitte la room
+  socket.on('exitGame', (data) => {
+    console.log(`Le joueur ${socket.id} a quitté la room id: ${data.roomId}`)
+    socket.leave(data.roomId)
+  })
+
+  // L'host ferme la room → tout le monde est renvoyé au lobby
+  socket.on('closeRoom', (data) => {
+    console.log(`${socket.id} (host) ferme la room ${data.roomId}`)
+
+    // On prévient tous les joueurs dans la room qu'elle est fermée
+    io.emit('roomClosed', data.roomId);
+
+    // On supprime la grid de la mémoire
+    delete activeGrids[data.roomId];
+
+    // L'host quitte aussi la room socket
+    socket.leave(data.roomId)
+  })
+
+  //Deco
+  socket.on('disconnect', () => {
+    console.log(`🔴 Joueur déconnecté : ${socket.id}`);
+  });
+});
+
+//Lancement du serveur
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
+});
+</file>
+
+</files>

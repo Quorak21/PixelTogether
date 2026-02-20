@@ -16,15 +16,18 @@ function LoginForm({ }) {
     const [pseudo, setPseudo] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
 
     //Fonction pour envoyer dans la DB
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page par défaut
         setError("");
+        setSuccess("");
 
         try {
-            const response = await fetch('http://localhost:3000/api/test-db', {
+            const url = isRegistering ? '/api/register' : '/api/login';
+            const response = await fetch('http://localhost:3000' + url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pseudo, password })
@@ -33,27 +36,29 @@ function LoginForm({ }) {
             const data = await response.json();
 
             if (!response.ok) {
-                // Si le serveur répond une erreur (ex: Pseudo pris)
+                // Si erreur
                 throw new Error(data.message || "Une erreur est survenue");
             }
 
-            // SI TOUT EST OK :
+            // Si ok
             console.log("Succès :", data);
+            setPseudo('');
+            setPassword('');
+            setSuccess(data.message);
             if (isRegistering) {
-                alert("Compte créé ! Connecte-toi maintenant.");
                 toggleRegister(); // On bascule vers le login
             } else {
-                alert("Connecté ! (Token à gérer plus tard)");
-                login.close();
+
             }
 
         } catch (err) {
             setError(err.message);
         }
     };
-    return (
+
+    return ( //Interface de la page de connexion
         login.isOpen ? (
-            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 relative">
+            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
 
                 {/* 1. La Croix pour fermer */}
                 <button
@@ -89,7 +94,7 @@ function LoginForm({ }) {
                         <input
                             type="password"
                             className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="••••••••"
+                            placeholder="🚨 bdd non sécurisée 🚨"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
@@ -112,6 +117,10 @@ function LoginForm({ }) {
                         : <>Pas encore de compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">S'inscrire</span></>
                     }
                 </div>
+
+                {/* Info, Ok ou pas OK */}
+                {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+                {success && <p className="text-green-500 text-center mt-4">{success}</p>}
 
             </div>
 

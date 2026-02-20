@@ -11,8 +11,11 @@ function useToggle(initial = false) {
 export const UIProvider = ({ children }) => {
     // Mode de jeu
     const [gameMode, setGameMode] = useState(false);
+    const [currentRoomID, setCurrentRoomID] = useState(null);
+    const [currentHost, setCurrentHost] = useState(null);
     const newGame = () => setGameMode(true);
-    const exitGame = () => setGameMode(false);
+    const joinGame = (roomID, host) => { setCurrentRoomID(roomID); setCurrentHost(host); setGameMode(true); };
+    const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
 
     // Fenêtres dynamiques
     const login = useToggle();
@@ -25,7 +28,7 @@ export const UIProvider = ({ children }) => {
 
 
     return (
-        <UIContext.Provider value={{ gameMode, newGame, exitGame, login, gridCreate, palette, selectedColor, selectColor }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, selectedColor, selectColor }}>
             {children}
         </UIContext.Provider>
     );

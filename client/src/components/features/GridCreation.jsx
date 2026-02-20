@@ -12,16 +12,18 @@ function GridCreation({ }) {
     const nodeRef = React.useRef(null);
 
     // Fermeture
-    const { gridCreate, newGame } = useUI();
+    const { gridCreate, joinGame } = useUI();
 
     // Envoi info au serveur
     const createNewGrid = async (e) => {
         e.preventDefault();
 
         console.log('Envoi des valeurs : ', { xSize, ySize, gridName })
-        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName })
-        gridCreate.close()
-        newGame()
+
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
+            gridCreate.close()
+            joinGame(response.id, response.host)
+        })
 
     };
 
@@ -50,6 +52,7 @@ function GridCreation({ }) {
                                 className="text-center mt-1 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={gridName}
                                 onChange={(e) => setGridName(e.target.value)}
+                                required
                             />
                         </div>
                         <div className="flex">

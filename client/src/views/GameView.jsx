@@ -3,13 +3,13 @@ import Canvas from '../components/features/Canvas'
 import ColorPalette from '../components/features/ColorPalette';
 import { useUI } from '../context/UIProvider'
 
-function GameView({ }) {
+function GameView({ roomID }) {
     const { palette } = useUI();
 
     return (
         <div >
             <div className="absolute inset-0 overflow-auto bg-slate-200">
-                <Canvas />
+                <Canvas roomID={roomID} />
             </div>
             {/* Les fenêtres */}
             {palette.isOpen && (
