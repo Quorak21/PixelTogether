@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import User from '../models/User.js';
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 mongoose.connect(process.env.MONGOURL)
     .then(() => console.log('✅ Connecté à MongoDB'))
     .catch(err => console.error('❌ Erreur MongoDB:', err));
+
 
 // Inscription
 router.post('/register', async (req, res) => {
@@ -33,8 +35,12 @@ router.post('/register', async (req, res) => {
             password: hashedPassword
         });
 
+        // JWT token
+        const token = jwt.sign({ idUser: nouveauJoueur._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        nouveauJoueur.token = token;
+
         await nouveauJoueur.save();
-        res.json({ message: "Inscription confirmée, " + req.body.pseudo + ", tu peux maintenant te connecter." });
+        res.json({ message: "Inscription confirmée, " + req.body.pseudo + ", tu peux maintenant te connecter.", token, gridID: null });
 
     } catch (err) {
         console.error("❌ Erreur :", err);
@@ -67,13 +73,17 @@ router.post('/login', async (req, res) => {
         if (!match) {
             return res.status(400).json({ message: "Mot de passe incorrect." });
         }
+        // JWT token
+        const token = jwt.sign({ idUser: joueur._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        joueur.token = token;
 
-        res.json({ message: "Bienvenue, " + joueur.pseudo + " !" });
+        res.json({ message: "Bienvenue, " + joueur.pseudo + " !", token, gridID: joueur.gridID });
 
     } catch (err) {
         console.error("❌ Erreur :", err);
         res.status(500).json({ message: err.message });
     }
 });
+
 
 export default router;

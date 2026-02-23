@@ -1,10 +1,10 @@
-import React from 'react';
 import Canvas from '../components/features/Canvas'
 import ColorPalette from '../components/features/ColorPalette';
+import Chatbox from '../components/features/Chatbox';
 import { useUI } from '../context/UIProvider'
 
 function GameView({ roomID }) {
-    const { palette } = useUI();
+    const { palette, chatbox } = useUI();
 
     return (
         <div >
@@ -14,6 +14,9 @@ function GameView({ roomID }) {
             {/* Les fenêtres */}
             {palette.isOpen && (
                 <ColorPalette />
+            )}
+            {chatbox.isOpen && (
+                <Chatbox roomID={roomID} onClose={chatbox.close} />
             )}
         </div>
     )

@@ -3,7 +3,7 @@ import { useUI } from "../../context/UIProvider";
 
 function Sidebar() {
 
-  const { palette, selectedColor, selectColor } = useUI();
+  const { palette, selectedColor, selectColor, chatbox } = useUI();
 
 
 
@@ -17,7 +17,7 @@ function Sidebar() {
           <h3 className="font-bold text-lg ">Gomme</h3>
           <li><button onClick={() => selectColor('#ffffff')} className="btn btn-primary my-2 w-16 text-white"><Eraser color="#ffffff" /></button></li>
           <h3 className="font-bold text-lg text-left">Chat</h3>
-          <li><button className="btn btn-primary my-2 w-16 text-white"><MessageCircle color="#ffffff" /></button></li>
+          <li><button onClick={chatbox.open} className="btn btn-primary my-2 w-16 text-white"><MessageCircle color="#ffffff" /></button></li>
         </div>
       </ul>
     </div>

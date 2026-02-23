@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 function LoginForm({ }) {
-    const { login } = useUI();
+    const { login, loginUser } = useUI();
 
     const nodeRef = React.useRef(null);
 
@@ -40,15 +40,16 @@ function LoginForm({ }) {
                 throw new Error(data.message || "Une erreur est survenue");
             }
 
-            // Si ok
-            console.log("Succès :", data);
             setPseudo('');
             setPassword('');
             setSuccess(data.message);
             if (isRegistering) {
                 toggleRegister(); // On bascule vers le login
             } else {
+                localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
+                loginUser(pseudo, data.gridID); // On met le pseudo dans le context global
 
+                login.close();
             }
 
         } catch (err) {
@@ -60,7 +61,7 @@ function LoginForm({ }) {
         login.isOpen ? (
             <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
 
-                {/* 1. La Croix pour fermer */}
+                {/* Fermer */}
                 <button
                     onClick={login.close}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
@@ -68,15 +69,15 @@ function LoginForm({ }) {
                     <X size={24} />
                 </button>
 
-                {/* 2. Le Titre */}
+                {/* Titre */}
                 <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
                     {isRegistering ? "Inscription" : "Connexion"}
                 </h2>
 
-                {/* 3. Le Formulaire*/}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
 
-                    {/* Champ Pseudo */}
+                    {/*Pseudo */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo</label>
                         <input
@@ -85,10 +86,11 @@ function LoginForm({ }) {
                             placeholder="Ton pseudo..."
                             value={pseudo}
                             onChange={(e) => setPseudo(e.target.value)}
+                            required
                         />
                     </div>
 
-                    {/* Champ Mot de passe */}
+                    {/* Mot de passe */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
                         <input
@@ -97,10 +99,10 @@ function LoginForm({ }) {
                             placeholder="🚨 bdd non sécurisée 🚨"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            required
                         />
                     </div>
 
-                    {/* Bouton Valider */}
                     <button
                         type="submit"
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition"
@@ -110,7 +112,6 @@ function LoginForm({ }) {
 
                 </form>
 
-                {/* 4. Le petit lien en bas */}
                 <div className="mt-4 text-center text-sm text-gray-500">
                     {isRegistering
                         ? <>Déjà un compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">Se connecter</span></>

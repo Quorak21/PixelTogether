@@ -12,15 +12,21 @@ function GridCreation({ }) {
     const nodeRef = React.useRef(null);
 
     // Fermeture
-    const { gridCreate, joinGame } = useUI();
+    const { gridCreate, joinGame, updateGridID } = useUI();
+
+    // Récup le token pour le check côté serveur
+    const token = localStorage.getItem('token');
 
     // Envoi info au serveur
     const createNewGrid = async (e) => {
         e.preventDefault();
 
-        console.log('Envoi des valeurs : ', { xSize, ySize, gridName })
-
-        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName, token: token }, (response) => {
+            if (response.error) {
+                alert(response.error);
+                return;
+            }
+            updateGridID(response.id);
             gridCreate.close()
             joinGame(response.id, response.host)
         })

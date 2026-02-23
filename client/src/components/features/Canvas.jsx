@@ -6,7 +6,7 @@ function Canvas({ roomID }) {
 
     const canvasRef = useRef(null);
     const PIXEL_SIZE = 20;
-    const { selectedColor, exitGame } = useUI();
+    const { selectedColor, exitGame, user } = useUI();
     const [roomName, setRoomName] = useState('');
 
 
@@ -45,7 +45,7 @@ function Canvas({ roomID }) {
     useEffect(() => {
 
         // On rejoint la room socket avec notre roomID reçu via le choix de lobby
-        socket.emit('joinRoom', { roomId: roomID });
+        socket.emit('joinRoom', { roomId: roomID, pseudo: user.pseudo });
 
         // On reçoit l'état de la grid
         socket.on('gridState', (data) => {
@@ -99,8 +99,10 @@ function Canvas({ roomID }) {
         });
 
         // Si l'host ferme la room, on retourne au lobby
-        socket.on('roomClosed', () => {
-            exitGame();
+        socket.on('roomClosed', (closedRoomId) => {
+            if (closedRoomId === roomID) {
+                exitGame();
+            }
         });
 
         // Nettoyage quand le composant se démonte
