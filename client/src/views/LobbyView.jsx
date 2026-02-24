@@ -3,6 +3,7 @@ import { Grid3x3, RefreshCcw } from 'lucide-react';
 import { useUI } from "../context/UIProvider";
 import { socket } from '../socket';
 import RoomCard from '../components/UI/RoomCard';
+import Gallery from '../components/features/Gallery';
 
 function LobbyView({ }) {
 
@@ -58,9 +59,9 @@ function LobbyView({ }) {
     }, []);
 
     return (
-
-
         <div className="flex w-full bg-neutral-content h-full text-center">
+
+            <Gallery />
 
             {/* Zone personnelle*/}
             <div className="flex flex-col h-screen-max w-1/3 bg-base-200 m-3 rounded-2xl shadow-2xl relative overflow-hidden">

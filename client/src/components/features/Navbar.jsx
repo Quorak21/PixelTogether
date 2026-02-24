@@ -2,7 +2,7 @@ import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket.js';
 
 function Navbar() {
-  const { login, exitGame, currentRoomID, currentHost, user, logoutUser } = useUI();
+  const { login, exitGame, currentRoomID, currentHost, user, logoutUser, gameMode, gallery } = useUI();
 
   const handleExit = () => {
     if (currentRoomID) {
@@ -22,7 +22,12 @@ function Navbar() {
       <div className="flex-1">
         <a onClick={handleExit} className="btn btn-ghost text-xl text-primary font-bold uppercase">Pixel Together</a>
       </div>
-      <div className="flex-none">
+      <div className="flex-none flex items-center gap-2">
+        {!gameMode && (
+          <button onClick={gallery.toggle} className={`btn ${gallery.isOpen ? 'btn-neutral' : 'btn-ghost'} font-bold`}>
+            Galerie
+          </button>
+        )}
         {user ? (
           <div className="flex items-center gap-3">
             <span className="font-bold text-primary">{user.pseudo}</span>

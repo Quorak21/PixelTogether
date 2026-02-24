@@ -55,7 +55,6 @@ client/src/components/features/LoginForm.jsx
 client/src/components/features/Navbar.jsx
 client/src/components/features/Sidebar.jsx
 client/src/components/UI/RoomCard.jsx
-client/src/context/AuthProvider.jsx
 client/src/context/GameProvider.jsx
 client/src/context/UIProvider.jsx
 client/src/index.css
@@ -66,15 +65,15 @@ client/src/views/GameView.jsx
 client/src/views/LobbyView.jsx
 client/vite.config.js
 package.json
-PixelTogether_GameDesign.docx
+PixelTogether.docx
 server/index.js
+server/middleware/auth.js
 server/models/Grid.js
 server/models/User.js
 server/package.json
 server/routes/auth.js
-server/routes/grid.js
 server/services/socketManager.js
-Technique_Et_Donnees.docx
+server/test_watch.js
 </directory_structure>
 
 <files>
@@ -128,42 +127,6 @@ export default defineConfig([
 </html>
 </file>
 
-<file path="client/package.json">
-{
-  "name": "client",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "socket.io-client": "^4.8.3"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@tailwindcss/vite": "^4.1.18",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.24",
-    "daisyui": "^5.5.17",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18",
-    "vite": "^7.2.4"
-  }
-}
-</file>
-
 <file path="client/README.md">
 # React + Vite
 
@@ -181,218 +144,6 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-</file>
-
-<file path="client/src/components/features/Chatbox.jsx">
-import Draggable from 'react-draggable';
-import React from 'react';
-
-function Chatbox({ }) {
-
-    const nodeRef = React.useRef(null);
-
-
-
-
-    return (
-        chatboxIsVisible ? (
-            <Draggable
-                nodeRef={nodeRef}
-                handle=".drag-handle"
-                defaultPosition={{ x: 0, y: 0 }}
-                bounds="parent"
-            >
-
-                <div ref={nodeRef} className="chatbox w-80 bg-base-100 p-4 shadow-lg z-50 absolute right-5 bottom-5 rounded-lg">
-                    <h2 className="drag-handle cursor-move font-bold text-center text-lg mb-4 text-primary">Chatbox</h2>
-                    <button onClick={toggleChatbox} className="btn absolute top-2 right-2 bg-transparent border-0 text-xl">❌</button>
-                    <div className="chat-messages h-48 overflow-auto mb-4 p-2 border rounded-lg bg-gray-50">
-                        <div className="message mb-2">
-                            <span className="font-bold text-sm text-primary">Alice:</span>
-                            <span className="ml-2 text-sm text-gray-700">Salut tout le monde !</span>
-                        </div>
-                        <div className="message mb-2">
-                            <span className="font-bold text-sm text-primary">Bob:</span>
-                            <span className="ml-2 text-sm text-gray-700">Salut Alice !</span>
-                        </div>
-                    </div>
-                    <div className="chat-input flex">
-                        <input type="text" placeholder="Tapez votre message..." className="input input-bordered w-full" />
-                        <button className="btn btn-primary ml-2">Envoyer</button>
-                    </div>
-                </div>
-            </Draggable>
-        ) : null
-    )
-}
-
-export default Chatbox
-</file>
-
-<file path="client/src/components/features/GridCreation.jsx">
-import React, { useState } from 'react';
-import { useUI } from '../../context/UIProvider';
-import { X } from 'lucide-react';
-import { socket } from '../../socket.js';
-
-function GridCreation({ }) {
-    //Variables size grid
-    const [xSize, setXSize] = useState(40);
-    const [ySize, setYSize] = useState(40);
-    const [gridName, setGridName] = useState('');
-
-    const nodeRef = React.useRef(null);
-
-    // Fermeture
-    const { gridCreate, joinGame } = useUI();
-
-    // Envoi info au serveur
-    const createNewGrid = async (e) => {
-        e.preventDefault();
-
-        console.log('Envoi des valeurs : ', { xSize, ySize, gridName })
-
-        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
-            gridCreate.close()
-            joinGame(response.id, response.host)
-        })
-
-    };
-
-
-
-    return (
-        gridCreate.isOpen ? (
-            <div ref={nodeRef} className="w-80 bg-base-100 p-4 shadow-lg z-49 absolute item-center rounded-lg">
-                {/*Haut de la fenêtre*/}
-                <h2 className="font-bold text-center text-lg mb-4 text-primary">Création de la grille</h2>
-
-                <button onClick={gridCreate.close} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
-                    <X size={24} />
-                </button>
-
-                <div className="text-center bg-white rounded-2xl shadow-2xl pt-2 pb-2">
-                    <p className="text-lg">Entrez les dimensions voulues :</p>
-                    <p className="text-xs">Minimum : 20 / Maximum : 100</p>
-                    <form onSubmit={createNewGrid} className="space-y-4">
-
-                        <div className="flex flex-col justify-center items-center my-3 gap-3">
-                            <label htmlFor="gridName">Nom du salon :</label>
-                            <input
-                                id="gridName"
-                                type="text"
-                                className="text-center mt-1 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                value={gridName}
-                                onChange={(e) => setGridName(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex">
-
-
-                            <div className="my-3">
-                                <label htmlFor="largeurGrille" >Largeur : </label>
-                                <input
-                                    id="largeurGrille"
-                                    type="number"
-                                    min="20"
-                                    max="100"
-                                    className="text-center mt-1 w-17 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={xSize}
-                                    onChange={(e) => setXSize(parseInt(e.target.value))} />
-                            </div>
-                            <div className="my-3">
-                                <label htmlFor="hauteurGrille">Hauteur : </label>
-                                <input
-                                    id="hauteurGrille"
-                                    type="number"
-                                    min="20"
-                                    max="100"
-                                    className="text-center mt-1 w-17 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={ySize}
-                                    onChange={(e) => setYSize(parseInt(e.target.value))} />
-                            </div>
-                        </div>
-                        <button type="submit" className="w-55 mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">
-                            Créer
-                        </button>
-                    </form>
-                </div >
-
-
-            </div >
-
-        ) : null
-    )
-}
-
-export default GridCreation
-</file>
-
-<file path="client/src/components/UI/RoomCard.jsx">
-import { Grid3x3 } from 'lucide-react';
-
-function RoomCard({ roomName, roomId, host, onJoin }) {
-
-
-  return (
-    // LA CARTE GLOBALE
-    <div className="group bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-default flex flex-col">
-
-      {/* 1. ZONE IMAGE (LE HAUT DE LA CARTE) */}
-      {/* h-48 : Hauteur fixe pour que toutes les cartes soient alignées */}
-      <div className="h-30 bg-slate-100 flex items-center justify-center group-hover:bg-blue-50/50 transition-colors relative overflow-hidden relative">
-
-        {/* Un petit fond abstrait pour faire joli (optionnel) */}
-        <div className="absolute inset-0 bg-grid-slate-200/[0.5] bg-[length:20px_20px]" />
-        <Grid3x3 size={75} />
-
-      </div>
-
-      {/* 2. ZONE CONTENU (LE BAS DE LA CARTE) */}
-      {/* flex-1 : pousse le contenu pour remplir la carte si besoin */}
-      <div className="p-5 flex flex-col gap-4 justify-between border-t border-slate-100">
-        <div>
-
-          {/* LE NOM DE LA ROOM */}
-          {/* 'truncate' est VITAL : coupe le texte avec "..." s'il est trop long */}
-          <h3 className="text-xl font-bold text-slate-800 truncate" title={roomName}>
-            {roomName}
-          </h3>
-        </div>
-
-        {/* 3. LE BOUTON REJOINDRE */}
-        {/* w-full : prend toute la largeur */}
-        {/* active:scale-[0.98] : petit effet d'enfoncement au clic */}
-        <button
-          onClick={() => onJoin(roomId, host)}
-          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:ring-4 focus:ring-blue-500/30"
-        >
-          Rejoindre
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default RoomCard
-</file>
-
-<file path="client/src/context/AuthProvider.jsx">
-import { createContext, useContext, useState } from 'react';
-
-const AuthContext = createContext(null);
-
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // null = pas connecté
-
-    return (
-        <AuthContext.Provider value={{ user, setUser }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
-
-export const useAuth = () => useContext(AuthContext);
 </file>
 
 <file path="client/src/context/GameProvider.jsx">
@@ -439,20 +190,52 @@ export default defineConfig({
 })
 </file>
 
-<file path="server/models/Grid.js">
+<file path="server/middleware/auth.js">
+import jwt from 'jsonwebtoken';
+import 'dotenv/config';
 
-</file>
+// Middleware d'authentification JWT
+const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-<file path="server/routes/auth.js">
+    if (!authHeader) {
+        return res.status(401).json({ message: "Token manquant. Connecte-toi d'abord." });
+    }
 
-</file>
+    const token = authHeader.split(' ')[1]; // "Bearer abc123" → "abc123"
 
-<file path="server/routes/grid.js">
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.userId = decoded.idUser; // On attache l'ID du joueur à la requête
+        next(); // Tout est bon → on passe à la route
+    } catch (err) {
+        return res.status(401).json({ message: "Token invalide ou expiré." });
+    }
+};
 
+export default authMiddleware;
 </file>
 
 <file path="server/services/socketManager.js">
 
+</file>
+
+<file path="server/test_watch.js">
+const fs = require('fs');
+console.log('Watching index.js...');
+fs.watch('index.js', (eventType, filename) => {
+    console.log(`event type is: ${eventType}`);
+    if (filename) {
+        console.log(`filename provided: ${filename}`);
+    } else {
+        console.log('filename not provided');
+    }
+});
+
+// also try polling
+fs.watchFile('index.js', { interval: 1000 }, (curr, prev) => {
+    console.log(`polling detected change. mtime: ${curr.mtime}`);
+});
 </file>
 
 <file path=".gitignore">
@@ -498,138 +281,180 @@ Thumbs.db
 ~$*.doc
 </file>
 
-<file path="client/src/components/features/Canvas.jsx">
-import { useEffect, useRef, useState } from 'react';
-import { socket } from '../../socket.js';
+<file path="client/package.json">
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.24",
+    "daisyui": "^5.5.17",
+    "eslint": "^10.0.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.2.4"
+  }
+}
+</file>
+
+<file path="client/src/components/features/Chatbox.jsx">
+import React, { useState, useEffect } from 'react';
+import Draggable from 'react-draggable';
+import { MessageSquare, Minus, Maximize2, X, Send, Crown } from 'lucide-react';
+import { socket } from '../../socket';
 import { useUI } from '../../context/UIProvider';
 
-function Canvas({ roomID }) {
+function Chatbox({ onClose, roomID }) {
+    const nodeRef = React.useRef(null);
+    const [isMinimized, setIsMinimized] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [chatMessages, setChatMessages] = useState([]);
+    const { user, currentHost } = useUI();
 
-    const canvasRef = useRef(null);
-    const PIXEL_SIZE = 20;
-    const { selectedColor, exitGame } = useUI();
-    const [roomName, setRoomName] = useState('');
+    const toggleMinimize = () => setIsMinimized(!isMinimized);
 
-
-    // Dessin d'un pixel au clic
-    const drawPixel = (event) => {
-        const rect = canvasRef.current.getBoundingClientRect();
-
-        // Position du clic par rapport au canvas
-        const coordX = event.clientX - rect.left
-        const coordY = event.clientY - rect.top
-
-        // Convertir en coordonnées de la grid
-        const x = Math.floor(coordX / PIXEL_SIZE)
-        const y = Math.floor(coordY / PIXEL_SIZE)
-
-        console.log(`Coordonnée ${x}:${y} | Couleur: ${selectedColor}`)
-
-        // Dessiner localement
-        const ctx = canvasRef.current.getContext('2d')
-        ctx.fillStyle = selectedColor
-        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
-
-        // Redessiner la bordure si on met du blanc
-        if (selectedColor.startsWith('#ffffff')) {
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+    const sendMessage = (e) => {
+        e.preventDefault();
+        if (inputValue.trim()) {
+            socket.emit('sendMessage', { roomId: roomID, message: inputValue, pseudo: user.pseudo });
+            setInputValue('');
         }
-
-        // Envoyer au serveur
-        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
     };
 
-
-    // Création du canvas
     useEffect(() => {
+        socket.emit('getChatMessages', { roomId: roomID });
 
-        // On rejoint la room socket avec notre roomID reçu via le choix de lobby
-        socket.emit('joinRoom', { roomId: roomID });
-
-        // On reçoit l'état de la grid
-        socket.on('gridState', (data) => {
-            if (!canvasRef.current) return;
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext('2d')
-            const width = data.width;
-            const height = data.height;
-            setRoomName(data.name);
-
-            // On dimensionne le canvas
-            canvas.width = width * PIXEL_SIZE;
-            canvas.height = height * PIXEL_SIZE;
-
-            // On dessine le quadrillage
-            ctx.beginPath()
-            ctx.strokeStyle = '#ddd'
-            ctx.lineWidth = 1
-            for (let gx = 0; gx <= width; gx++) {
-                ctx.moveTo(gx * PIXEL_SIZE, 0)
-                ctx.lineTo(gx * PIXEL_SIZE, height * PIXEL_SIZE)
-            }
-            for (let gy = 0; gy <= height; gy++) {
-                ctx.moveTo(0, gy * PIXEL_SIZE)
-                ctx.lineTo(width * PIXEL_SIZE, gy * PIXEL_SIZE)
-            }
-            ctx.stroke()
-
-            // On dessine les pixels existants (s'il y en a)
-            for (const coords in data.pixels) {
-                const pixelColor = data.pixels[coords];
-                const [x, y] = coords.split(',');
-                ctx.fillStyle = pixelColor;
-                ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-            }
+        socket.on('chatMessages', (data) => {
+            setChatMessages(data);
+        });
+        socket.on('receiveMessage', (data) => {
+            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: data.message }]);
+        });
+        socket.on('joinedRoom', (data) => {
+            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: 'a rejoint la room, welcome !' }]);
         });
 
-        // écoute de ce que font les autres + dessin
-        socket.on('drawPixel', (data) => {
-            console.log(`Pixel reçu : ${data.x}:${data.y} avec la couleur ${data.color}`)
-            const ctx = canvasRef.current.getContext('2d')
-            ctx.fillStyle = data.color
-            ctx.fillRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
 
-            // Redessiner la bordure si c'est blanc
-            if (data.color.startsWith('#ffffff')) {
-                ctx.strokeStyle = '#ddd';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-            }
-        });
-
-        // Si l'host ferme la room, on retourne au lobby
-        socket.on('roomClosed', () => {
-            exitGame();
-        });
-
-        // Nettoyage quand le composant se démonte
         return () => {
-            socket.off('drawPixel')
-            socket.off('gridState')
-            socket.off('roomClosed')
+            socket.off('receiveMessage');
+            socket.off('joinedRoom');
+            socket.off('chatMessages');
         };
-
     }, []);
 
-    return (
-        <>
-            <div className="flex justify-center mt-5">
-                <h1 className="font-bold uppercase text-xl ">{roomName}</h1>
-            </div>
-            <div className="w-max h-max min-w-full min-h-full flex items-center justify-center p-8">
-                <canvas
-                    ref={canvasRef}
-                    onClick={drawPixel}
-                    className="bg-white shadow-2xl shrink-0"
-                />
-            </div >
-        </>
-    )
-};
 
-export default Canvas
+    // Calcul de la position par défaut (en bas à droite)
+    const defaultX = typeof window !== 'undefined' ? window.innerWidth - 350 : 500;
+    const defaultY = typeof window !== 'undefined' ? window.innerHeight - 450 : 500;
+
+    return (
+        <Draggable
+            nodeRef={nodeRef}
+            handle=".drag-handle"
+            defaultPosition={{ x: defaultX, y: defaultY }}
+            bounds="body"
+        >
+            <div
+                ref={nodeRef}
+                className={`fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200 ${isMinimized ? 'w-64 h-auto' : 'w-80 h-[26rem]'
+                    }`}
+            >
+                {/* Header */}
+                <div className="drag-handle bg-neutral text-neutral-content p-3 flex justify-between items-center cursor-move select-none group">
+                    <div className="flex items-center gap-2">
+                        <MessageSquare size={18} className="text-primary/80" />
+                        <span className="font-bold text-sm tracking-wide">Chat</span>
+                    </div>
+                    <div className="flex items-center gap-1 cursor-default opacity-80 group-hover:opacity-100 transition-opacity">
+                        <button
+                            onClick={toggleMinimize}
+                            className="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer"
+                            title={isMinimized ? "Agrandir" : "Réduire"}
+                        >
+                            {isMinimized ? <Maximize2 size={16} /> : <Minus size={16} />}
+                        </button>
+                        {onClose && (
+                            <button
+                                onClick={onClose}
+                                className="p-1.5 hover:bg-error hover:text-error-content rounded-lg transition-colors cursor-pointer"
+                                title="Fermer"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Body */}
+                {!isMinimized && (
+                    <>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200/30">
+                            {chatMessages.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-base-content/40 italic text-sm">
+                                    <MessageSquare size={32} className="mb-3 opacity-20" />
+                                    Aucun message pour le moment.
+                                </div>
+                            ) : (
+                                chatMessages.map((msg, i) => (
+                                    <div key={i} className="flex items-center gap-1 text-sm">
+                                        {msg.senderId === currentHost ? (
+                                            <span className="flex items-center gap-1 font-bold text-red-500 mr-2"><Crown size={16} color='black' fill='gold' /> {msg.pseudo}:</span>
+                                        ) : (
+                                            <span className="font-bold text-secondary mr-2">{msg.pseudo}:</span>
+                                        )}
+                                        <span className="text-base-content/90">{msg.message}</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Input */}
+                        <div className="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
+                            <form onSubmit={sendMessage} className="flex gap-2 relative items-center">
+                                <input
+                                    type="text"
+                                    className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
+                                    placeholder="Écrire un message..."
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                />
+                                <button
+                                    type="submit"
+                                    className="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
+                                    disabled={!inputValue.trim()}
+                                >
+                                    <Send size={14} className={inputValue.trim() ? "text-primary-content -ml-0.5" : "text-base-content/30 -ml-0.5"} />
+                                </button>
+                            </form>
+                        </div>
+                    </>
+                )}
+            </div>
+        </Draggable>
+    );
+}
+
+export default Chatbox;
 </file>
 
 <file path="client/src/components/features/ColorPalette.jsx">
@@ -703,165 +528,203 @@ function Footer() {
 export default Footer
 </file>
 
-<file path="client/src/components/features/LoginForm.jsx">
-import React from 'react';
+<file path="client/src/components/UI/RoomCard.jsx">
+import { Grid3x3 } from 'lucide-react';
+
+function RoomCard({ roomName, roomId, host, onJoin }) {
+
+
+  return (
+    // LA CARTE GLOBALE
+    <div className="group bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-default flex flex-col">
+
+      {/* 1. ZONE IMAGE (LE HAUT DE LA CARTE) */}
+      {/* h-48 : Hauteur fixe pour que toutes les cartes soient alignées */}
+      <div className="h-30 bg-slate-100 flex items-center justify-center group-hover:bg-blue-50/50 transition-colors relative overflow-hidden relative">
+
+        {/* Un petit fond abstrait pour faire joli (optionnel) */}
+        <div className="absolute inset-0 bg-grid-slate-200/[0.5] bg-[length:20px_20px]" />
+        <Grid3x3 size={75} />
+
+      </div>
+
+      {/* 2. ZONE CONTENU (LE BAS DE LA CARTE) */}
+      {/* flex-1 : pousse le contenu pour remplir la carte si besoin */}
+      <div className="p-5 flex flex-col gap-4 justify-between border-t border-slate-100">
+        <div>
+
+          {/* LE NOM DE LA ROOM */}
+          {/* 'truncate' est VITAL : coupe le texte avec "..." s'il est trop long */}
+          <h3 className="text-xl font-bold text-slate-800 truncate" title={roomName}>
+            {roomName}
+          </h3>
+        </div>
+
+        {/* 3. LE BOUTON REJOINDRE */}
+        {/* w-full : prend toute la largeur */}
+        {/* active:scale-[0.98] : petit effet d'enfoncement au clic */}
+        <button
+          onClick={() => onJoin(roomId, host)}
+          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:ring-4 focus:ring-blue-500/30"
+        >
+          Rejoindre
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default RoomCard
+</file>
+
+<file path="package.json">
+{
+  "dependencies": {
+    "lucide-react": "^0.563.0",
+    "mongoose": "^9.2.0",
+    "react-draggable": "^4.5.0"
+  }
+}
+</file>
+
+<file path="server/models/Grid.js">
+import mongoose from 'mongoose';
+
+const gridSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    width: { type: Number, required: true },
+    height: { type: Number, required: true },
+    isPublic: { type: Boolean, default: false },
+    ownerID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    isFinished: { type: Boolean, default: false },
+    pixels: { type: Map, of: String, default: {} }
+});
+
+const Grid = mongoose.model('Grid', gridSchema);
+
+export default Grid;
+</file>
+
+<file path="server/models/User.js">
+import mongoose from 'mongoose';
+
+const userSchema = new mongoose.Schema({
+    pseudo: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    gridID: { type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: null },
+    myGrids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: [] }],
+    colors: { type: [String], default: ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29'] }
+});
+
+const User = mongoose.model('User', userSchema);
+
+export default User;
+</file>
+
+<file path="client/src/components/features/GridCreation.jsx">
+import React, { useState } from 'react';
 import { useUI } from '../../context/UIProvider';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { socket } from '../../socket.js';
 
-function LoginForm({ }) {
-    const { login } = useUI();
+function GridCreation({ }) {
+    //Variables size grid
+    const [xSize, setXSize] = useState(40);
+    const [ySize, setYSize] = useState(40);
+    const [gridName, setGridName] = useState('');
 
     const nodeRef = React.useRef(null);
 
-    // Fonction pour basculer entre inscription et connexion
-    const [isRegistering, setIsRegistering] = useState(false);
-    const toggleRegister = () => { setIsRegistering(prev => !prev); setError(''); };
+    // Fermeture
+    const { gridCreate, joinGame, updateGridID } = useUI();
 
-    //Variables pour stocker les inputs
-    const [pseudo, setPseudo] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    // Récup le token pour le check côté serveur
+    const token = localStorage.getItem('token');
 
+    // Envoi info au serveur
+    const createNewGrid = async (e) => {
+        e.preventDefault();
 
-    //Fonction pour envoyer dans la DB
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Empêche le rechargement de la page par défaut
-        setError("");
-
-        try {
-            const response = await fetch('http://localhost:3000/api/test-db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pseudo, password })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                // Si le serveur répond une erreur
-                throw new Error(data.message || "Une erreur est survenue");
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName, token: token }, (response) => {
+            if (response.error) {
+                alert(response.error);
+                return;
             }
+            updateGridID(response.id);
+            gridCreate.close()
+            joinGame(response.id, response.host)
+        })
 
-            // SI TOUT EST OK :
-            console.log("Succès :", data);
-            if (isRegistering) {
-                alert("Compte créé ! Connecte-toi maintenant.");
-                toggleRegister(); // On bascule vers le login
-            } else {
-                alert("Connecté ! (Token à gérer plus tard)");
-                login.close();
-            }
-
-        } catch (err) {
-            setError(err.message);
-        }
     };
 
-    return ( //Interface de la page de connexion
-        login.isOpen ? (
-            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
 
-                {/* 1. La Croix pour fermer */}
-                <button
-                    onClick={login.close}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
-                >
+
+    return (
+        gridCreate.isOpen ? (
+            <div ref={nodeRef} className="w-80 bg-base-100 p-4 shadow-lg z-49 absolute item-center rounded-lg">
+                {/*Haut de la fenêtre*/}
+                <h2 className="font-bold text-center text-lg mb-4 text-primary">Création de la grille</h2>
+
+                <button onClick={gridCreate.close} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
                     <X size={24} />
                 </button>
 
-                {/* 2. Le Titre */}
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-                    {isRegistering ? "Inscription" : "Connexion"}
-                </h2>
+                <div className="text-center bg-white rounded-2xl shadow-2xl pt-2 pb-2">
+                    <p className="text-lg">Entrez les dimensions voulues :</p>
+                    <p className="text-xs">Minimum : 20 / Maximum : 100</p>
+                    <form onSubmit={createNewGrid} className="space-y-4">
 
-                {/* 3. Le Formulaire*/}
-                <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="flex flex-col justify-center items-center my-3 gap-3">
+                            <label htmlFor="gridName">Nom du salon :</label>
+                            <input
+                                id="gridName"
+                                type="text"
+                                className="text-center mt-1 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={gridName}
+                                onChange={(e) => setGridName(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="flex">
 
-                    {/* Champ Pseudo */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo</label>
-                        <input
-                            type="text"
-                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Ton pseudo..."
-                            value={pseudo}
-                            onChange={(e) => setPseudo(e.target.value)}
-                        />
-                    </div>
 
-                    {/* Champ Mot de passe */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-                        <input
-                            type="password"
-                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+                            <div className="my-3">
+                                <label htmlFor="largeurGrille" >Largeur : </label>
+                                <input
+                                    id="largeurGrille"
+                                    type="number"
+                                    min="20"
+                                    max="100"
+                                    className="text-center mt-1 w-17 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={xSize}
+                                    onChange={(e) => setXSize(parseInt(e.target.value))} />
+                            </div>
+                            <div className="my-3">
+                                <label htmlFor="hauteurGrille">Hauteur : </label>
+                                <input
+                                    id="hauteurGrille"
+                                    type="number"
+                                    min="20"
+                                    max="100"
+                                    className="text-center mt-1 w-17 py-2 mx-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={ySize}
+                                    onChange={(e) => setYSize(parseInt(e.target.value))} />
+                            </div>
+                        </div>
+                        <button type="submit" className="w-55 mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">
+                            Créer
+                        </button>
+                    </form>
+                </div >
 
-                    {/* Bouton Valider */}
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition"
-                    >
-                        {isRegistering ? "S'inscrire" : "Se connecter"}
-                    </button>
 
-                </form>
-
-                {/* 4. Le petit lien en bas */}
-                <div className="mt-4 text-center text-sm text-gray-500">
-                    {isRegistering
-                        ? <>Déjà un compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">Se connecter</span></>
-                        : <>Pas encore de compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">S'inscrire</span></>
-                    }
-                </div>
-
-            </div>
+            </div >
 
         ) : null
     )
 }
 
-export default LoginForm
-</file>
-
-<file path="client/src/components/features/Navbar.jsx">
-import { useUI } from "../../context/UIProvider";
-import { socket } from '../../socket.js';
-
-function Navbar() {
-  const { login, exitGame, currentRoomID, currentHost } = useUI();
-
-  const handleExit = () => {
-    if (currentRoomID) {
-      // Si c'est l'host qui quitte → on ferme la room pour tout le monde
-      if (socket.id === currentHost) {
-        socket.emit('closeRoom', { roomId: currentRoomID });
-      } else {
-        // Si c'est un joueur → il quitte juste la room
-        socket.emit('exitGame', { roomId: currentRoomID });
-      }
-    }
-    exitGame();
-  };
-
-  return (
-    <div className="navbar bg-base-100 shadow-lg z-50 relative">
-      <div className="flex-1">
-        <a onClick={handleExit} className="btn btn-ghost text-xl text-primary font-bold uppercase">Pixel Together</a>
-      </div>
-      <div className="flex-none">
-        <button onClick={login.open} className="btn btn-primary font-bold text-white">Connexion</button>
-      </div>
-    </div>
-  )
-}
-
-export default Navbar
+export default GridCreation
 </file>
 
 <file path="client/src/components/features/Sidebar.jsx">
@@ -870,7 +733,7 @@ import { useUI } from "../../context/UIProvider";
 
 function Sidebar() {
 
-  const { palette, selectedColor, selectColor } = useUI();
+  const { palette, selectedColor, selectColor, chatbox } = useUI();
 
 
 
@@ -884,7 +747,7 @@ function Sidebar() {
           <h3 className="font-bold text-lg ">Gomme</h3>
           <li><button onClick={() => selectColor('#ffffff')} className="btn btn-primary my-2 w-16 text-white"><Eraser color="#ffffff" /></button></li>
           <h3 className="font-bold text-lg text-left">Chat</h3>
-          <li><button className="btn btn-primary my-2 w-16 text-white"><MessageCircle color="#ffffff" /></button></li>
+          <li><button onClick={chatbox.open} className="btn btn-primary my-2 w-16 text-white"><MessageCircle color="#ffffff" /></button></li>
         </div>
       </ul>
     </div>
@@ -892,46 +755,6 @@ function Sidebar() {
 }
 
 export default Sidebar
-</file>
-
-<file path="client/src/context/UIProvider.jsx">
-import { createContext, useContext, useState } from 'react';
-
-const UIContext = createContext();
-
-// Hook réutilisable pour tout ce qui s'ouvre/se ferme
-function useToggle(initial = false) {
-    const [isOpen, setIsOpen] = useState(initial);
-    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false) };
-}
-
-export const UIProvider = ({ children }) => {
-    // Mode de jeu
-    const [gameMode, setGameMode] = useState(false);
-    const [currentRoomID, setCurrentRoomID] = useState(null);
-    const [currentHost, setCurrentHost] = useState(null);
-    const newGame = () => setGameMode(true);
-    const joinGame = (roomID, host) => { setCurrentRoomID(roomID); setCurrentHost(host); setGameMode(true); };
-    const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
-
-    // Fenêtres dynamiques
-    const login = useToggle();
-    const gridCreate = useToggle();
-    const palette = useToggle();
-
-    // Couleur
-    const [selectedColor, setSelectedColor] = useState('#ffffffff');
-    const selectColor = (color) => setSelectedColor(color);
-
-
-    return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, selectedColor, selectColor }}>
-            {children}
-        </UIContext.Provider>
-    );
-};
-
-export const useUI = () => useContext(UIContext);
 </file>
 
 <file path="client/src/layouts/MainLayout.jsx">
@@ -991,14 +814,486 @@ const MainLayout = ({ }) => {
 export default MainLayout;
 </file>
 
-<file path="client/src/views/GameView.jsx">
+<file path="server/routes/auth.js">
+import express from 'express';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
+import 'dotenv/config';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const router = express.Router();
+
+// Connexion à la Base de Données via .env
+mongoose.connect(process.env.MONGOURL)
+    .then(() => console.log('✅ Connecté à MongoDB'))
+    .catch(err => console.error('❌ Erreur MongoDB:', err));
+
+
+// Inscription
+router.post('/register', async (req, res) => {
+    try {
+        const pseudo = req.body.pseudo.toLowerCase().trim();
+
+        // Uniquement lettres, chiffres (3 à 20 caractères)
+        if (!/^[a-z0-9]{3,20}$/.test(pseudo)) {
+            return res.status(400).json({ message: "Le pseudo ne peut contenir que des lettres et chiffres (3-20 caractères)." });
+        }
+
+        // Min 6 caractères, au moins une majuscule, une minuscule et un chiffre
+        // if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(req.body.password)) {
+        //     return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères, une majuscule, une minuscule et un chiffre." });
+        // }
+
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        const nouveauJoueur = new User({
+            pseudo: req.body.pseudo.toLowerCase().trim(),
+            password: hashedPassword
+        });
+
+        // JWT token
+        const token = jwt.sign({ idUser: nouveauJoueur._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        nouveauJoueur.token = token;
+
+        await nouveauJoueur.save();
+        res.json({ message: "Inscription confirmée, " + req.body.pseudo + ", tu peux maintenant te connecter.", token, gridID: null });
+
+    } catch (err) {
+        console.error("❌ Erreur :", err);
+
+        // Pseudo déjà pris
+        if (err.code === 11000) {
+            return res.status(400).json({ message: "Ce pseudo est déjà pris !" });
+        }
+
+        // Champs vides ou invalides (validation Mongoose)
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ message: "Pseudo et mot de passe sont obligatoires." });
+        }
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Connexion
+router.post('/login', async (req, res) => {
+    try {
+        // On cherche le joueur par son pseudo
+        const joueur = await User.findOne({ pseudo: req.body.pseudo.toLowerCase().trim() });
+
+        if (!joueur) {
+            return res.status(400).json({ message: "Ce pseudo n'existe pas." });
+        }
+
+        // On vérifie le mot de passe hashé
+        const match = await bcrypt.compare(req.body.password, joueur.password);
+        if (!match) {
+            return res.status(400).json({ message: "Mot de passe incorrect." });
+        }
+        // JWT token
+        const token = jwt.sign({ idUser: joueur._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        joueur.token = token;
+
+        res.json({ message: "Bienvenue, " + joueur.pseudo + " !", token, gridID: joueur.gridID });
+
+    } catch (err) {
+        console.error("❌ Erreur :", err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+export default router;
+</file>
+
+<file path="client/src/components/features/Canvas.jsx">
+import { useEffect, useRef, useState } from 'react';
+import { socket } from '../../socket.js';
+import { useUI } from '../../context/UIProvider';
+
+function Canvas({ roomID }) {
+
+    const canvasRef = useRef(null);
+    const PIXEL_SIZE = 20;
+    const { selectedColor, exitGame, user } = useUI();
+    const [roomName, setRoomName] = useState('');
+
+
+    // Dessin d'un pixel au clic
+    const drawPixel = (event) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+
+        // Position du clic par rapport au canvas
+        const coordX = event.clientX - rect.left
+        const coordY = event.clientY - rect.top
+
+        // Convertir en coordonnées de la grid
+        const x = Math.floor(coordX / PIXEL_SIZE)
+        const y = Math.floor(coordY / PIXEL_SIZE)
+
+        console.log(`Coordonnée ${x}:${y} | Couleur: ${selectedColor}`)
+
+        // Dessiner localement
+        const ctx = canvasRef.current.getContext('2d')
+        ctx.fillStyle = selectedColor
+        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+
+        // Redessiner la bordure si on met du blanc
+        if (selectedColor.startsWith('#ffffff')) {
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+        }
+
+        // Envoyer au serveur
+        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
+    };
+
+
+    // Création du canvas
+    useEffect(() => {
+
+        // On rejoint la room socket avec notre roomID reçu via le choix de lobby
+        socket.emit('joinRoom', { roomId: roomID, pseudo: user.pseudo });
+
+        // On reçoit l'état de la grid
+        socket.on('gridState', (data) => {
+            if (!canvasRef.current) return;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d')
+            const width = data.width;
+            const height = data.height;
+            setRoomName(data.name);
+
+            // On dimensionne le canvas
+            canvas.width = width * PIXEL_SIZE;
+            canvas.height = height * PIXEL_SIZE;
+
+            // On dessine le quadrillage
+            ctx.beginPath()
+            ctx.strokeStyle = '#ddd'
+            ctx.lineWidth = 1
+            for (let gx = 0; gx <= width; gx++) {
+                ctx.moveTo(gx * PIXEL_SIZE, 0)
+                ctx.lineTo(gx * PIXEL_SIZE, height * PIXEL_SIZE)
+            }
+            for (let gy = 0; gy <= height; gy++) {
+                ctx.moveTo(0, gy * PIXEL_SIZE)
+                ctx.lineTo(width * PIXEL_SIZE, gy * PIXEL_SIZE)
+            }
+            ctx.stroke()
+
+            // On dessine les pixels existants (s'il y en a)
+            for (const coords in data.pixels) {
+                const pixelColor = data.pixels[coords];
+                const [x, y] = coords.split(',');
+                ctx.fillStyle = pixelColor;
+                ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            }
+        });
+
+        // écoute de ce que font les autres + dessin
+        socket.on('drawPixel', (data) => {
+            console.log(`Pixel reçu : ${data.x}:${data.y} avec la couleur ${data.color}`)
+            const ctx = canvasRef.current.getContext('2d')
+            ctx.fillStyle = data.color
+            ctx.fillRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+
+            // Redessiner la bordure si c'est blanc
+            if (data.color.startsWith('#ffffff')) {
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            }
+        });
+
+        // Si l'host ferme la room, on retourne au lobby
+        socket.on('roomClosed', (closedRoomId) => {
+            if (closedRoomId === roomID) {
+                exitGame();
+            }
+        });
+
+        // Nettoyage quand le composant se démonte
+        return () => {
+            socket.off('drawPixel')
+            socket.off('gridState')
+            socket.off('roomClosed')
+        };
+
+    }, []);
+
+    return (
+        <>
+            <div className="flex justify-center mt-5">
+                <h1 className="font-bold uppercase text-xl ">{roomName}</h1>
+            </div>
+            <div className="w-max h-max min-w-full min-h-full flex items-center justify-center p-8">
+                <canvas
+                    ref={canvasRef}
+                    onClick={drawPixel}
+                    className="bg-white shadow-2xl shrink-0"
+                />
+            </div >
+        </>
+    )
+};
+
+export default Canvas
+</file>
+
+<file path="client/src/components/features/LoginForm.jsx">
 import React from 'react';
+import { useUI } from '../../context/UIProvider';
+import { X } from 'lucide-react';
+import { useState } from 'react';
+
+function LoginForm({ }) {
+    const { login, loginUser } = useUI();
+
+    const nodeRef = React.useRef(null);
+
+    // Fonction pour basculer entre inscription et connexion
+    const [isRegistering, setIsRegistering] = useState(false);
+    const toggleRegister = () => { setIsRegistering(prev => !prev); setError(''); };
+
+    //Variables pour stocker les inputs
+    const [pseudo, setPseudo] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+
+
+    //Fonction pour envoyer dans la DB
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Empêche le rechargement de la page par défaut
+        setError("");
+        setSuccess("");
+
+        try {
+            const url = isRegistering ? '/api/register' : '/api/login';
+            const response = await fetch('http://localhost:3000' + url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pseudo, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Si erreur
+                throw new Error(data.message || "Une erreur est survenue");
+            }
+
+            setPseudo('');
+            setPassword('');
+            setSuccess(data.message);
+            if (isRegistering) {
+                toggleRegister(); // On bascule vers le login
+            } else {
+                localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
+                loginUser(pseudo, data.gridID); // On met le pseudo dans le context global
+
+                login.close();
+            }
+
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return ( //Interface de la page de connexion
+        login.isOpen ? (
+            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
+
+                {/* Fermer */}
+                <button
+                    onClick={login.close}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+                >
+                    <X size={24} />
+                </button>
+
+                {/* Titre */}
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+                    {isRegistering ? "Inscription" : "Connexion"}
+                </h2>
+
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+
+                    {/*Pseudo */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ton pseudo..."
+                            value={pseudo}
+                            onChange={(e) => setPseudo(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    {/* Mot de passe */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                        <input
+                            type="password"
+                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="🚨 bdd non sécurisée 🚨"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition"
+                    >
+                        {isRegistering ? "S'inscrire" : "Se connecter"}
+                    </button>
+
+                </form>
+
+                <div className="mt-4 text-center text-sm text-gray-500">
+                    {isRegistering
+                        ? <>Déjà un compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">Se connecter</span></>
+                        : <>Pas encore de compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">S'inscrire</span></>
+                    }
+                </div>
+
+                {/* Info, Ok ou pas OK */}
+                {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+                {success && <p className="text-green-500 text-center mt-4">{success}</p>}
+
+            </div>
+
+        ) : null
+    )
+}
+
+export default LoginForm
+</file>
+
+<file path="client/src/components/features/Navbar.jsx">
+import { useUI } from "../../context/UIProvider";
+import { socket } from '../../socket.js';
+
+function Navbar() {
+  const { login, exitGame, currentRoomID, currentHost, user, logoutUser } = useUI();
+
+  const handleExit = () => {
+    if (currentRoomID) {
+      // Si c'est l'host qui quitte → on ferme la room pour tout le monde
+      if (socket.id === currentHost) {
+        socket.emit('closeRoom', { roomId: currentRoomID });
+      } else {
+        // Si c'est un joueur → il quitte juste la room
+        socket.emit('exitGame', { roomId: currentRoomID });
+      }
+    }
+    exitGame();
+  };
+
+  return (
+    <div className="navbar bg-base-100 shadow-lg z-50 relative">
+      <div className="flex-1">
+        <a onClick={handleExit} className="btn btn-ghost text-xl text-primary font-bold uppercase">Pixel Together</a>
+      </div>
+      <div className="flex-none">
+        {user ? (
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-primary">{user.pseudo}</span>
+            <button onClick={() => { logoutUser(); handleExit(); }} className="btn btn-outline btn-sm">Déconnexion</button>
+          </div>
+        ) : (
+          <button onClick={login.open} className="btn btn-primary font-bold text-white">Connexion</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default Navbar
+</file>
+
+<file path="client/src/context/UIProvider.jsx">
+import { createContext, useContext, useState, useEffect } from 'react';
+import { socket } from '../socket';
+
+const UIContext = createContext();
+
+// Hook réutilisable pour tout ce qui s'ouvre/se ferme
+function useToggle(initial = false) {
+    const [isOpen, setIsOpen] = useState(initial);
+    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false) };
+}
+
+export const UIProvider = ({ children }) => {
+    // Mode de jeu
+    const [gameMode, setGameMode] = useState(false);
+    const [currentRoomID, setCurrentRoomID] = useState(null);
+    const [currentHost, setCurrentHost] = useState(null);
+    const newGame = () => setGameMode(true);
+    const joinGame = (roomID, host) => { setCurrentRoomID(roomID); setCurrentHost(host); setGameMode(true); };
+    const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
+
+    // Fenêtres dynamiques
+    const login = useToggle();
+    const gridCreate = useToggle();
+    const palette = useToggle();
+    const chatbox = useToggle();
+
+    // Couleur
+    const [selectedColor, setSelectedColor] = useState('#ffffffff');
+    const selectColor = (color) => setSelectedColor(color);
+
+    // Utilisateur connecté
+    const [user, setUser] = useState(null);
+    const loginUser = (pseudo, gridID) => { setUser({ pseudo, gridID }) };
+    const updateGridID = (newGridID) => { setUser(prev => prev ? { ...prev, gridID: newGridID } : null) };
+    const logoutUser = () => { setUser(null); localStorage.removeItem('token'); };
+    //auto-connect
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            socket.emit('verifyToken', token);
+        }
+
+        const handleVerifyToken = (data) => {
+            if (data && data.pseudo) {
+                loginUser(data.pseudo, data.gridID);
+            }
+        };
+
+        socket.on('verifyToken', handleVerifyToken);
+
+        return () => {
+            socket.off('verifyToken', handleVerifyToken);
+        };
+    }, []);
+
+
+    return (
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, chatbox, selectedColor, selectColor, user, loginUser, updateGridID, logoutUser }}>
+            {children}
+        </UIContext.Provider>
+    );
+};
+
+export const useUI = () => useContext(UIContext);
+</file>
+
+<file path="client/src/views/GameView.jsx">
 import Canvas from '../components/features/Canvas'
 import ColorPalette from '../components/features/ColorPalette';
+import Chatbox from '../components/features/Chatbox';
 import { useUI } from '../context/UIProvider'
 
 function GameView({ roomID }) {
-    const { palette } = useUI();
+    const { palette, chatbox } = useUI();
 
     return (
         <div >
@@ -1008,6 +1303,9 @@ function GameView({ roomID }) {
             {/* Les fenêtres */}
             {palette.isOpen && (
                 <ColorPalette />
+            )}
+            {chatbox.isOpen && (
+                <Chatbox roomID={roomID} onClose={chatbox.close} />
             )}
         </div>
     )
@@ -1025,13 +1323,27 @@ import RoomCard from '../components/UI/RoomCard';
 
 function LobbyView({ }) {
 
-    const { gridCreate, joinGame } = useUI();
+    const { gridCreate, joinGame, user, login } = useUI();
 
     const [rooms, setRooms] = useState([]);
 
     // Demande au serveur de renvoyer la liste des rooms
     const handleRefresh = () => {
         socket.emit('getActiveGrids');
+    };
+
+    // Reprise d'une grid
+    const handleResume = () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        socket.emit('resumeGrid', { token }, (response) => {
+            if (response.error) {
+                console.error(response.error);
+                return;
+            }
+            // On rejoint avec l'id et le host de la room récupérée
+            joinGame(response.id, response.host);
+        });
     };
 
     useEffect(() => {
@@ -1066,11 +1378,57 @@ function LobbyView({ }) {
 
 
         <div className="flex w-full bg-neutral-content h-full text-center">
-            <div className="flex flex-col items-center h-screen-max w-1/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl">
-                <h1 className="font-bold uppercase text-xl pt-4">New Game</h1>
-                <button onClick={gridCreate.open} className="btn btn-primary w-full max-w-xs h-auto aspect-square rounded-3xl mt-5"><Grid3x3 size={500} color="#ffffffff" /></button>
+
+            {/* Zone personnelle*/}
+            <div className="flex flex-col h-screen-max w-1/3 bg-base-200 m-3 rounded-2xl shadow-2xl relative overflow-hidden">
+                <div className="p-8 pb-4 text-left w-full">
+                    <h1 className="text-3xl font-bold text-slate-800">Jouer</h1>
+                    <p className="text-slate-500 text-sm mt-2 font-medium">Créez ou reprenez votre partie actuelle.</p>
+                </div>
+
+                <div className="flex-1 flex flex-col items-center p-6 w-full">
+                    {user ? (
+                        user.gridID ? (
+                            <button
+                                onClick={handleResume}
+                                className="group relative flex flex-col items-center justify-center w-full max-w-[280px] aspect-square rounded-[2.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_8px_30px_rgb(99,102,241,0.3)] hover:shadow-[0_8px_40px_rgb(99,102,241,0.5)] hover:-translate-y-2 transition-all duration-300 border border-white/10"
+                            >
+                                <div className="absolute inset-0 rounded-[2.5rem] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                                <div className="p-5 bg-white/10 rounded-full mb-6 shadow-inner ring-1 ring-white/20 group-hover:scale-110 transition-transform duration-300">
+                                    <Grid3x3 size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
+                                </div>
+                                <h2 className="font-bold uppercase tracking-widest text-2xl text-white mb-2 drop-shadow-sm">Continuer</h2>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={gridCreate.open}
+                                className="group relative flex flex-col items-center justify-center w-full max-w-[280px] aspect-square rounded-[2.5rem] bg-gradient-to-br from-emerald-400 to-teal-500 shadow-[0_8px_30px_rgb(16,185,129,0.3)] hover:shadow-[0_8px_40px_rgb(16,185,129,0.5)] hover:-translate-y-2 transition-all duration-300 border border-white/10"
+                            >
+                                <div className="absolute inset-0 rounded-[2.5rem] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                                <div className="p-5 bg-white/10 rounded-full mb-6 shadow-inner ring-1 ring-white/20 group-hover:scale-110 transition-transform duration-300">
+                                    <Grid3x3 size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
+                                </div>
+                                <h2 className="font-bold uppercase tracking-widest text-2xl text-white mb-2 drop-shadow-sm">New Game</h2>
+                                <span className="text-sm text-teal-50 font-medium normal-case opacity-80 group-hover:opacity-100 transition-opacity">Créer une grille</span>
+                            </button>
+                        )
+                    ) : (
+                        <button
+                            onClick={login.open}
+                            className="group relative flex flex-col items-center justify-center w-full max-w-[280px] aspect-square rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_8px_40px_rgb(59,130,246,0.5)] hover:-translate-y-2 transition-all duration-300 border border-white/10"
+                        >
+                            <div className="absolute inset-0 rounded-[2.5rem] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                            <div className="p-5 bg-white/10 rounded-full mb-6 shadow-inner ring-1 ring-white/20 group-hover:scale-110 transition-transform duration-300">
+                                <Grid3x3 size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
+                            </div>
+                            <h2 className="font-bold uppercase tracking-widest text-2xl text-white mb-2 drop-shadow-sm">New Game</h2>
+                            <span className="text-sm text-blue-100 font-medium normal-case opacity-80 group-hover:opacity-100 transition-opacity">Connexion requise</span>
+                        </button>
+                    )}
+                </div>
             </div>
 
+            {/* Zone publique */}
             <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl">
                 <div className="p-8">
                     <h1 className="text-3xl font-bold text-slate-800 mb-8">Salons disponibles</h1>
@@ -1082,10 +1440,7 @@ function LobbyView({ }) {
                                 roomName={room.name}
                                 roomId={room.id}
                                 host={room.host}
-                                onJoin={(id, host) => {
-                                    console.log("Click sur rejoindre, id:", id);
-                                    joinGame(id, host);
-                                }}
+                                onJoin={(id, host) => user ? joinGame(id, host) : login.open()}
                             />
                         ))}
 
@@ -1103,38 +1458,12 @@ function LobbyView({ }) {
                 </div>
             </div>
 
-        </div>
+        </div >
 
     )
 }
 
 export default LobbyView
-</file>
-
-<file path="package.json">
-{
-  "dependencies": {
-    "lucide-react": "^0.563.0",
-    "mongoose": "^9.2.0",
-    "react-draggable": "^4.5.0"
-  }
-}
-</file>
-
-<file path="server/models/User.js">
-import mongoose from 'mongoose';
-
-const userSchema = new mongoose.Schema({
-    pseudo: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    gridID: { type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: null },
-    myGrids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: [] }],
-    colors: { type: [String], default: ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29'] }
-});
-
-const User = mongoose.model('User', userSchema);
-
-export default User;
 </file>
 
 <file path="server/package.json">
@@ -1145,7 +1474,7 @@ export default User;
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js",
+    "dev": "node --watch index.js",
     "start": "node index.js"
   },
   "keywords": [],
@@ -1156,6 +1485,7 @@ export default User;
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.1.1",
     "socket.io": "^4.7.4"
   },
@@ -1166,7 +1496,6 @@ export default User;
 </file>
 
 <file path="client/src/App.jsx">
-import { AuthProvider } from './context/AuthProvider';
 import { UIProvider } from './context/UIProvider';
 import MainLayout from './layouts/MainLayout';
 
@@ -1177,15 +1506,13 @@ function App() {
 
 
   return (
-    <AuthProvider>
-      <UIProvider>
-        <MainLayout>
+    <UIProvider>
+      <MainLayout>
 
 
 
-        </MainLayout>
-      </UIProvider>
-    </AuthProvider>
+      </MainLayout>
+    </UIProvider>
   );
 }
 
@@ -1197,9 +1524,11 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import 'dotenv/config';
+import jwt from 'jsonwebtoken';
 
+import authRouter from './routes/auth.js';
+import Grid from './models/Grid.js';
 import User from './models/User.js';
 
 const app = express();
@@ -1208,33 +1537,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// Connexion à la Base de Données via .env
-mongoose.connect(process.env.MONGOURL)
-  .then(() => console.log('✅ Connecté à MongoDB'))
-  .catch(err => console.error('❌ Erreur MongoDB:', err));
-
-// Route API pour tester la DB
-app.post('/api/test-db', async (req, res) => {
-  console.log("📩 Données reçues du Front :", req.body);
-
-  try {
-    const nouveauJoueur = new User({
-      pseudo: req.body.pseudo,
-      password: req.body.password
-    });
-
-    await nouveauJoueur.save();
-    console.log("✅ Sauvegardé dans MongoDB !");
-
-    res.json({ message: "C'est tout bon, c'est dans la boîte !" });
-
-  } catch (err) {
-    console.error("❌ Erreur :", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-// Laisser tel quel pour l'instant, juste pour tester. Passage par Auth.js avec cryptage et tout le tsoin-tsoin
+app.use('/api', authRouter);
 
 // Création du serveur HTTP & Socket.io
 const httpServer = createServer(app);
@@ -1249,63 +1552,157 @@ const io = new Server(httpServer, {
 // BDD des Canvas sur le serveur
 const activeGrids = {};
 
+// Sauvegarde les pixels de la grid dans MongoDB
+async function saveGridToDB(roomId, grid) {
+  try {
+    await Grid.findByIdAndUpdate(roomId, { pixels: grid.pixels });
+    console.log(`💾 Grid "${grid.name}" mise à jour dans MongoDB`);
+  } catch (err) {
+    console.error(`❌ Erreur sauvegarde grid:`, err);
+  }
+}
+
 // Connection avec socket
 io.on('connection', (socket) => {
-  console.log(`🟢 Joueur connecté : ${socket.id}`);
 
+  //Reception + envoi des messages du chat
+  socket.on('sendMessage', (data) => {
+    activeGrids[data.roomId].chatMessages.push({ pseudo: data.pseudo, message: data.message, senderId: socket.id });
+    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: data.pseudo, message: data.message });
+  });
 
-  // Envoi quand demandé
+  // Recup historique messages
+  socket.on('getChatMessages', (data) => {
+    socket.emit('chatMessages', activeGrids[data.roomId].chatMessages);
+  });
+
+  // Envoi des rooms après demande du lobby
   socket.on('getActiveGrids', () => {
     socket.emit('activeGrids', activeGrids);
   });
 
-  //Création du Canvas avec callback pour renvoyer direct l'ID
-  socket.on('newGrid', (data, callback) => {
-    const idGrid = crypto.randomUUID(); // On lui donne une ID randomn mais unique
-    console.log(`Donnée canvas : ${data.width} et ${data.height}, nom : ${data.name}. id: ${idGrid}`)
+  // verification token pour log auto
+  socket.on('verifyToken', async (token) => {
+    if (!token) return;
+    try {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decodedToken.idUser);
+      if (user) {
+        socket.emit('verifyToken', { pseudo: user.pseudo, gridID: user.gridID });
+      }
+    } catch (err) {
+      console.error("Token invalide:", err.message);
+    }
+  });
 
-    //Save du Canvas
-    activeGrids[idGrid] = {
-      id: idGrid,
+  //Création du Canvas avec callback pour renvoyer direct l'ID
+  socket.on('newGrid', async (data, callback) => {
+
+    // Vérifie si le token est valide
+    const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
+
+    // Vérifier si l'utilisateur a déjà une grille
+    const user = await User.findById(decoded.idUser);
+    if (user.gridID) {
+      return callback({ error: "Vous avez déjà une partie en cours ! Veuillez la reprendre." });
+    }
+
+    // Premiere save dans la DB
+    const newGrid = new Grid({
+      name: data.name,
+      width: data.width,
+      height: data.height,
+      ownerID: decoded.idUser
+    });
+    await newGrid.save();
+    // On lie à l'user
+    await User.findByIdAndUpdate(decoded.idUser, {
+      $set: { gridID: newGrid.id },
+      $push: { myGrids: newGrid.id }
+    });
+
+
+    //Save du Canvas dans la mémoire
+    activeGrids[newGrid.id] = {
+      id: newGrid.id,
       host: socket.id,
       name: data.name,
       width: data.width,
       height: data.height,
+      chatMessages: [],
       pixels: {}
     }
 
     // le host rejoint la room
-    socket.join(idGrid)
+    socket.join(newGrid.id)
 
     // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
-    io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: idGrid, host: socket.id })
+    io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id })
 
     // On répond au host avec l'ID de sa room (comme un return)
-    callback({ id: idGrid, name: data.name, host: socket.id })
+    callback({ id: newGrid.id, name: data.name, host: socket.id })
+  });
+
+  // Reprendre la grid
+  socket.on('resumeGrid', async (data, callback) => {
+    try {
+      const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.idUser);
+
+      if (!user || !user.gridID) {
+        return callback({ error: "Aucune partie trouvée." });
+      }
+
+      const gridIdStr = user.gridID.toString();
+
+      // On récupère la grille en BDD
+      const grid = await Grid.findById(user.gridID);
+      if (!grid) {
+        return callback({ error: "Grille introuvable dans la base de données." });
+      }
+
+      // On la charge en mémoire
+      activeGrids[gridIdStr] = {
+        id: gridIdStr,
+        host: socket.id,
+        name: grid.name,
+        width: grid.width,
+        height: grid.height,
+        chatMessages: [],
+        pixels: grid.pixels ? Object.fromEntries(grid.pixels) : {}
+      };
+
+      // Prévenir le lobby qu'une "ancienne" room est à nouveau active
+      io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id });
+
+      socket.join(gridIdStr);
+      callback({ id: gridIdStr, name: activeGrids[gridIdStr].name, host: activeGrids[gridIdStr].host });
+
+    } catch (err) {
+      console.error("Erreur resumeGrid:", err);
+      callback({ error: "Erreur lors de la reprise de la partie." });
+    }
   });
 
   //Placement de pixel
   socket.on('pixelPlaced', (data) => {
     console.log(`Pixel placé : ${data.x}:${data.y} avec la couleur ${data.color} et id: ${data.roomId}`)
 
-    // Pour eviter les crash TEMPORAIRE 
-    if (!activeGrids[data.roomId]) {
-      console.log(`⚠️ Room ${data.roomId} introuvable (le serveur a peut-être redémarré)`)
-      return;
-    }
 
     //Ajout du pixel dans le canvas
     activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
 
     // Envoie du pixel à tous les joueurs de la room
-    io.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
+    socket.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
 
   });
 
   // Rejoindre room
   socket.on('joinRoom', (data) => {
-    console.log(`Le joueur ${socket.id} a rejoint la room id: ${data.roomId}`)
     socket.join(data.roomId)
+    // On prévient tout le monde que quelqu'un est entré dans la room
+    socket.to(data.roomId).emit('joinedRoom', { pseudo: data.pseudo });
+
 
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
@@ -1319,22 +1716,37 @@ io.on('connection', (socket) => {
   })
 
   // L'host ferme la room → tout le monde est renvoyé au lobby
-  socket.on('closeRoom', (data) => {
+  socket.on('closeRoom', async (data) => {
     console.log(`${socket.id} (host) ferme la room ${data.roomId}`)
+
+    // On récupère la grid AVANT de la supprimer
+    const grid = activeGrids[data.roomId];
 
     // On prévient tous les joueurs dans la room qu'elle est fermée
     io.emit('roomClosed', data.roomId);
 
-    // On supprime la grid de la mémoire
+    // On supprime de la mémoire tout de suite (pour que le lobby soit à jour)
     delete activeGrids[data.roomId];
+
+    // Puis on sauvegarde dans MongoDB en arrière-plan
+    if (grid) await saveGridToDB(data.roomId, grid);
 
     // L'host quitte aussi la room socket
     socket.leave(data.roomId)
   })
 
   //Deco
-  socket.on('disconnect', () => {
-    console.log(`🔴 Joueur déconnecté : ${socket.id}`);
+  socket.on('disconnect', async () => {
+    // On parcourt toutes les grids pour voir si ce joueur en hostait une pour la fermer
+    for (const roomId in activeGrids) {
+      if (activeGrids[roomId].host === socket.id) {
+        console.log(`🔒 Fermeture auto de la room ${roomId} (host déconnecté)`)
+        const grid = activeGrids[roomId];
+        io.emit('roomClosed', roomId);
+        delete activeGrids[roomId];
+        await saveGridToDB(roomId, grid);
+      }
+    }
   });
 });
 

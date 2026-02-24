@@ -4,11 +4,10 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import 'dotenv/config';
 import jwt from 'jsonwebtoken';
-
+import { createCanvas } from 'canvas';
 import authRouter from './routes/auth.js';
 import Grid from './models/Grid.js';
 import User from './models/User.js';
-import handleChat from './routes/chat.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,8 +43,16 @@ async function saveGridToDB(roomId, grid) {
 // Connection avec socket
 io.on('connection', (socket) => {
 
-  //chat
-  handleChat(io, socket);
+  //Reception + envoi des messages du chat
+  socket.on('sendMessage', (data) => {
+    activeGrids[data.roomId].chatMessages.push({ pseudo: data.pseudo, message: data.message, senderId: socket.id });
+    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: data.pseudo, message: data.message });
+  });
+
+  // Recup historique messages
+  socket.on('getChatMessages', (data) => {
+    socket.emit('chatMessages', activeGrids[data.roomId].chatMessages);
+  });
 
   // Envoi des rooms après demande du lobby
   socket.on('getActiveGrids', () => {
@@ -54,9 +61,16 @@ io.on('connection', (socket) => {
 
   // verification token pour log auto
   socket.on('verifyToken', async (token) => {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decodedToken.idUser);
-    socket.emit('verifyToken', { pseudo: user.pseudo, gridID: user.gridID });
+    if (!token) return;
+    try {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decodedToken.idUser);
+      if (user) {
+        socket.emit('verifyToken', { pseudo: user.pseudo, gridID: user.gridID });
+      }
+    } catch (err) {
+      console.error("Token invalide:", err.message);
+    }
   });
 
   //Création du Canvas avec callback pour renvoyer direct l'ID
@@ -79,11 +93,9 @@ io.on('connection', (socket) => {
       ownerID: decoded.idUser
     });
     await newGrid.save();
-    console.log(`💾 Grid "${data.name}, ${newGrid.id}" sauvegardée dans MongoDB`);
     // On lie à l'user
     await User.findByIdAndUpdate(decoded.idUser, {
-      $set: { gridID: newGrid.id },
-      $push: { myGrids: newGrid.id }
+      $set: { gridID: newGrid.id }
     });
 
 
@@ -94,6 +106,7 @@ io.on('connection', (socket) => {
       name: data.name,
       width: data.width,
       height: data.height,
+      chatMessages: [],
       pixels: {}
     }
 
@@ -132,6 +145,7 @@ io.on('connection', (socket) => {
         name: grid.name,
         width: grid.width,
         height: grid.height,
+        chatMessages: [],
         pixels: grid.pixels ? Object.fromEntries(grid.pixels) : {}
       };
 
@@ -148,22 +162,40 @@ io.on('connection', (socket) => {
   });
 
   //Placement de pixel
-  socket.on('pixelPlaced', (data) => {
-    console.log(`Pixel placé : ${data.x}:${data.y} avec la couleur ${data.color} et id: ${data.roomId}`)
+  socket.on('pixelPlaced', async (data) => {
 
+    if (!data.token) {
+      return;
+    }
 
-    //Ajout du pixel dans le canvas
-    activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
+    try {
+      // Vérifie si le token est valide
+      const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.idUser);
 
-    // Envoie du pixel à tous les joueurs de la room
-    socket.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
+      if (!user) {
+        return;
+      }
+
+      //Ajout du pixel dans le canvas
+      activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
+
+      // Envoie du pixel à tous les joueurs de la room
+      socket.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
+
+    } catch (err) {
+      console.error("Erreur token foireux:", err);
+      return;
+    }
 
   });
 
   // Rejoindre room
   socket.on('joinRoom', (data) => {
-    console.log(`Le joueur ${socket.id} a rejoint la room id: ${data.roomId}`)
     socket.join(data.roomId)
+    // On prévient tout le monde que quelqu'un est entré dans la room
+    socket.to(data.roomId).emit('joinedRoom', { pseudo: data.pseudo });
+
 
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
@@ -172,13 +204,11 @@ io.on('connection', (socket) => {
 
   // Joueur quitte la room
   socket.on('exitGame', (data) => {
-    console.log(`Le joueur ${socket.id} a quitté la room id: ${data.roomId}`)
     socket.leave(data.roomId)
   })
 
   // L'host ferme la room → tout le monde est renvoyé au lobby
   socket.on('closeRoom', async (data) => {
-    console.log(`${socket.id} (host) ferme la room ${data.roomId}`)
 
     // On récupère la grid AVANT de la supprimer
     const grid = activeGrids[data.roomId];
@@ -192,8 +222,56 @@ io.on('connection', (socket) => {
     // Puis on sauvegarde dans MongoDB en arrière-plan
     if (grid) await saveGridToDB(data.roomId, grid);
 
-    // L'host quitte aussi la room socket
     socket.leave(data.roomId)
+  })
+
+  // Finish du Canvas
+  socket.on('finishCanvas', async (data) => {
+    const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
+    await User.findByIdAndUpdate(decoded.idUser, {
+      $set: { gridID: null }
+    })
+
+    const grid = activeGrids[data.roomId];
+
+    //Création du canvas
+    const canvas = createCanvas(grid.width * 20, grid.height * 20);
+
+    const ctx = canvas.getContext('2d');
+
+    for (const coords in grid.pixels) {
+      const pixelColor = grid.pixels[coords];
+      const [x, y] = coords.split(',');
+      ctx.fillStyle = pixelColor;
+      ctx.fillRect(x * 20, y * 20, 20, 20);
+    }
+
+    const gridImage = canvas.toDataURL('image/webp');
+
+    // On ajoute la grille à l'utilisateur
+    await User.findByIdAndUpdate(decoded.idUser, {
+      $push: { myGrids: { nom: grid.name, image: gridImage } }
+    });
+
+    delete activeGrids[data.roomId];
+    await Grid.findByIdAndDelete(data.roomId)
+    io.emit('roomClosed', data.roomId);
+  })
+
+  //Get Gallery
+  socket.on('askGallery', async (callback) => {
+
+    const users = await User.find({ "myGrids.0": { $exists: true } });
+
+    const allGrids = users.flatMap(user =>
+      user.myGrids.map(grid => ({
+        name: grid.nom,
+        image: grid.image,
+        author: user.pseudo
+      }))
+    );
+
+    callback({ grids: allGrids });
   })
 
   //Deco

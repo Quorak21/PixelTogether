@@ -6,7 +6,7 @@ const UIContext = createContext();
 // Hook réutilisable pour tout ce qui s'ouvre/se ferme
 function useToggle(initial = false) {
     const [isOpen, setIsOpen] = useState(initial);
-    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false) };
+    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false), toggle: () => setIsOpen(prev => !prev) };
 }
 
 export const UIProvider = ({ children }) => {
@@ -23,6 +23,7 @@ export const UIProvider = ({ children }) => {
     const gridCreate = useToggle();
     const palette = useToggle();
     const chatbox = useToggle();
+    const gallery = useToggle();
 
     // Couleur
     const [selectedColor, setSelectedColor] = useState('#ffffffff');
@@ -36,15 +37,26 @@ export const UIProvider = ({ children }) => {
     //auto-connect
     useEffect(() => {
         const token = localStorage.getItem('token');
-        socket.emit('verifyToken', token);
-        socket.on('verifyToken', (data) => {
-            loginUser(data.pseudo, data.gridID)
-        });
+        if (token) {
+            socket.emit('verifyToken', token);
+        }
+
+        const handleVerifyToken = (data) => {
+            if (data && data.pseudo) {
+                loginUser(data.pseudo, data.gridID);
+            }
+        };
+
+        socket.on('verifyToken', handleVerifyToken);
+
+        return () => {
+            socket.off('verifyToken', handleVerifyToken);
+        };
     }, []);
 
 
     return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, chatbox, selectedColor, selectColor, user, loginUser, updateGridID, logoutUser }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, user, loginUser, updateGridID, logoutUser }}>
             {children}
         </UIContext.Provider>
     );
