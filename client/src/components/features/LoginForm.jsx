@@ -27,7 +27,7 @@ function LoginForm({ }) {
 
         try {
             const url = isRegistering ? '/api/register' : '/api/login';
-            const response = await fetch('http://localhost:3000' + url, {
+            const response = await fetch('https://pixeltogether.onrender.com' + url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pseudo, password })
