@@ -113,7 +113,7 @@ function LobbyView({ }) {
             </div>
 
             {/* Zone publique */}
-            <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl">
+            <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl relative">
                 <div className="p-8">
                     <h1 className="text-3xl font-bold text-slate-800 mb-8">Salons disponibles</h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -136,7 +136,7 @@ function LobbyView({ }) {
                         )}
 
                         {/* Un bouton pour refresh pour avoir a faire f5 */}
-                        <button onClick={handleRefresh} className="btn btn-primary aspect-square rounded-3xl top-5 right-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
+                        <button onClick={handleRefresh} className="absolute btn btn-primary aspect-square rounded-3xl top-5 left-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
 
                     </div>
                 </div>
