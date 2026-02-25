@@ -31,7 +31,7 @@ export const UIProvider = ({ children }) => {
 
     // Utilisateur connecté
     const [user, setUser] = useState(null);
-    const loginUser = (pseudo, gridID) => { setUser({ pseudo, gridID }) };
+    const loginUser = (pseudo, gridID, gridName) => { setUser({ pseudo, gridID, gridName: gridName || gridID }) };
     const updateGridID = (newGridID) => { setUser(prev => prev ? { ...prev, gridID: newGridID } : null) };
     const logoutUser = () => { setUser(null); localStorage.removeItem('token'); };
     //auto-connect
@@ -43,7 +43,7 @@ export const UIProvider = ({ children }) => {
 
         const handleVerifyToken = (data) => {
             if (data && data.pseudo) {
-                loginUser(data.pseudo, data.gridID);
+                loginUser(data.pseudo, data.gridID, data.gridName);
             }
         };
 

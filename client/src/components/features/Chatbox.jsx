@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
-import { MessageSquare, Minus, Maximize2, X, Send, Crown } from 'lucide-react';
+import { MessageSquare, Minus, Maximize2, X, Send, Crown, User } from 'lucide-react';
 import { socket } from '../../socket';
 import { useUI } from '../../context/UIProvider';
 
@@ -9,6 +9,8 @@ function Chatbox({ onClose, roomID }) {
     const [isMinimized, setIsMinimized] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
+    const [userPanelOpen, setUserPanelOpen] = useState(false);
+
     const { user, currentHost } = useUI();
 
     const toggleMinimize = () => setIsMinimized(!isMinimized);
@@ -19,6 +21,10 @@ function Chatbox({ onClose, roomID }) {
             socket.emit('sendMessage', { roomId: roomID, message: inputValue, pseudo: user.pseudo });
             setInputValue('');
         }
+    };
+
+    const userPanel = () => {
+        setUserPanelOpen(!userPanelOpen);
     };
 
     useEffect(() => {
@@ -66,6 +72,17 @@ function Chatbox({ onClose, roomID }) {
                         <span className="font-bold text-sm tracking-wide">Chat</span>
                     </div>
                     <div className="flex items-center gap-1 cursor-default opacity-80 group-hover:opacity-100 transition-opacity">
+                        {/* Bouton joueur */}
+                        {!isMinimized && (
+                            <button
+                                onClick={userPanel}
+                                className="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer"
+                                title="Joueurs"
+                            >
+                                <User size={16} />
+                            </button>
+                        )}
+                        {/* Bouton minimiser / agrandir */}
                         <button
                             onClick={toggleMinimize}
                             className="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer"
@@ -73,6 +90,7 @@ function Chatbox({ onClose, roomID }) {
                         >
                             {isMinimized ? <Maximize2 size={16} /> : <Minus size={16} />}
                         </button>
+                        {/* Bouton fermer */}
                         {onClose && (
                             <button
                                 onClick={onClose}

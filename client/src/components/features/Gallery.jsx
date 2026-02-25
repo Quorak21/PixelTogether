@@ -6,6 +6,7 @@ import { socket } from '../../socket.js';
 function Gallery() {
     const { gallery } = useUI();
     const [galleryData, setGalleryData] = useState([]);
+    const [fullScreenImage, setFullScreenImage] = useState(null);
 
     useEffect(() => {
         if (gallery.isOpen) {
@@ -19,12 +20,15 @@ function Gallery() {
 
     if (!gallery.isOpen) return null;
 
+    const fullScreen = (item) => {
+        setFullScreenImage(item);
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pointer-events-none text-left">
             {/* Overlay sombre */}
             <div
                 className="absolute inset-0 bg-base-300/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300"
-                onClick={gallery.close}
             ></div>
 
             {/* Fenêtre modale */}
@@ -48,7 +52,7 @@ function Gallery() {
                 <div className="flex-1 overflow-y-auto p-6 sm:p-10 custom-scrollbar">
                     <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
                         {galleryData.map((item, index) => (
-                            <div key={index} className="group relative break-inside-avoid mt-0 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 bg-base-200/50 border border-base-content/5 cursor-pointer">
+                            <div key={index} onClick={() => fullScreen(item)} className="group relative break-inside-avoid mt-0 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 bg-white border border-base-content/5 cursor-pointer">
                                 <div className="block overflow-hidden">
                                     <img
                                         src={item.image}
@@ -76,6 +80,29 @@ function Gallery() {
                         ))}
                     </div>
                 </div>
+                {fullScreenImage && (
+                    <div
+                        className="fixed inset-0 bg-black/96 backdrop-blur-sm flex justify-center items-center z-[9999] p-4"
+                        onClick={() => setFullScreenImage(null)}
+                    >
+
+                        <button
+                            className="absolute hover:bg-accent/50 top-6 right-6 text-white rounded-xl shadow-lg hover:text-accent-content transition-colors"
+                            onClick={() => setFullScreenImage(null)}
+                        >
+                            <X size={36} />
+                        </button>
+
+
+
+                        <img
+                            src={fullScreenImage.image}
+                            alt={fullScreenImage.name}
+                            className="max-w-[85vw] max-h-[85vh] object-contain [image-rendering:pixelated] bg-white rounded-sm"
+                        />
+                    </div>
+                )}
+
 
             </div>
 

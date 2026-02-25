@@ -8,7 +8,7 @@ function Sidebar() {
 
 
   return (
-    <div className="w-30 h-full bg-base-100 p-4 shadow-lg z-10 hidden md:block">
+    <div className="w-30 h-full bg-base-100 p-4 shadow-lg z-10">
       <ul className="menu bg-base-100 w-full rounded-box p-0">
         <div className="flex flex-col justify-center items-center w-full">
           <h3 className="font-bold text-lg ">Palette</h3>

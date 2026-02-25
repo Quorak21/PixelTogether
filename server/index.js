@@ -55,7 +55,9 @@ io.on('connection', (socket) => {
   });
 
   // Envoi des rooms après demande du lobby
-  socket.on('getActiveGrids', () => {
+  socket.on('getActiveGrids', (data) => {
+
+
     socket.emit('activeGrids', activeGrids);
   });
 
@@ -236,8 +238,11 @@ io.on('connection', (socket) => {
 
     //Création du canvas
     const canvas = createCanvas(grid.width * 20, grid.height * 20);
-
     const ctx = canvas.getContext('2d');
+
+    // Fond blanc
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (const coords in grid.pixels) {
       const pixelColor = grid.pixels[coords];

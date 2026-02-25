@@ -38,6 +38,7 @@ function LobbyView({ }) {
         // Au lancement du lobby, on demande les rooms
         socket.on('activeGrids', (data) => {
             setRooms(Object.values(data));
+
         });
 
         // En temps réel, quand on a une create
@@ -52,11 +53,13 @@ function LobbyView({ }) {
 
 
         return () => {
+
             socket.off('activeGrids');
             socket.off('createCanvas');
             socket.off('roomClosed');
         };
     }, []);
+
 
     return (
         <div className="flex w-full bg-neutral-content h-full text-center">
@@ -65,7 +68,7 @@ function LobbyView({ }) {
 
             {/* Zone personnelle*/}
             <div className="flex flex-col h-screen-max w-1/3 bg-base-200 m-3 rounded-2xl shadow-2xl relative overflow-hidden">
-                <div className="p-8 pb-4 text-left w-full">
+                <div className="p-8 pb-4 text-center w-full">
                     <h1 className="text-3xl font-bold text-slate-800">Jouer</h1>
                     <p className="text-slate-500 text-sm mt-2 font-medium">Créez ou reprenez votre partie actuelle.</p>
                 </div>

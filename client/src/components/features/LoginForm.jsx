@@ -47,7 +47,7 @@ function LoginForm({ }) {
                 toggleRegister(); // On bascule vers le login
             } else {
                 localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
-                loginUser(pseudo, data.gridID); // On met le pseudo dans le context global
+                loginUser(pseudo, data.gridID, data.gridName); // On met le pseudo dans le context global
 
                 login.close();
             }

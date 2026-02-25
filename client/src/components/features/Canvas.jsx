@@ -6,7 +6,7 @@ function Canvas({ roomID }) {
 
     const canvasRef = useRef(null);
     const PIXEL_SIZE = 20;
-    const { selectedColor, exitGame, user, currentHost } = useUI();
+    const { selectedColor, exitGame, user, currentHost, updateGridID } = useUI();
     const [roomName, setRoomName] = useState('');
 
     // Création du canvas
@@ -119,6 +119,7 @@ function Canvas({ roomID }) {
 
         const token = localStorage.getItem('token');
         socket.emit('finishCanvas', { roomId: roomID, token });
+        updateGridID(null);
         exitGame();
 
     };
