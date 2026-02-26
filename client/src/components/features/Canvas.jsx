@@ -129,45 +129,74 @@ function Canvas({ roomID }) {
     };
 
     // Gestion déplacement avec click molette
-    const handleDraggingStart = (event) => {
-        if (event.button === 1) {
+    // Déplacement Unifié (PC Molette + Mobile Touch)
+    const hasMoved = useRef(false);
+    const pinchDist = useRef(null);
+
+    const handlePointerDown = (event) => {
+        // Clic molette (PC) OU 1 doigt (Mobile)
+        if (event.button === 1 || event.pointerType === 'touch') {
             setIsDragging(true);
+            hasMoved.current = false;
             setDragStart({ x: event.clientX - position.x, y: event.clientY - position.y });
         }
     };
 
-    const handleDragging = (event) => {
-
+    const handlePointerMove = (event) => {
         if (isDragging) {
-            setPosition({
-                x: event.clientX - dragStart.x,
-                y: event.clientY - dragStart.y
-            });
+            hasMoved.current = true;
+            let newX = event.clientX - dragStart.x;
+            let newY = event.clientY - dragStart.y;
+
+            if (canvasRef.current) {
+                const canvas = canvasRef.current;
+                const boundX = Math.max(0, (canvas.width * scale - window.innerWidth) / 2) + 150;
+                const boundY = Math.max(0, (canvas.height * scale - window.innerHeight) / 2) + 150;
+                newX = Math.max(-boundX, Math.min(boundX, newX));
+                newY = Math.max(-boundY, Math.min(boundY, newY));
+            }
+            setPosition({ x: newX, y: newY });
         }
     };
 
-    const handleDraggingEnd = (event) => {
-        if (event.button === 1) {
-            setIsDragging(false);
+    const handlePointerUp = () => {
+        setIsDragging(false);
+        pinchDist.current = null;
+    };
+
+
+    const handleTouchZoom = (e) => {
+        if (e.touches.length === 2) {
+            const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            if (pinchDist.current) setScale(s => Math.min(Math.max(s * (dist / pinchDist.current), 0.5), 3));
+            pinchDist.current = dist;
         }
+    };
+
+    // Wrapper pour le clic qui draw seulement s'il n'y a pas eu de pan (déplacement)
+    const handleDraw = (e) => {
+        if (!hasMoved.current) drawPixel(e);
+        hasMoved.current = false;
     };
 
     return (
         <>
-            <div className="flex justify-center mt-5">
-                <h1 className="font-bold uppercase py-2.5 text-xl ">{roomName}</h1>
+            <div className="absolute w-full z-10 flex justify-center mt-5 pt-12 md:pt-0 pointer-events-none">
+                <h1 className="font-bold uppercase py-2.5 text-xl bg-slate-200/80 rounded-lg px-4 backdrop-blur-sm pointer-events-auto">{roomName}</h1>
             </div>
+
             <div
-                className="w-max h-max min-w-full min-h-full flex items-center justify-center p-3"
+                className="w-full h-full flex items-center justify-center p-3 touch-none"
                 onWheel={handleWheel}
-                onMouseDown={handleDraggingStart}
-                onMouseMove={handleDragging}
-                onMouseUp={handleDraggingEnd}
-                onMouseLeave={handleDraggingEnd}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                onTouchMove={handleTouchZoom}
             >
                 <canvas
                     ref={canvasRef}
-                    onClick={drawPixel}
+                    onPointerUp={handleDraw}
                     className="bg-white shadow-2xl shrink-0"
                     style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-in-out', transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
                 />
