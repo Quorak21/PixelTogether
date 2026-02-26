@@ -8,12 +8,14 @@ function GameView({ roomID }) {
     const { palette, chatbox } = useUI();
 
     return (
-        <div >
+        <div className="absolute inset-0">
+            {/* Zone du jeu */}
             <div className="absolute inset-0 overflow-auto bg-slate-200">
                 <Canvas roomID={roomID} />
-                <GameUI roomID={roomID} />
-
             </div>
+
+            {/* UI */}
+            <GameUI roomID={roomID} />
             {/* Les fenêtres */}
             {palette.isOpen && (
                 <ColorPalette />
