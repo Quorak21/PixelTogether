@@ -128,9 +128,9 @@ function Canvas({ roomID }) {
         }
     };
 
-    // Gestion déplacement avec click molette
-    // Déplacement Unifié (PC Molette + Mobile Touch)
+    // Gestion déplacement avec click molette ou Toucher
     const hasMoved = useRef(false);
+    const pointerDownPos = useRef({ x: 0, y: 0 });
     const pinchDist = useRef(null);
 
     const handlePointerDown = (event) => {
@@ -138,24 +138,30 @@ function Canvas({ roomID }) {
         if (event.button === 1 || event.pointerType === 'touch') {
             setIsDragging(true);
             hasMoved.current = false;
+            pointerDownPos.current = { x: event.clientX, y: event.clientY };
             setDragStart({ x: event.clientX - position.x, y: event.clientY - position.y });
         }
     };
 
     const handlePointerMove = (event) => {
         if (isDragging) {
-            hasMoved.current = true;
+            // Marge de tolérance (10px) pour éviter qu'un simple tap tremblant sur mobile soit considéré comme un drag
+            const dist = Math.hypot(event.clientX - pointerDownPos.current.x, event.clientY - pointerDownPos.current.y);
+            if (dist > 10) {
+                hasMoved.current = true;
+            }
+
             let newX = event.clientX - dragStart.x;
             let newY = event.clientY - dragStart.y;
 
-            if (canvasRef.current) {
+            if (canvasRef.current && hasMoved.current) {
                 const canvas = canvasRef.current;
                 const boundX = Math.max(0, (canvas.width * scale - window.innerWidth) / 2) + 150;
                 const boundY = Math.max(0, (canvas.height * scale - window.innerHeight) / 2) + 150;
                 newX = Math.max(-boundX, Math.min(boundX, newX));
                 newY = Math.max(-boundY, Math.min(boundY, newY));
+                setPosition({ x: newX, y: newY });
             }
-            setPosition({ x: newX, y: newY });
         }
     };
 
@@ -175,14 +181,17 @@ function Canvas({ roomID }) {
 
     // Wrapper pour le clic qui draw seulement s'il n'y a pas eu de pan (déplacement)
     const handleDraw = (e) => {
-        if (!hasMoved.current) drawPixel(e);
+        // e.button !== 1 empêche de dessiner si on fait juste le clic molette sans bouger
+        if (!hasMoved.current && e.button !== 1) {
+            drawPixel(e);
+        }
         hasMoved.current = false;
     };
 
     return (
         <>
             <div className="absolute w-full z-10 flex justify-center mt-5 pt-12 md:pt-0 pointer-events-none">
-                <h1 className="font-bold uppercase py-2.5 text-xl bg-slate-200/80 rounded-lg px-4 backdrop-blur-sm pointer-events-auto">{roomName}</h1>
+                <h1 className="font-bold uppercase py-2.5 text-xl bg-slate-200/80 rounded-lg px-4 backdrop-blur-sm pointer-events-auto hidden md:block">{roomName}</h1>
             </div>
 
             <div
