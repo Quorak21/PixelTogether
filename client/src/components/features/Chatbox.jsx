@@ -10,6 +10,7 @@ function Chatbox({ onClose, roomID }) {
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
     const [userPanelOpen, setUserPanelOpen] = useState(false);
+    const [playersList, setPlayersList] = useState([]);
 
     const { user, currentHost } = useUI();
 
@@ -25,6 +26,7 @@ function Chatbox({ onClose, roomID }) {
 
     const userPanel = () => {
         setUserPanelOpen(!userPanelOpen);
+        socket.emit('getPlayersList', { roomId: roomID });
     };
 
     useEffect(() => {
@@ -38,6 +40,13 @@ function Chatbox({ onClose, roomID }) {
         });
         socket.on('joinedRoom', (data) => {
             setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: 'a rejoint la room, welcome !' }]);
+            socket.emit('getPlayersList', { roomId: roomID });
+        });
+        socket.on('exitGame', (data) => {
+            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.user, message: 'a quitté la room, bye !' }]);
+        });
+        socket.on('playersList', (data) => {
+            setPlayersList(data || []);
         });
 
 
@@ -45,6 +54,7 @@ function Chatbox({ onClose, roomID }) {
             socket.off('receiveMessage');
             socket.off('joinedRoom');
             socket.off('chatMessages');
+            socket.off('playersList');
         };
     }, []);
 
@@ -57,6 +67,7 @@ function Chatbox({ onClose, roomID }) {
         <Draggable
             nodeRef={nodeRef}
             handle=".drag-handle"
+            cancel="button"
             defaultPosition={{ x: defaultX, y: defaultY }}
             bounds="body"
         >
@@ -107,10 +118,29 @@ function Chatbox({ onClose, roomID }) {
                 {!isMinimized && (
                     <>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200/30">
-                            {chatMessages.length === 0 ? (
+                            {userPanelOpen ? (
+                                <>
+                                    <h1 className="text-center font-bold text-lg underline">Liste des joueurs</h1>
+                                    <ul className="flex flex-col gap-2">
+                                        {playersList.map((player, i) => (
+                                            <li
+                                                key={i}
+                                                className="flex items-center gap-3 bg-base-100 px-4 py-2 rounded-lg shadow-sm border border-base-200"
+                                            >
+                                                <span className="relative flex h-2.5 w-2.5">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                                                </span>
+                                                <span className="text-sm font-bold">{player}</span>
+                                                {player === user.pseudo && <span className="text-xs text-gray-400 ml-auto"><Crown size={16} color='black' fill='gold' /></span>}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            ) : chatMessages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-base-content/40 italic text-sm">
                                     <MessageSquare size={32} className="mb-3 opacity-20" />
-                                    Aucun message pour le moment.
+                                    <p>Aucun message pour le moment.</p>
                                 </div>
                             ) : (
                                 chatMessages.map((msg, i) => (
@@ -125,30 +155,30 @@ function Chatbox({ onClose, roomID }) {
                                 ))
                             )}
                         </div>
-
-                        {/* Input */}
-                        <div className="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
-                            <form onSubmit={sendMessage} className="flex gap-2 relative items-center">
-                                <input
-                                    type="text"
-                                    className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
-                                    placeholder="Écrire un message..."
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                />
-                                <button
-                                    type="submit"
-                                    className="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
-                                    disabled={!inputValue.trim()}
-                                >
-                                    <Send size={14} className={inputValue.trim() ? "text-primary-content -ml-0.5" : "text-base-content/30 -ml-0.5"} />
-                                </button>
-                            </form>
-                        </div>
+                        {!userPanelOpen && (
+                            <div className="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
+                                <form onSubmit={sendMessage} className="flex gap-2 relative items-center">
+                                    <input
+                                        type="text"
+                                        className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
+                                        placeholder="Écrire un message..."
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
+                                        disabled={!inputValue.trim()}
+                                    >
+                                        <Send size={14} className={inputValue.trim() ? "text-primary-content -ml-0.5" : "text-base-content/30 -ml-0.5"} />
+                                    </button>
+                                </form>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
-        </Draggable>
+        </Draggable >
     );
 }
 

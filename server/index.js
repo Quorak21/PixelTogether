@@ -109,6 +109,7 @@ io.on('connection', (socket) => {
       width: data.width,
       height: data.height,
       chatMessages: [],
+      playersList: [],
       pixels: {}
     }
 
@@ -148,6 +149,7 @@ io.on('connection', (socket) => {
         width: grid.width,
         height: grid.height,
         chatMessages: [],
+        playersList: [],
         pixels: grid.pixels ? Object.fromEntries(grid.pixels) : {}
       };
 
@@ -192,22 +194,37 @@ io.on('connection', (socket) => {
 
   });
 
+  socket.on('getPlayersList', (data) => {
+    socket.emit('playersList', activeGrids[data.roomId].playersList);
+  });
+
   // Rejoindre room
   socket.on('joinRoom', (data) => {
-    socket.join(data.roomId)
+    socket.join(data.roomId);
+
+    socket.data.pseudo = data.pseudo;
+    socket.data.roomId = data.roomId;
+
+    activeGrids[data.roomId].playersList.push(data.pseudo);
     // On prévient tout le monde que quelqu'un est entré dans la room
     socket.to(data.roomId).emit('joinedRoom', { pseudo: data.pseudo });
-
 
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
     socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name });
-  })
+  });
 
   // Joueur quitte la room
   socket.on('exitGame', (data) => {
-    socket.leave(data.roomId)
-  })
+    if (activeGrids[data.roomId]) {
+      activeGrids[data.roomId].playersList = activeGrids[data.roomId].playersList.filter(p => p !== data.user);
+
+      // On prévient tous les joueurs que la liste a changé
+      io.in(data.roomId).emit('playersList', activeGrids[data.roomId].playersList);
+      socket.to(data.roomId).emit('exitGame', { user: data.user });
+    }
+    socket.leave(data.roomId);
+  });
 
   // L'host ferme la room → tout le monde est renvoyé au lobby
   socket.on('closeRoom', async (data) => {

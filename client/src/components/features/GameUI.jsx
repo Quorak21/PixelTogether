@@ -40,15 +40,11 @@ function GameUI({ roomID }) {
       {/* Haut droite */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex flex-col items-center gap-3 sm:gap-4 pointer-events-auto">
 
-        <div
+        <button
           className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.18)] border-[3px] border-[#7a9dabc0] backdrop-blur-md flex-shrink-0"
           style={{ backgroundColor: selectedColor }}
-          title="Couleur actuelle"
+          onClick={palette.open} title="Ouvrir la palette"
         />
-
-        <GlassButton onClick={palette.open} title="Ouvrir la palette">
-          <Palette className="w-6 h-6 sm:w-7 sm:h-7" />
-        </GlassButton>
 
         <GlassButton onClick={() => selectColor('#ffffff')} title="Gomme">
           <Eraser className="w-6 h-6 sm:w-7 sm:h-7" />

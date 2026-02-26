@@ -15,7 +15,7 @@ function ColorPalette({ }) {
             <Draggable
                 nodeRef={nodeRef}
                 handle=".drag-handle"
-                defaultPosition={{ x: 0, y: 0 }}
+                defaultPosition={{ x: window.innerWidth - 500, y: 0 }}
                 bounds="parent"
             >
 

@@ -11,7 +11,7 @@ function Navbar() {
         socket.emit('closeRoom', { roomId: currentRoomID });
       } else {
         // Si c'est un joueur → il quitte juste la room
-        socket.emit('exitGame', { roomId: currentRoomID });
+        socket.emit('exitGame', { roomId: currentRoomID, user: user.pseudo });
       }
     }
     exitGame();
