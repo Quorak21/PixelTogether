@@ -9,7 +9,7 @@ function GameView({ roomID }) {
 
     return (
         <div >
-            <div className="absolute inset-0 overflow-hidden bg-slate-200">
+            <div className="absolute inset-0 overflow-auto bg-slate-200">
                 <Canvas roomID={roomID} />
                 <GameUI roomID={roomID} />
 

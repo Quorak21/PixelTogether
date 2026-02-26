@@ -59,7 +59,7 @@ function LoginForm({ }) {
 
     return ( //Interface de la page de connexion
         login.isOpen ? (
-            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
+            <div ref={nodeRef} className="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-[90%] max-w-sm z-50 absolute">
 
                 {/* Fermer */}
                 <button
