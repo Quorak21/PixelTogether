@@ -171,11 +171,23 @@ function Canvas({ roomID }) {
     };
 
 
-    const handleTouchZoom = (e) => {
+    // Zoom Pinch ultra-compact (Mobile)
+    const handleTouchZoomStart = (e) => {
         if (e.touches.length === 2) {
-            const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-            if (pinchDist.current) setScale(s => Math.min(Math.max(s * (dist / pinchDist.current), 0.5), 3));
-            pinchDist.current = dist;
+            pinchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            setIsDragging(false);
+        }
+    };
+
+    const handleTouchZoom = (e) => {
+        if (e.touches.length === 2 && pinchDist.current) {
+            const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            // On calcule un différentiel très faible et on l'applique
+            const diff = currentDist - pinchDist.current;
+
+            // Sensibilité (0.01)
+            setScale(s => Math.min(Math.max(s + (diff * 0.01), 0.5), 3));
+            pinchDist.current = currentDist;
         }
     };
 
@@ -201,12 +213,13 @@ function Canvas({ roomID }) {
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 onPointerLeave={handlePointerUp}
+                onTouchStart={handleTouchZoomStart}
                 onTouchMove={handleTouchZoom}
             >
                 <canvas
                     ref={canvasRef}
                     onPointerUp={handleDraw}
-                    className="bg-white shadow-2xl shrink-0"
+                    className="bg-white shadow-2xl shrink-0 cursor-crosshair"
                     style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-in-out', transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
                 />
             </div >
