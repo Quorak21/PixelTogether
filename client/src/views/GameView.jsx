@@ -2,7 +2,7 @@ import Canvas from '../components/features/Canvas'
 import ColorPalette from '../components/features/ColorPalette';
 import Chatbox from '../components/features/Chatbox';
 import { useUI } from '../context/UIProvider'
-import GameUI from '../components/features/gameUI';
+import GameUI from '../components/features/GameUI';
 
 function GameView({ roomID }) {
     const { palette, chatbox } = useUI();
