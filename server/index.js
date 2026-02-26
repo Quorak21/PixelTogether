@@ -263,6 +263,20 @@ io.on('connection', (socket) => {
     io.emit('roomClosed', data.roomId);
   })
 
+  // Delete Canvas
+  socket.on('deleteCanvas', async (data) => {
+    const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
+    await User.findByIdAndUpdate(decoded.idUser, {
+      $set: { gridID: null }
+    })
+
+    // Delete dans la mémoire
+    delete activeGrids[data.roomId];
+    // Delete dans la DB
+    await Grid.findByIdAndDelete(data.roomId)
+    io.emit('roomClosed', data.roomId);
+  })
+
   //Get Gallery
   socket.on('askGallery', async (callback) => {
 

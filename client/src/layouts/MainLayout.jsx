@@ -5,7 +5,6 @@ import GridCreation from '../components/features/GridCreation';
 import LoginForm from '../components/features/LoginForm';
 import GameView from '../views/GameView';
 import LobbyView from '../views/LobbyView';
-import Sidebar from '../components/features/Sidebar';
 
 const MainLayout = ({ }) => {
     const { gameMode, currentRoomID, login, gridCreate } = useUI();
@@ -18,10 +17,6 @@ const MainLayout = ({ }) => {
             </header>
 
             <div className="flex flex-1 overflow-hidden relative">
-                {gameMode
-                    ? <Sidebar />
-                    : null
-                }
 
                 <main className="flex-1 relative flex justify-center items-center bg-gray-50">
 

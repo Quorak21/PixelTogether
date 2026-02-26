@@ -6,8 +6,14 @@ function Canvas({ roomID }) {
 
     const canvasRef = useRef(null);
     const PIXEL_SIZE = 20;
-    const { selectedColor, exitGame, user, currentHost, updateGridID } = useUI();
+    const { selectedColor, exitGame, user } = useUI();
     const [roomName, setRoomName] = useState('');
+    const [scale, setScale] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+
 
     // Création du canvas
     useEffect(() => {
@@ -86,14 +92,12 @@ function Canvas({ roomID }) {
         const rect = canvasRef.current.getBoundingClientRect();
 
         // Position du clic par rapport au canvas
-        const coordX = event.clientX - rect.left
-        const coordY = event.clientY - rect.top
+        const coordX = (event.clientX - rect.left) / scale;
+        const coordY = (event.clientY - rect.top) / scale;
 
         // Convertir en coordonnées de la grid
         const x = Math.floor(coordX / PIXEL_SIZE)
         const y = Math.floor(coordY / PIXEL_SIZE)
-
-        console.log(`Coordonnée ${x}:${y} | Couleur: ${selectedColor}`)
 
         // Dessiner localement
         const ctx = canvasRef.current.getContext('2d')
@@ -114,29 +118,58 @@ function Canvas({ roomID }) {
         socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID, token });
     };
 
-    // Fin du canvas
-    const finishCanvas = () => {
+    // Gestion zoom
+    const handleWheel = (event) => {
+        event.preventDefault();
+        if (event.deltaY < 0) {
+            setScale(Math.min(scale * 1.1, 2));
+        } else {
+            setScale(Math.max(scale / 1.1, 0.5));
+        }
+    };
 
-        const token = localStorage.getItem('token');
-        socket.emit('finishCanvas', { roomId: roomID, token });
-        updateGridID(null);
-        exitGame();
+    // Gestion déplacement avec click molette
+    const handleDraggingStart = (event) => {
+        if (event.button === 1) {
+            setIsDragging(true);
+            setDragStart({ x: event.clientX - position.x, y: event.clientY - position.y });
+        }
+    };
 
+    const handleDragging = (event) => {
+
+        if (isDragging) {
+            setPosition({
+                x: event.clientX - dragStart.x,
+                y: event.clientY - dragStart.y
+            });
+        }
+    };
+
+    const handleDraggingEnd = (event) => {
+        if (event.button === 1) {
+            setIsDragging(false);
+        }
     };
 
     return (
         <>
             <div className="flex justify-center mt-5">
                 <h1 className="font-bold uppercase py-2.5 text-xl ">{roomName}</h1>
-                {currentHost === socket.id && (
-                    <button onClick={finishCanvas} className="relative px-6 py-2.5 font-bold text-white rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:bg-gradient-to-br shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] transition-all duration-300 ease-out mx-5 transform hover:-translate-y-1 active:translate-y-0 active:scale-95 flex items-center gap-2">Terminer (⚠️ permanent ⚠️)</button>
-                )}
             </div>
-            <div className="w-max h-max min-w-full min-h-full flex items-center justify-center p-8">
+            <div
+                className="w-max h-max min-w-full min-h-full flex items-center justify-center p-3"
+                onWheel={handleWheel}
+                onMouseDown={handleDraggingStart}
+                onMouseMove={handleDragging}
+                onMouseUp={handleDraggingEnd}
+                onMouseLeave={handleDraggingEnd}
+            >
                 <canvas
                     ref={canvasRef}
                     onClick={drawPixel}
                     className="bg-white shadow-2xl shrink-0"
+                    style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-in-out', transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
                 />
             </div >
         </>
