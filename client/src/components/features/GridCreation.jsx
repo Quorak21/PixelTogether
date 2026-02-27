@@ -14,14 +14,11 @@ function GridCreation({ }) {
     // Fermeture
     const { gridCreate, joinGame, updateGridID } = useUI();
 
-    // Récup le token pour le check côté serveur
-    const token = localStorage.getItem('token');
-
     // Envoi info au serveur
     const createNewGrid = async (e) => {
         e.preventDefault();
 
-        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName, token: token }, (response) => {
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
             if (response.error) {
                 alert(response.error);
                 return;

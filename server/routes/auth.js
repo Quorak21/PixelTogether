@@ -1,16 +1,10 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
-
-// Connexion à la Base de Données via .env
-mongoose.connect(process.env.MONGOURL)
-    .then(() => console.log('✅ Connecté à MongoDB'))
-    .catch(err => console.error('❌ Erreur MongoDB:', err));
 
 
 // Inscription

@@ -18,9 +18,7 @@ function LobbyView({ }) {
 
     // Reprise d'une grid
     const handleResume = () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        socket.emit('resumeGrid', { token }, (response) => {
+        socket.emit('resumeGrid', {}, (response) => {
             if (response.error) {
                 console.error(response.error);
                 return;

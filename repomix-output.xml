@@ -41,6 +41,7 @@ The content is organized as follows:
 
 <directory_structure>
 .gitignore
+client/.npmrc
 client/eslint.config.js
 client/index.html
 client/package.json
@@ -50,22 +51,25 @@ client/src/components/features/Canvas.jsx
 client/src/components/features/Chatbox.jsx
 client/src/components/features/ColorPalette.jsx
 client/src/components/features/Footer.jsx
+client/src/components/features/Gallery.jsx
+client/src/components/features/GameUI.jsx
 client/src/components/features/GridCreation.jsx
 client/src/components/features/LoginForm.jsx
 client/src/components/features/Navbar.jsx
-client/src/components/features/Sidebar.jsx
+client/src/components/UI/FinishConfirm.jsx
 client/src/components/UI/RoomCard.jsx
-client/src/context/GameProvider.jsx
 client/src/context/UIProvider.jsx
 client/src/index.css
 client/src/layouts/MainLayout.jsx
 client/src/main.jsx
 client/src/socket.js
 client/src/views/GameView.jsx
+client/src/views/LandingView.jsx
 client/src/views/LobbyView.jsx
 client/vite.config.js
 package.json
 PixelTogether.docx
+server/db.js
 server/index.js
 server/middleware/auth.js
 server/models/Grid.js
@@ -78,6 +82,19 @@ server/test_watch.js
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="server/db.js">
+import mongoose from 'mongoose';
+import 'dotenv/config';
+
+mongoose.connect(process.env.MONGOURL)
+    .then(() => console.log('✅ Connecté à MongoDB'))
+    .catch(err => console.error('❌ Erreur MongoDB:', err));
+</file>
+
+<file path="client/.npmrc">
+legacy-peer-deps=true
+</file>
 
 <file path="client/eslint.config.js">
 import js from '@eslint/js'
@@ -111,22 +128,6 @@ export default defineConfig([
 ])
 </file>
 
-<file path="client/index.html">
-<!doctype html>
-<html lang="en" data-theme="nord">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pixel Together</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
-</file>
-
 <file path="client/README.md">
 # React + Vite
 
@@ -144,10 +145,6 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-</file>
-
-<file path="client/src/context/GameProvider.jsx">
-
 </file>
 
 <file path="client/src/index.css">
@@ -170,10 +167,117 @@ createRoot(document.getElementById('root')).render(
 )
 </file>
 
-<file path="client/src/socket.js">
-import io from 'socket.io-client';
+<file path="client/src/views/LandingView.jsx">
+import LoginForm from "../components/features/LoginForm";
+import { Brush, Palette, Users, Smile } from "lucide-react";
 
-export const socket = io('http://localhost:3000');
+function LandingView() {
+    return (
+        <div className="min-h-screen w-full bg-gradient-to-b from-sky-300 via-sky-200 to-sky-100 flex flex-col items-center justify-center relative overflow-hidden font-sans">
+
+            {/* Décoration nuages doux en arrière-plan (glassmorphism naturel) */}
+            <div className="absolute top-[10%] left-[10%] w-64 h-64 bg-white/40 rounded-full mix-blend-overlay filter blur-3xl animate-pulse" style={{ animationDuration: '6s' }}></div>
+            <div className="absolute top-[20%] right-[15%] w-80 h-80 bg-white/50 rounded-full mix-blend-overlay filter blur-3xl animate-pulse" style={{ animationDuration: '8s' }}></div>
+            <div className="absolute bottom-[10%] left-[20%] w-72 h-72 bg-white/60 rounded-full mix-blend-overlay filter blur-3xl animate-pulse" style={{ animationDuration: '7s' }}></div>
+
+            {/* Pixels flottants pour le fun (2x plus) */}
+            <div className="absolute top-[15%] right-[30%] w-8 h-8 bg-yellow-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_4s_infinite] shadow-[0_0_15px_rgba(250,204,21,0.6)]"></div>
+            <div className="absolute top-[40%] left-[15%] w-6 h-6 bg-pink-500 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_3s_infinite_0.5s] shadow-[0_0_15px_rgba(236,72,153,0.6)]"></div>
+            <div className="absolute bottom-[20%] right-[20%] w-10 h-10 bg-green-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_5s_infinite_1s] shadow-[0_0_15px_rgba(74,222,128,0.6)]"></div>
+            <div className="absolute bottom-[30%] left-[10%] w-5 h-5 bg-purple-500 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_3.5s_infinite_0.2s] shadow-[0_0_15px_rgba(168,85,247,0.6)]"></div>
+
+            {/* Nouveaux pixels flottants */}
+            <div className="absolute top-[25%] left-[25%] w-7 h-7 bg-blue-500 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_4.5s_infinite_0.8s] shadow-[0_0_15px_rgba(59,130,246,0.6)]"></div>
+            <div className="absolute top-[10%] left-[45%] w-4 h-4 bg-orange-400 rounded-sm transition-transform duration-300 animate-[bounce_2.5s_infinite_0.1s] shadow-[0_0_10px_rgba(251,146,60,0.6)]"></div>
+            <div className="absolute bottom-[15%] right-[40%] w-9 h-9 bg-red-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_5.5s_infinite_1.2s] shadow-[0_0_15px_rgba(248,113,113,0.6)]"></div>
+            <div className="absolute bottom-[40%] right-[10%] w-6 h-6 bg-teal-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_3.2s_infinite_0.4s] shadow-[0_0_15px_rgba(45,212,191,0.6)]"></div>
+
+            {/* 50% de pixels en + */}
+            <div className="absolute top-[5%] left-[70%] w-5 h-5 bg-lime-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_3s_infinite_0.5s] shadow-[0_0_15px_rgba(163,230,53,0.6)]"></div>
+            <div className="absolute bottom-[5%] left-[45%] w-8 h-8 bg-fuchsia-500 rounded-sm transition-transform duration-300 animate-[bounce_4s_infinite_0.3s] shadow-[0_0_15px_rgba(217,70,239,0.6)]"></div>
+            <div className="absolute top-[50%] right-[5%] w-4 h-4 bg-sky-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_2.8s_infinite_1.5s] shadow-[0_0_15px_rgba(56,189,248,0.6)]"></div>
+            <div className="absolute bottom-[25%] left-[30%] w-7 h-7 bg-rose-400 rounded-sm hover:-translate-y-2 transition-transform duration-300 animate-[bounce_5s_infinite_0.2s] shadow-[0_0_15px_rgba(251,113,133,0.6)]"></div>
+
+            {/* Contenu principal */}
+            <div className="z-10 flex flex-col items-center w-full px-4 relative">
+
+                {/* Titre au style arrondi, coloré et brillant avec Fredoka */}
+                <div className="text-center group cursor-default relative">
+                    {/* Pixels et petits personnages qui gravitent autour du titre */}
+                    <div className="absolute -top-12 -left-16 text-yellow-500 animate-[spin_6s_linear_infinite] opacity-80">
+                        <Smile size={40} className="drop-shadow-md" />
+                    </div>
+                    <div className="absolute -bottom-8 -right-12 text-pink-500 animate-[bounce_3s_infinite_0.5s]">
+                        <Brush size={36} className="drop-shadow-md" />
+                    </div>
+                    <div className="absolute top-2 -right-20 text-blue-500 animate-[pulse_4s_infinite]">
+                        <Users size={48} className="drop-shadow-md" />
+                    </div>
+                    <div className="absolute -top-8 right-16 text-purple-500 animate-[bounce_4s_infinite_1s]">
+                        <Palette size={32} className="drop-shadow-md" />
+                    </div>
+
+                    {/* Dizaine de pixels autour du titre */}
+                    <div className="absolute -top-4 -left-4 w-3 h-3 bg-red-400 rounded-sm animate-ping"></div>
+                    <div className="absolute top-1/2 -left-10 w-4 h-4 bg-green-400 rounded-sm animate-[bounce_2s_infinite]"></div>
+                    <div className="absolute -bottom-2 lg:-bottom-6 left-10 w-5 h-5 bg-blue-400 rounded-sm animate-[spin_3s_linear_infinite]"></div>
+                    <div className="absolute -top-6 right-1/4 w-3 h-3 bg-yellow-400 rounded-sm animate-pulse"></div>
+                    <div className="absolute top-10 -right-8 w-4 h-4 bg-purple-400 rounded-sm animate-[bounce_2.5s_infinite]"></div>
+                    <div className="absolute bottom-4 -right-16 w-3 h-3 bg-orange-400 rounded-sm animate-ping" style={{ animationDuration: '3s' }}></div>
+                    <div className="absolute -bottom-10 right-1/4 w-4 h-4 bg-pink-400 rounded-sm animate-[bounce_3s_infinite]"></div>
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-teal-400 rounded-sm animate-pulse"></div>
+
+                    {/* Arc-en-ciel Titre en SVG : Beaucoup plus grand et coloré ! */}
+                    {/* On ajoute une marge négative en bas (-mb-16 etc.) pour remonter le formulaire de connexion */}
+                    <div className="relative z-10 w-full max-w-[350px] aspect-[350/180] sm:max-w-none sm:w-[500px] sm:h-[220px] md:w-[650px] md:h-[280px] lg:w-[800px] lg:h-[350px] mx-auto transform transition-transform group-hover:scale-105 duration-300 drop-shadow-[0_15px_15px_rgba(0,0,0,0.3)] -mb-8 sm:-mb-12 md:-mb-16 lg:-mb-24">
+                        <svg viewBox="0 0 800 350" className="w-full h-full overflow-visible">
+                            {/* Définition du chemin en arc arrondi ajusté pour l'espacement */}
+                            <path id="curve" d="M 50 300 Q 400 -50 750 300" fill="transparent" />
+                            {/* Dégradé arc-en-ciel ultra vif plus contrasté  */}
+                            <defs>
+                                <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#ff0000" /> {/* Rouge pur */}
+                                    <stop offset="16%" stopColor="#ff7f00" /> {/* Orange vif */}
+                                    <stop offset="33%" stopColor="#ffff00" /> {/* Jaune pur */}
+                                    <stop offset="50%" stopColor="#00ff00" /> {/* Vert pur */}
+                                    <stop offset="66%" stopColor="#0000ff" /> {/* Bleu pur */}
+                                    <stop offset="83%" stopColor="#4b0082" /> {/* Indigo */}
+                                    <stop offset="100%" stopColor="#9400d3" /> {/* Violet foncé */}
+                                </linearGradient>
+                            </defs>
+                            <text
+                                className="font-extrabold uppercase tracking-widest fill-[url(#rainbowGradient)]"
+                                style={{
+                                    fontFamily: "'Baloo 2', sans-serif",
+                                    fontSize: '95px', // Très grand
+                                    dominantBaseline: 'baseline',
+                                    strokeWidth: '8px', // On peut même l'épaissir un peu maintenant
+                                    stroke: 'white', // Contour blanc épais pour détacher
+                                    strokeLinejoin: 'round',
+                                    paintOrder: 'stroke fill', // TRÈS IMPORTANT : Dessine le contour *derrière* le remplissage
+                                    filter: 'drop-shadow(0px 0px 20px rgba(10, 211, 10, 0.8))' // Aura légère dorée (yellow-400 opacity 80%)
+                                }}
+                            >
+                                <textPath href="#curve" startOffset="50%" textAnchor="middle">
+                                    Pixel Together
+                                </textPath>
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Formulaire de connexion restylisé */}
+                <div className="w-full mt-5 flex justify-center">
+                    <LoginForm />
+                </div>
+
+            </div>
+
+        </div>
+    );
+}
+
+export default LandingView;
 </file>
 
 <file path="client/vite.config.js">
@@ -281,251 +385,189 @@ Thumbs.db
 ~$*.doc
 </file>
 
-<file path="client/package.json">
-{
-  "name": "client",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "socket.io-client": "^4.8.3"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@tailwindcss/vite": "^4.1.18",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.24",
-    "daisyui": "^5.5.17",
-    "eslint": "^10.0.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18",
-    "vite": "^7.2.4"
-  }
-}
+<file path="client/index.html">
+<!doctype html>
+<html lang="en" data-theme="nord">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Together</title>
+  <!-- Google Fonts: Baloo 2 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
 </file>
 
-<file path="client/src/components/features/Chatbox.jsx">
-import React, { useState, useEffect } from 'react';
-import Draggable from 'react-draggable';
-import { MessageSquare, Minus, Maximize2, X, Send, Crown } from 'lucide-react';
-import { socket } from '../../socket';
-import { useUI } from '../../context/UIProvider';
+<file path="client/src/components/features/Gallery.jsx">
+import React, { useEffect, useState } from 'react';
+import { useUI } from "../../context/UIProvider";
+import { X, Heart, User } from 'lucide-react';
+import { socket } from '../../socket.js';
 
-function Chatbox({ onClose, roomID }) {
-    const nodeRef = React.useRef(null);
-    const [isMinimized, setIsMinimized] = useState(false);
-    const [inputValue, setInputValue] = useState('');
-    const [chatMessages, setChatMessages] = useState([]);
-    const { user, currentHost } = useUI();
-
-    const toggleMinimize = () => setIsMinimized(!isMinimized);
-
-    const sendMessage = (e) => {
-        e.preventDefault();
-        if (inputValue.trim()) {
-            socket.emit('sendMessage', { roomId: roomID, message: inputValue, pseudo: user.pseudo });
-            setInputValue('');
-        }
-    };
+function Gallery() {
+    const { gallery } = useUI();
+    const [galleryData, setGalleryData] = useState([]);
+    const [fullScreenImage, setFullScreenImage] = useState(null);
 
     useEffect(() => {
-        socket.emit('getChatMessages', { roomId: roomID });
+        if (gallery.isOpen) {
+            socket.emit('askGallery', (response) => {
+                if (response && response.grids) {
+                    setGalleryData(response.grids);
+                }
+            });
+        }
+    }, [gallery.isOpen]);
 
-        socket.on('chatMessages', (data) => {
-            setChatMessages(data);
-        });
-        socket.on('receiveMessage', (data) => {
-            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: data.message }]);
-        });
-        socket.on('joinedRoom', (data) => {
-            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: 'a rejoint la room, welcome !' }]);
-        });
+    if (!gallery.isOpen) return null;
 
-
-        return () => {
-            socket.off('receiveMessage');
-            socket.off('joinedRoom');
-            socket.off('chatMessages');
-        };
-    }, []);
-
-
-    // Calcul de la position par défaut (en bas à droite)
-    const defaultX = typeof window !== 'undefined' ? window.innerWidth - 350 : 500;
-    const defaultY = typeof window !== 'undefined' ? window.innerHeight - 450 : 500;
+    const fullScreen = (item) => {
+        setFullScreenImage(item);
+    };
 
     return (
-        <Draggable
-            nodeRef={nodeRef}
-            handle=".drag-handle"
-            defaultPosition={{ x: defaultX, y: defaultY }}
-            bounds="body"
-        >
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pointer-events-none text-left">
+            {/* Overlay sombre */}
             <div
-                ref={nodeRef}
-                className={`fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200 ${isMinimized ? 'w-64 h-auto' : 'w-80 h-[26rem]'
-                    }`}
-            >
-                {/* Header */}
-                <div className="drag-handle bg-neutral text-neutral-content p-3 flex justify-between items-center cursor-move select-none group">
-                    <div className="flex items-center gap-2">
-                        <MessageSquare size={18} className="text-primary/80" />
-                        <span className="font-bold text-sm tracking-wide">Chat</span>
+                className="absolute inset-0 bg-base-300/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300"
+            ></div>
+
+            {/* Fenêtre modale */}
+            <div className="relative w-full max-w-[80vw] h-[80vh] bg-base-100/90 backdrop-blur-xl border border-base-content/10 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex flex-col pointer-events-auto overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+
+                {/* Header classe */}
+                <div className="flex items-center justify-between p-6 sm:px-10 border-b border-base-content/10 bg-base-200/50">
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight text-base-content">Galerie</h2>
+                        <p className="text-sm opacity-70 mt-1 text-base-content">Découvrez les meilleures créations de la communauté.</p>
                     </div>
-                    <div className="flex items-center gap-1 cursor-default opacity-80 group-hover:opacity-100 transition-opacity">
-                        <button
-                            onClick={toggleMinimize}
-                            className="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer"
-                            title={isMinimized ? "Agrandir" : "Réduire"}
-                        >
-                            {isMinimized ? <Maximize2 size={16} /> : <Minus size={16} />}
-                        </button>
-                        {onClose && (
-                            <button
-                                onClick={onClose}
-                                className="p-1.5 hover:bg-error hover:text-error-content rounded-lg transition-colors cursor-pointer"
-                                title="Fermer"
-                            >
-                                <X size={16} />
-                            </button>
-                        )}
-                    </div>
+                    <button
+                        onClick={gallery.close}
+                        className="btn btn-circle btn-ghost bg-base-300/50 hover:bg-base-300 text-base-content no-animation"
+                    >
+                        <X size={24} />
+                    </button>
                 </div>
 
-                {/* Body */}
-                {!isMinimized && (
-                    <>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200/30">
-                            {chatMessages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-base-content/40 italic text-sm">
-                                    <MessageSquare size={32} className="mb-3 opacity-20" />
-                                    Aucun message pour le moment.
+                {/* Contenu - Grille d'images */}
+                <div className="flex-1 overflow-y-auto p-6 sm:p-10 custom-scrollbar">
+                    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+                        {galleryData.map((item, index) => (
+                            <div key={index} onClick={() => fullScreen(item)} className="group relative break-inside-avoid mt-0 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 bg-white border border-base-content/5 cursor-pointer">
+                                <div className="block overflow-hidden">
+                                    <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        loading="lazy"
+                                    />
                                 </div>
-                            ) : (
-                                chatMessages.map((msg, i) => (
-                                    <div key={i} className="flex items-center gap-1 text-sm">
-                                        {msg.senderId === currentHost ? (
-                                            <span className="flex items-center gap-1 font-bold text-red-500 mr-2"><Crown size={16} color='black' fill='gold' /> {msg.pseudo}:</span>
-                                        ) : (
-                                            <span className="font-bold text-secondary mr-2">{msg.pseudo}:</span>
-                                        )}
-                                        <span className="text-base-content/90">{msg.message}</span>
+                                {/* Overlay hover */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                                    <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                        <h3 className="text-white font-bold text-lg leading-tight drop-shadow-md">{item.name}</h3>
+                                        <div className="flex items-center mt-2 gap-2 text-white/80">
+                                            <User size={14} className="opacity-70" />
+                                            <p className="text-sm font-medium drop-shadow-md">{item.author}</p>
+                                        </div>
                                     </div>
-                                ))
-                            )}
-                        </div>
+                                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                                        <button className="btn btn-sm btn-circle bg-black/50 border-white/20 text-white hover:bg-white hover:text-black transition-colors backdrop-blur-md">
+                                            <Heart size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                {fullScreenImage && (
+                    <div
+                        className="fixed inset-0 bg-black/96 backdrop-blur-sm flex justify-center items-center z-[9999] p-4"
+                        onClick={() => setFullScreenImage(null)}
+                    >
 
-                        {/* Input */}
-                        <div className="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
-                            <form onSubmit={sendMessage} className="flex gap-2 relative items-center">
-                                <input
-                                    type="text"
-                                    className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
-                                    placeholder="Écrire un message..."
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                />
-                                <button
-                                    type="submit"
-                                    className="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
-                                    disabled={!inputValue.trim()}
-                                >
-                                    <Send size={14} className={inputValue.trim() ? "text-primary-content -ml-0.5" : "text-base-content/30 -ml-0.5"} />
-                                </button>
-                            </form>
-                        </div>
-                    </>
+                        <button
+                            className="absolute hover:bg-accent/50 top-6 right-6 text-white rounded-xl shadow-lg hover:text-accent-content transition-colors"
+                            onClick={() => setFullScreenImage(null)}
+                        >
+                            <X size={36} />
+                        </button>
+
+
+
+                        <img
+                            src={fullScreenImage.image}
+                            alt={fullScreenImage.name}
+                            className="max-w-[85vw] max-h-[85vh] object-contain [image-rendering:pixelated] bg-white rounded-sm"
+                        />
+                    </div>
                 )}
+
+
             </div>
-        </Draggable>
+
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 8px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background-color: rgba(150, 150, 150, 0.3);
+                    border-radius: 20px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background-color: rgba(150, 150, 150, 0.5);
+                }
+            `}</style>
+        </div>
     );
 }
 
-export default Chatbox;
+export default Gallery;
 </file>
 
-<file path="client/src/components/features/ColorPalette.jsx">
-import Draggable from 'react-draggable';
-import React from 'react';
-import { useUI } from "../../context/UIProvider";
-import { X } from 'lucide-react';
-
-function ColorPalette({ }) {
-
-    const nodeRef = React.useRef(null);
-    const { palette, selectColor } = useUI();
-
-    const colors = ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29']
+<file path="client/src/components/UI/FinishConfirm.jsx">
+const FinishConfirm = ({ onCancel, onConfirm, title = "", message = "", buttonText = "", buttonColor = "" }) => {
 
     return (
-        palette.isOpen ? (
-            <Draggable
-                nodeRef={nodeRef}
-                handle=".drag-handle"
-                defaultPosition={{ x: 0, y: 0 }}
-                bounds="parent"
-            >
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center relative animate-fade-in-up">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">{title}</h2>
+                <p className="text-gray-600 mb-6 text-sm">{message}</p>
 
-                <div ref={nodeRef} className="w-95 bg-base-200 p-4 shadow-lg z-48 absolute item-center rounded-lg">
-
+                <div className="flex justify-center gap-4">
                     <button
-                        onClick={palette.close}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+                        onClick={onCancel}
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition-colors font-medium"
                     >
-                        <X size={30} color="#ff0000" />
+                        Annuler
                     </button>
-
-                    <h2 className="drag-handle cursor-move font-bold text-center text-lg mb-4 text-primary">
-                        Couleurs
-                    </h2>
-
-                    <div className="flex bg-gray-100 justify-center gap-3 p-3">
-                        {colors.map(color => (
-                            <button key={color} onClick={() => { selectColor(color); palette.close(); }} className="btn active:scale-90 w-9 h-9 rounded-full hover:brightness-90 hover:scale-110" style={{ backgroundColor: color }}></button>
-                        ))}
-                    </div>
-
+                    <button
+                        onClick={onConfirm}
+                        className={`px-4 py-2 ${buttonColor} hover:bg-red-600 text-white rounded-md transition-colors font-medium shadow-sm`}
+                    >
+                        {buttonText}
+                    </button>
                 </div>
+            </div>
+        </div>
+    );
+};
 
-            </Draggable>
-        ) : null
-    )
-}
-
-export default ColorPalette
-</file>
-
-<file path="client/src/components/features/Footer.jsx">
-// client/src/components/Footer.jsx
-
-function Footer() {
-  return (
-    <div className="footer footer-center p-4 bg-base-100 shadow-lg text-base-content border-t border-black-200 relative items-center h-16">
-      <div className="absolute mb-5">
-        <h2 className="font-bold text-lg text-primary">Dokk Corp. © 2026</h2>
-      </div>
-      <div className="absolute mt-5">
-        <h3 className="text-sm text-gray-500">Version pré-alpha 0.0.01</h3>
-      </div>
-    </div>
-
-  )
-}
-
-export default Footer
+export default FinishConfirm;
 </file>
 
 <file path="client/src/components/UI/RoomCard.jsx">
@@ -605,22 +647,6 @@ const Grid = mongoose.model('Grid', gridSchema);
 export default Grid;
 </file>
 
-<file path="server/models/User.js">
-import mongoose from 'mongoose';
-
-const userSchema = new mongoose.Schema({
-    pseudo: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    gridID: { type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: null },
-    myGrids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: [] }],
-    colors: { type: [String], default: ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29'] }
-});
-
-const User = mongoose.model('User', userSchema);
-
-export default User;
-</file>
-
 <file path="client/src/components/features/GridCreation.jsx">
 import React, { useState } from 'react';
 import { useUI } from '../../context/UIProvider';
@@ -638,14 +664,11 @@ function GridCreation({ }) {
     // Fermeture
     const { gridCreate, joinGame, updateGridID } = useUI();
 
-    // Récup le token pour le check côté serveur
-    const token = localStorage.getItem('token');
-
     // Envoi info au serveur
     const createNewGrid = async (e) => {
         e.preventDefault();
 
-        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName, token: token }, (response) => {
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
             if (response.error) {
                 alert(response.error);
                 return;
@@ -727,107 +750,30 @@ function GridCreation({ }) {
 export default GridCreation
 </file>
 
-<file path="client/src/components/features/Sidebar.jsx">
-import { Palette, Eraser, MessageCircle } from 'lucide-react';
-import { useUI } from "../../context/UIProvider";
+<file path="server/models/User.js">
+import mongoose from 'mongoose';
 
-function Sidebar() {
+const userSchema = new mongoose.Schema({
+    pseudo: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    gridID: { type: mongoose.Schema.Types.ObjectId, ref: 'Grid', default: null },
+    myGrids: [{ nom: String, image: String }],
+    colors: { type: [String], default: ['#000000', '#ff0000', '#0000ff', '#00ff00', '#ffff00', '#c0c0c0', '#905a29', '#ff8000', '#ff69b4', '#8b00ff', '#00ced1', '#006400', '#808080', '#1b1464', '#800000'] }
+});
 
-  const { palette, selectedColor, selectColor, chatbox } = useUI();
+const User = mongoose.model('User', userSchema);
 
-
-
-  return (
-    <div className="w-30 h-full bg-base-100 p-4 shadow-lg z-10 hidden md:block">
-      <ul className="menu bg-base-100 w-full rounded-box p-0">
-        <div className="flex flex-col justify-center items-center w-full">
-          <h3 className="font-bold text-lg ">Palette</h3>
-          <li><button onClick={palette.open} className="btn btn-primary my-2 w-16 text-white"><Palette /></button></li>
-          <div className="w-6 h-6 rounded-full" style={{ backgroundColor: selectedColor }}></div>
-          <h3 className="font-bold text-lg ">Gomme</h3>
-          <li><button onClick={() => selectColor('#ffffff')} className="btn btn-primary my-2 w-16 text-white"><Eraser color="#ffffff" /></button></li>
-          <h3 className="font-bold text-lg text-left">Chat</h3>
-          <li><button onClick={chatbox.open} className="btn btn-primary my-2 w-16 text-white"><MessageCircle color="#ffffff" /></button></li>
-        </div>
-      </ul>
-    </div>
-  )
-}
-
-export default Sidebar
-</file>
-
-<file path="client/src/layouts/MainLayout.jsx">
-import { useUI } from '../context/UIProvider';
-import Navbar from '../components/features/Navbar';
-import Footer from '../components/features/Footer';
-import GridCreation from '../components/features/GridCreation';
-import LoginForm from '../components/features/LoginForm';
-import GameView from '../views/GameView';
-import LobbyView from '../views/LobbyView';
-import Sidebar from '../components/features/Sidebar';
-
-const MainLayout = ({ }) => {
-    const { gameMode, currentRoomID, login, gridCreate } = useUI();
-
-    return (
-        <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
-
-            <header className="flex-none z-50">
-                <Navbar />
-            </header>
-
-            <div className="flex flex-1 overflow-hidden relative">
-                {gameMode
-                    ? <Sidebar />
-                    : null
-                }
-
-                <main className="flex-1 relative flex justify-center items-center bg-gray-50">
-
-                    {/* Les fenetres dynamiques */}
-                    {login.isOpen && (
-                        <LoginForm />
-                    )}
-                    {gridCreate.isOpen && (
-                        <GridCreation />
-                    )}
-                    {/* En jeu, ou sur le lobby*/}
-                    {gameMode
-                        ? <GameView roomID={currentRoomID} />
-                        : <LobbyView />
-                    }
-
-                </main>
-
-            </div>
-
-
-            <footer className="flex-none z-40">
-                <Footer />
-            </footer>
-
-        </div>
-    );
-};
-
-export default MainLayout;
+export default User;
 </file>
 
 <file path="server/routes/auth.js">
 import express from 'express';
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
-
-// Connexion à la Base de Données via .env
-mongoose.connect(process.env.MONGOURL)
-    .then(() => console.log('✅ Connecté à MongoDB'))
-    .catch(err => console.error('❌ Erreur MongoDB:', err));
 
 
 // Inscription
@@ -906,275 +852,642 @@ router.post('/login', async (req, res) => {
 export default router;
 </file>
 
-<file path="client/src/components/features/Canvas.jsx">
-import { useEffect, useRef, useState } from 'react';
-import { socket } from '../../socket.js';
-import { useUI } from '../../context/UIProvider';
-
-function Canvas({ roomID }) {
-
-    const canvasRef = useRef(null);
-    const PIXEL_SIZE = 20;
-    const { selectedColor, exitGame, user } = useUI();
-    const [roomName, setRoomName] = useState('');
-
-
-    // Dessin d'un pixel au clic
-    const drawPixel = (event) => {
-        const rect = canvasRef.current.getBoundingClientRect();
-
-        // Position du clic par rapport au canvas
-        const coordX = event.clientX - rect.left
-        const coordY = event.clientY - rect.top
-
-        // Convertir en coordonnées de la grid
-        const x = Math.floor(coordX / PIXEL_SIZE)
-        const y = Math.floor(coordY / PIXEL_SIZE)
-
-        console.log(`Coordonnée ${x}:${y} | Couleur: ${selectedColor}`)
-
-        // Dessiner localement
-        const ctx = canvasRef.current.getContext('2d')
-        ctx.fillStyle = selectedColor
-        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
-
-        // Redessiner la bordure si on met du blanc
-        if (selectedColor.startsWith('#ffffff')) {
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-        }
-
-        // Envoyer au serveur
-        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
-    };
-
-
-    // Création du canvas
-    useEffect(() => {
-
-        // On rejoint la room socket avec notre roomID reçu via le choix de lobby
-        socket.emit('joinRoom', { roomId: roomID, pseudo: user.pseudo });
-
-        // On reçoit l'état de la grid
-        socket.on('gridState', (data) => {
-            if (!canvasRef.current) return;
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext('2d')
-            const width = data.width;
-            const height = data.height;
-            setRoomName(data.name);
-
-            // On dimensionne le canvas
-            canvas.width = width * PIXEL_SIZE;
-            canvas.height = height * PIXEL_SIZE;
-
-            // On dessine le quadrillage
-            ctx.beginPath()
-            ctx.strokeStyle = '#ddd'
-            ctx.lineWidth = 1
-            for (let gx = 0; gx <= width; gx++) {
-                ctx.moveTo(gx * PIXEL_SIZE, 0)
-                ctx.lineTo(gx * PIXEL_SIZE, height * PIXEL_SIZE)
-            }
-            for (let gy = 0; gy <= height; gy++) {
-                ctx.moveTo(0, gy * PIXEL_SIZE)
-                ctx.lineTo(width * PIXEL_SIZE, gy * PIXEL_SIZE)
-            }
-            ctx.stroke()
-
-            // On dessine les pixels existants (s'il y en a)
-            for (const coords in data.pixels) {
-                const pixelColor = data.pixels[coords];
-                const [x, y] = coords.split(',');
-                ctx.fillStyle = pixelColor;
-                ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-            }
-        });
-
-        // écoute de ce que font les autres + dessin
-        socket.on('drawPixel', (data) => {
-            console.log(`Pixel reçu : ${data.x}:${data.y} avec la couleur ${data.color}`)
-            const ctx = canvasRef.current.getContext('2d')
-            ctx.fillStyle = data.color
-            ctx.fillRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
-
-            // Redessiner la bordure si c'est blanc
-            if (data.color.startsWith('#ffffff')) {
-                ctx.strokeStyle = '#ddd';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-            }
-        });
-
-        // Si l'host ferme la room, on retourne au lobby
-        socket.on('roomClosed', (closedRoomId) => {
-            if (closedRoomId === roomID) {
-                exitGame();
-            }
-        });
-
-        // Nettoyage quand le composant se démonte
-        return () => {
-            socket.off('drawPixel')
-            socket.off('gridState')
-            socket.off('roomClosed')
-        };
-
-    }, []);
-
-    return (
-        <>
-            <div className="flex justify-center mt-5">
-                <h1 className="font-bold uppercase text-xl ">{roomName}</h1>
-            </div>
-            <div className="w-max h-max min-w-full min-h-full flex items-center justify-center p-8">
-                <canvas
-                    ref={canvasRef}
-                    onClick={drawPixel}
-                    className="bg-white shadow-2xl shrink-0"
-                />
-            </div >
-        </>
-    )
-};
-
-export default Canvas
+<file path="client/package.json">
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.563.0",
+    "react-draggable": "^4.5.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.24",
+    "daisyui": "^5.5.17",
+    "eslint": "^10.0.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.2.4"
+  }
+}
 </file>
 
-<file path="client/src/components/features/LoginForm.jsx">
-import React from 'react';
-import { useUI } from '../../context/UIProvider';
-import { X } from 'lucide-react';
-import { useState } from 'react';
+<file path="client/src/components/features/ColorPalette.jsx">
+import Draggable from 'react-draggable';
+import React, { useEffect, useState } from 'react';
+import { useUI } from "../../context/UIProvider";
+import { X, Palette, Cog, Check, Plus } from 'lucide-react';
+import { socket } from '../../socket';
 
-function LoginForm({ }) {
-    const { login, loginUser } = useUI();
+function ColorPalette() {
 
     const nodeRef = React.useRef(null);
+    const { palette, selectColor, selectedColor, chosenColors, setChosenColors } = useUI();
+    const [colors, setColors] = useState([]);
 
-    // Fonction pour basculer entre inscription et connexion
-    const [isRegistering, setIsRegistering] = useState(false);
-    const toggleRegister = () => { setIsRegistering(prev => !prev); setError(''); };
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingIndex, setEditingIndex] = useState(0);
 
-    //Variables pour stocker les inputs
-    const [pseudo, setPseudo] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const toggleEditing = () => { setIsEditing(prev => !prev); };
 
-
-    //Fonction pour envoyer dans la DB
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Empêche le rechargement de la page par défaut
-        setError("");
-        setSuccess("");
-
-        try {
-            const url = isRegistering ? '/api/register' : '/api/login';
-            const response = await fetch('http://localhost:3000' + url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pseudo, password })
+    useEffect(() => {
+        socket.emit('getColors', {});
+        socket.on('colors', (data) => {
+            setColors(data.colors);
+            setChosenColors(prev => {
+                // Initialize chosen colors if they are entirely empty (all null)
+                if (prev.every(c => c === null) && data.colors) {
+                    const initial = Array(10).fill(null);
+                    let added = 0;
+                    for (let i = 0; i < data.colors.length && added < 10; i++) {
+                        if (data.colors[i]) {
+                            initial[added] = data.colors[i];
+                            added++;
+                        }
+                    }
+                    return initial;
+                }
+                return prev;
             });
+        });
 
-            const data = await response.json();
+        return () => {
+            socket.off('colors');
+        };
+    }, [setChosenColors]);
 
-            if (!response.ok) {
-                // Si erreur
-                throw new Error(data.message || "Une erreur est survenue");
-            }
-
-            setPseudo('');
-            setPassword('');
-            setSuccess(data.message);
-            if (isRegistering) {
-                toggleRegister(); // On bascule vers le login
-            } else {
-                localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
-                loginUser(pseudo, data.gridID); // On met le pseudo dans le context global
-
-                login.close();
-            }
-
-        } catch (err) {
-            setError(err.message);
-        }
+    const handleReplaceColor = (color) => {
+        setChosenColors(prev => {
+            const newColors = [...prev];
+            newColors[editingIndex] = color;
+            return newColors;
+        });
+        // Auto-advance to the next slot for fluidity
+        setEditingIndex(prev => (prev + 1) % 10);
     };
 
-    return ( //Interface de la page de connexion
-        login.isOpen ? (
-            <div ref={nodeRef} className="bg-white p-8 rounded-2xl shadow-2xl w-96 z-50 absolute">
+    return (
+        palette.isOpen ? (
+            <Draggable
+                nodeRef={nodeRef}
+                handle=".drag-handle"
+                cancel="button"
+                defaultPosition={{ x: window.innerWidth - 500, y: 100 }}
+                bounds="body"
+            >
+                <div ref={nodeRef} className="fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200 w-[18rem] sm:w-[22rem]">
 
-                {/* Fermer */}
-                <button
-                    onClick={login.close}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
-                >
-                    <X size={24} />
-                </button>
-
-                {/* Titre */}
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-                    {isRegistering ? "Inscription" : "Connexion"}
-                </h2>
-
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-
-                    {/*Pseudo */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo</label>
-                        <input
-                            type="text"
-                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Ton pseudo..."
-                            value={pseudo}
-                            onChange={(e) => setPseudo(e.target.value)}
-                            required
-                        />
+                    {/* Header */}
+                    <div className="drag-handle bg-neutral text-neutral-content p-3 flex justify-between items-center cursor-move select-none group transition-colors">
+                        <div className="flex items-center gap-2">
+                            <Palette size={18} color="white" />
+                            <span className="font-bold text-md tracking-wide">{isEditing ? "Personnalisation" : "Couleurs actives"}</span>
+                        </div>
+                        <div className="flex items-center gap-1 cursor-default opacity-80 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={toggleEditing}
+                                className={`flex items-center justify-center p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer ${isEditing ? 'bg-primary text-primary-content hover:bg-primary-focus hover:text-primary-content' : ''}`}
+                                title={isEditing ? "Terminer" : "Modifier"}
+                            >
+                                {isEditing ? <Check size={16} /> : <Cog size={16} />}
+                            </button>
+                            <button
+                                onClick={palette.close}
+                                className="flex items-center justify-center p-1.5 hover:bg-error hover:text-error-content rounded-lg transition-colors cursor-pointer"
+                                title="Fermer"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Mot de passe */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-                        <input
-                            type="password"
-                            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="🚨 bdd non sécurisée 🚨"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+                    {isEditing ? (
+                        <div className="flex flex-col">
+                            {/* Palette Actuelle (Vos 10 couleurs) */}
+                            <div className="p-4 sm:p-5 bg-base-200/50 border-b border-base-content/10">
+                                <div className="text-xs font-bold text-base-content/50 uppercase tracking-wider mb-3 text-center">Vos 10 couleurs (Cliquez pour éditer)</div>
+                                <div className="grid grid-cols-5 gap-3 justify-items-center">
+                                    {Array.from({ length: 10 }).map((_, index) => {
+                                        const color = chosenColors[index];
+                                        return (
+                                            <button
+                                                key={`slot-${index}`}
+                                                onClick={() => setEditingIndex(index)}
+                                                className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 transition-all duration-200 shadow-sm border-[3px] flex items-center justify-center ${editingIndex === index ? 'border-primary outline outline-offset-2 outline-primary scale-110 shadow-md z-10' : 'border-base-100 hover:scale-105'
+                                                    } ${!color ? 'border-dashed border-base-content/20 bg-base-200/50 opacity-70' : ''}`}
+                                                style={color ? { backgroundColor: color } : {}}
+                                            >
+                                                {!color && <div className="w-2 h-2 rounded-full bg-base-content/20"></div>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition"
-                    >
-                        {isRegistering ? "S'inscrire" : "Se connecter"}
-                    </button>
+                            {/* Stock complet */}
+                            <div className="p-4 sm:p-5 bg-base-200/30">
+                                <div className="text-xs font-bold text-base-content/50 uppercase tracking-wider mb-3 text-center">Stock disponible</div>
+                                <div className="grid grid-cols-5 gap-3 justify-items-center">
+                                    {colors.map((color, index) => (
+                                        color ? (
+                                            <button
+                                                key={`stock-${index}`}
+                                                onClick={() => handleReplaceColor(color)}
+                                                title={color}
+                                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 transition-all duration-200 ease-out active:scale-95 shadow-sm border-[3px] border-base-100 hover:scale-110 hover:shadow-md cursor-pointer"
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        ) : null
+                                    ))}
+                                    {/* Bouton d'ajout vers la boutique */}
+                                    <button
+                                        title="Débloquer de nouvelles couleurs (Bientôt !)"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 border-2 border-dashed border-base-content/40 bg-base-300 hover:bg-base-200 flex items-center justify-center opacity-80 hover:opacity-100 transition-all hover:scale-105 active:scale-95 cursor-pointer text-base-content/60 hover:text-base-content/90"
+                                        onClick={() => {
+                                            // Future action: open shop
+                                            console.log("Ouvrir la boutique de couleurs");
+                                        }}
+                                    >
+                                        <Plus size={20} strokeWidth={2.5} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-4 sm:p-5 bg-base-200/30">
+                            <div className="grid grid-cols-5 gap-3 justify-items-center">
+                                {Array.from({ length: 10 }).map((_, index) => {
+                                    const color = chosenColors[index];
+                                    return color ? (
+                                        <button
+                                            key={`color-${index}`}
+                                            onClick={() => { selectColor(color); palette.close(); }}
+                                            title={color}
+                                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 transition-all duration-200 ease-out active:scale-95 shadow-sm border-[3px] ${selectedColor === color
+                                                ? 'border-primary outline outline-offset-2 outline-primary scale-110 shadow-md z-10'
+                                                : 'border-base-100 hover:scale-110 hover:shadow-md'
+                                                }`}
+                                            style={{ backgroundColor: color }}
+                                        />
+                                    ) : (
+                                        <div
+                                            key={`empty-${index}`}
+                                            title="Emplacement vide"
+                                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 border-2 border-dashed border-base-content/20 bg-base-200/50 flex items-center justify-center opacity-70"
+                                        >
+                                            <div className="w-2 h-2 rounded-full bg-base-content/20"></div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
-                </form>
-
-                <div className="mt-4 text-center text-sm text-gray-500">
-                    {isRegistering
-                        ? <>Déjà un compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">Se connecter</span></>
-                        : <>Pas encore de compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">S'inscrire</span></>
-                    }
                 </div>
-
-                {/* Info, Ok ou pas OK */}
-                {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-                {success && <p className="text-green-500 text-center mt-4">{success}</p>}
-
-            </div>
-
+            </Draggable>
         ) : null
     )
 }
 
-export default LoginForm
+export default ColorPalette;
+</file>
+
+<file path="client/src/components/features/Footer.jsx">
+// client/src/components/Footer.jsx
+
+function Footer() {
+  return (
+    <div className="footer footer-center p-4 bg-base-100 shadow-lg text-base-content border-t border-black-200 items-center hidden md:block">
+      <div className="">
+        <h2 className="font-bold text-lg text-primary">Dokk Corp. © 2026</h2>
+      </div>
+      <div className="">
+        <p className="text-sm text-gray-500">Version pré-alpha 0.1.0</p>
+      </div>
+    </div>
+
+  )
+}
+
+export default Footer
+</file>
+
+<file path="client/src/components/features/GameUI.jsx">
+import { Palette, Eraser, MessageCircle, Save, BadgeX } from 'lucide-react';
+import { useUI } from "../../context/UIProvider";
+import { socket } from '../../socket';
+import { useState } from 'react';
+import FinishConfirm from '../UI/FinishConfirm';
+
+function GameUI({ roomID }) {
+  const { palette, selectedColor, selectColor, chatbox, currentHost, updateGridID, exitGame } = useUI();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showFinishModal, setShowFinishModal] = useState(false);
+
+  // Fin du canvas
+  const finishCanvas = () => {
+    socket.emit('finishCanvas', { roomId: roomID });
+    updateGridID(null);
+    exitGame();
+  };
+
+  const deleteCanvas = () => {
+    socket.emit('deleteCanvas', { roomId: roomID });
+    updateGridID(null);
+    exitGame();
+  };
+
+  const GlassButton = ({ onClick, children, className = "", title }) => (
+    <button
+      onClick={onClick}
+      title={title}
+      className={`flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#7a9dabc0] backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.18)] border border-[#8fbcbb50] text-white hover:bg-[#5e81ACd0] hover:scale-110 transition-all duration-200 ease-out active:scale-95 ${className}`}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-40">
+      {/* Haut droite */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex flex-col items-center gap-3 sm:gap-4 pointer-events-auto">
+
+        <button
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.18)] border-[3px] border-[#7a9dabc0] backdrop-blur-md flex-shrink-0"
+          style={{ backgroundColor: selectedColor }}
+          onClick={palette.open} title="Ouvrir la palette"
+        />
+
+        <GlassButton onClick={() => selectColor('#ffffff')} title="Gomme">
+          <Eraser className="w-6 h-6 sm:w-7 sm:h-7" />
+        </GlassButton>
+      </div>
+
+      {/* Bas Gauche */}
+      {currentHost === socket.id && (
+        <div className="absolute bottom-10 left-4 sm:bottom-6 sm:left-6 flex gap-3 sm:gap-4 flex-col sm:flex-row pointer-events-auto">
+          <GlassButton
+            onClick={() => setShowFinishModal(true)}
+            title="Sauvegarder"
+            className="!bg-indigo-500/90 !text-white !border-indigo-400/30 hover:!bg-indigo-600 shadow-[0_4px_15px_rgba(99,102,241,0.4)]"
+          >
+            <Save className="w-6 h-6 sm:w-7 sm:h-7" />
+          </GlassButton>
+
+          <GlassButton
+            onClick={() => setShowDeleteModal(true)}
+            title="Supprimer"
+            className="!bg-red-500/90 !text-white !border-red-400/30 hover:!bg-red-600 shadow-[0_4px_15px_rgba(239,68,68,0.4)]"
+          >
+            <BadgeX className="w-6 h-6 sm:w-7 sm:h-7" />
+          </GlassButton>
+        </div>
+      )}
+
+      {/* Bas droite */}
+      <div className="absolute bottom-10 right-4 sm:bottom-6 sm:right-6 pointer-events-auto">
+        <GlassButton onClick={chatbox.open} title="Ouvrir le chat">
+          <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+        </GlassButton>
+      </div>
+
+      {/* Fenêtres modales */}
+      <div className="pointer-events-auto">
+        {showFinishModal && <FinishConfirm title="Terminer" message="Êtes-vous sûr de vouloir terminer votre grille ? Vous ne pourrez plus la modifier !" onConfirm={finishCanvas} onCancel={() => setShowFinishModal(false)} buttonText="Terminer" buttonColor="bg-indigo-500 hover:bg-indigo-600" />}
+        {showDeleteModal && <FinishConfirm title="Suppression" message="Êtes-vous sûr de vouloir supprimer votre grille ?" onConfirm={deleteCanvas} onCancel={() => setShowDeleteModal(false)} buttonText="Supprimer" buttonColor="bg-red-500 hover:bg-red-600" />}
+      </div>
+    </div>
+  )
+}
+
+export default GameUI
+</file>
+
+<file path="client/src/App.jsx">
+import { UIProvider } from './context/UIProvider';
+import MainLayout from './layouts/MainLayout';
+
+
+function App() {
+
+
+
+
+  return (
+    <UIProvider>
+      <MainLayout>
+
+
+
+      </MainLayout>
+    </UIProvider>
+  );
+}
+
+export default App;
+</file>
+
+<file path="client/src/components/features/Chatbox.jsx">
+import React, { useState, useEffect } from 'react';
+import Draggable from 'react-draggable';
+import { MessageSquare, Minus, Maximize2, X, Send, Crown, User } from 'lucide-react';
+import { socket } from '../../socket';
+import { useUI } from '../../context/UIProvider';
+
+function Chatbox({ onClose, roomID }) {
+    const nodeRef = React.useRef(null);
+    const [isMinimized, setIsMinimized] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [chatMessages, setChatMessages] = useState([]);
+    const [userPanelOpen, setUserPanelOpen] = useState(false);
+    const [playersList, setPlayersList] = useState([]);
+
+    const { user, currentHost } = useUI();
+
+    const toggleMinimize = () => setIsMinimized(!isMinimized);
+
+    const sendMessage = (e) => {
+        e.preventDefault();
+        if (inputValue.trim()) {
+            socket.emit('sendMessage', { roomId: roomID, message: inputValue });
+            setInputValue('');
+        }
+    };
+
+    const userPanel = () => {
+        setUserPanelOpen(!userPanelOpen);
+        socket.emit('getPlayersList', { roomId: roomID });
+    };
+
+    useEffect(() => {
+        socket.emit('getChatMessages', { roomId: roomID });
+
+        socket.on('chatMessages', (data) => {
+            setChatMessages(data);
+        });
+        socket.on('receiveMessage', (data) => {
+            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: data.message }]);
+        });
+        socket.on('joinedRoom', (data) => {
+            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: 'a rejoint la room, welcome !' }]);
+            socket.emit('getPlayersList', { roomId: roomID });
+        });
+        socket.on('exitGame', (data) => {
+            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.user, message: 'a quitté la room, bye !' }]);
+        });
+        socket.on('playersList', (data) => {
+            setPlayersList(data || []);
+        });
+
+
+        return () => {
+            socket.off('receiveMessage');
+            socket.off('joinedRoom');
+            socket.off('chatMessages');
+            socket.off('playersList');
+        };
+    }, []);
+
+
+    // Calcul de la position par défaut (en bas à droite)
+    const defaultX = typeof window !== 'undefined' ? window.innerWidth - 350 : 500;
+    const defaultY = typeof window !== 'undefined' ? window.innerHeight - 450 : 500;
+
+    return (
+        <Draggable
+            nodeRef={nodeRef}
+            handle=".drag-handle"
+            cancel="button"
+            defaultPosition={{ x: defaultX, y: defaultY }}
+            bounds="body"
+        >
+            <div
+                ref={nodeRef}
+                className={`fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200 ${isMinimized ? 'w-64 h-auto' : 'w-80 h-[26rem]'
+                    }`}
+            >
+                {/* Header */}
+                <div className="drag-handle bg-neutral text-neutral-content p-3 flex justify-between items-center cursor-move select-none group">
+                    <div className="flex items-center gap-2">
+                        <MessageSquare size={18} className="text-primary/80" />
+                        <span className="font-bold text-sm tracking-wide">Chat</span>
+                    </div>
+                    <div className="flex items-center gap-1 cursor-default opacity-80 group-hover:opacity-100 transition-opacity">
+                        {/* Bouton joueur */}
+                        {!isMinimized && (
+                            <button
+                                onClick={userPanel}
+                                className="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer"
+                                title="Joueurs"
+                            >
+                                <User size={16} />
+                            </button>
+                        )}
+                        {/* Bouton minimiser / agrandir */}
+                        <button
+                            onClick={toggleMinimize}
+                            className="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg transition-colors cursor-pointer"
+                            title={isMinimized ? "Agrandir" : "Réduire"}
+                        >
+                            {isMinimized ? <Maximize2 size={16} /> : <Minus size={16} />}
+                        </button>
+                        {/* Bouton fermer */}
+                        {onClose && (
+                            <button
+                                onClick={onClose}
+                                className="p-1.5 hover:bg-error hover:text-error-content rounded-lg transition-colors cursor-pointer"
+                                title="Fermer"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Body */}
+                {!isMinimized && (
+                    <>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200/30">
+                            {userPanelOpen ? (
+                                <>
+                                    <h1 className="text-center font-bold text-lg underline">Liste des joueurs</h1>
+                                    <ul className="flex flex-col gap-2">
+                                        {playersList.map((player, i) => (
+                                            <li
+                                                key={i}
+                                                className="flex items-center gap-3 bg-base-100 px-4 py-2 rounded-lg shadow-sm border border-base-200"
+                                            >
+                                                <span className="relative flex h-2.5 w-2.5">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                                                </span>
+                                                <span className="text-sm font-bold">{player}</span>
+                                                {player === user.pseudo && <span className="text-xs text-gray-400 ml-auto"><Crown size={16} color='black' fill='gold' /></span>}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            ) : chatMessages.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-base-content/40 italic text-sm">
+                                    <MessageSquare size={32} className="mb-3 opacity-20" />
+                                    <p>Aucun message pour le moment.</p>
+                                </div>
+                            ) : (
+                                chatMessages.map((msg, i) => (
+                                    <div key={i} className="flex items-center gap-1 text-sm">
+                                        {msg.senderId === currentHost ? (
+                                            <span className="flex items-center gap-1 font-bold text-red-500 mr-2"><Crown size={16} color='black' fill='gold' /> {msg.pseudo}:</span>
+                                        ) : (
+                                            <span className="font-bold text-secondary mr-2">{msg.pseudo}:</span>
+                                        )}
+                                        <span className="text-base-content/90">{msg.message}</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        {!userPanelOpen && (
+                            <div className="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
+                                <form onSubmit={sendMessage} className="flex gap-2 relative items-center">
+                                    <input
+                                        type="text"
+                                        className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
+                                        placeholder="Écrire un message..."
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
+                                        disabled={!inputValue.trim()}
+                                    >
+                                        <Send size={14} className={inputValue.trim() ? "text-primary-content -ml-0.5" : "text-base-content/30 -ml-0.5"} />
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </Draggable >
+    );
+}
+
+export default Chatbox;
+</file>
+
+<file path="client/src/layouts/MainLayout.jsx">
+import { useUI } from '../context/UIProvider';
+import Navbar from '../components/features/Navbar';
+import Footer from '../components/features/Footer';
+import GridCreation from '../components/features/GridCreation';
+import GameView from '../views/GameView';
+import LobbyView from '../views/LobbyView';
+import LandingView from '../views/LandingView';
+
+const MainLayout = ({ }) => {
+    const { gameMode, currentRoomID, gridCreate, user, isAuthLoading } = useUI();
+
+    // On attends la verif du token, eviter le flash de la landing view
+    if (isAuthLoading) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-base-200">
+                <h1 className="text-2xl font-bold text-primary">Chargement...</h1>
+            </div>
+        );
+    }
+
+    return (
+        <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
+
+            {user && (
+                <header className="flex-none z-50">
+                    <Navbar />
+                </header>
+            )}
+
+            {!user ? (
+                <>
+                    <main>
+                        <LandingView />
+                    </main>
+                </>
+            ) : (
+                <>
+                    <div className="flex flex-1 overflow-hidden relative">
+                        <main className="flex-1 relative flex justify-center items-center bg-gray-50">
+                            {gridCreate.isOpen && (
+                                <GridCreation />
+                            )}
+                            {/* En jeu, ou sur le lobby*/}
+                            {gameMode
+                                ? <GameView roomID={currentRoomID} />
+                                : <LobbyView />
+                            }
+                        </main>
+                    </div>
+                </>
+            )}
+
+
+
+            <footer className="flex-none z-40">
+                <Footer />
+            </footer>
+
+        </div>
+    );
+};
+
+export default MainLayout;
+</file>
+
+<file path="server/package.json">
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "canvas": "^3.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.1.1",
+    "socket.io": "^4.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
 </file>
 
 <file path="client/src/components/features/Navbar.jsx">
@@ -1182,7 +1495,7 @@ import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket.js';
 
 function Navbar() {
-  const { login, exitGame, currentRoomID, currentHost, user, logoutUser } = useUI();
+  const { exitGame, currentRoomID, currentHost, user, logoutUser, gameMode, gallery } = useUI();
 
   const handleExit = () => {
     if (currentRoomID) {
@@ -1202,15 +1515,18 @@ function Navbar() {
       <div className="flex-1">
         <a onClick={handleExit} className="btn btn-ghost text-xl text-primary font-bold uppercase">Pixel Together</a>
       </div>
-      <div className="flex-none">
-        {user ? (
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-primary">{user.pseudo}</span>
-            <button onClick={() => { logoutUser(); handleExit(); }} className="btn btn-outline btn-sm">Déconnexion</button>
-          </div>
-        ) : (
-          <button onClick={login.open} className="btn btn-primary font-bold text-white">Connexion</button>
+      <div className="flex-none flex items-center gap-2">
+        {!gameMode && (
+          <button onClick={gallery.toggle} className={`btn ${gallery.isOpen ? 'btn-neutral' : 'btn-ghost'} font-bold`}>
+            Galerie
+          </button>
         )}
+
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-primary">{user.pseudo}</span>
+          <button onClick={() => { logoutUser(); handleExit(); }} className="btn btn-outline btn-sm">Déconnexion</button>
+        </div>
+
       </div>
     </div>
   )
@@ -1228,7 +1544,7 @@ const UIContext = createContext();
 // Hook réutilisable pour tout ce qui s'ouvre/se ferme
 function useToggle(initial = false) {
     const [isOpen, setIsOpen] = useState(initial);
-    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false) };
+    return { isOpen, open: () => setIsOpen(true), close: () => setIsOpen(false), toggle: () => setIsOpen(prev => !prev) };
 }
 
 export const UIProvider = ({ children }) => {
@@ -1241,10 +1557,10 @@ export const UIProvider = ({ children }) => {
     const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
 
     // Fenêtres dynamiques
-    const login = useToggle();
     const gridCreate = useToggle();
     const palette = useToggle();
     const chatbox = useToggle();
+    const gallery = useToggle();
 
     // Couleur
     const [selectedColor, setSelectedColor] = useState('#ffffffff');
@@ -1252,32 +1568,73 @@ export const UIProvider = ({ children }) => {
 
     // Utilisateur connecté
     const [user, setUser] = useState(null);
-    const loginUser = (pseudo, gridID) => { setUser({ pseudo, gridID }) };
+
+    // Couleurs actives choisies (persistance locale par utilisateur)
+    const [chosenColors, setChosenColors] = useState(Array(10).fill(null));
+
+    // Mettre à jour les couleurs quand l'utilisateur change
+    useEffect(() => {
+        if (user && user.pseudo) {
+            const saved = localStorage.getItem(`chosenColors_${user.pseudo}`);
+            if (saved) {
+                try {
+                    setChosenColors(JSON.parse(saved));
+                } catch (e) {
+                    setChosenColors(Array(10).fill(null));
+                }
+            } else {
+                setChosenColors(Array(10).fill(null));
+            }
+        } else {
+            setChosenColors(Array(10).fill(null));
+        }
+    }, [user]);
+
+    // Sauvegarder les couleurs quand elles changent (si un utilisateur est connecté)
+    useEffect(() => {
+        if (user && user.pseudo) {
+            localStorage.setItem(`chosenColors_${user.pseudo}`, JSON.stringify(chosenColors));
+        }
+    }, [chosenColors, user]);
+
+
+    const [isAuthLoading, setIsAuthLoading] = useState(!!localStorage.getItem('token')); // true si un token existe au démarrage
+    const loginUser = (pseudo, gridID, gridName) => { setUser({ pseudo, gridID, gridName: gridName || gridID }) };
     const updateGridID = (newGridID) => { setUser(prev => prev ? { ...prev, gridID: newGridID } : null) };
     const logoutUser = () => { setUser(null); localStorage.removeItem('token'); };
-    //auto-connect
+    //auto-connect : le middleware serveur vérifie le token, puis envoie 'authenticated'
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (token) {
-            socket.emit('verifyToken', token);
+
+        if (!token) {
+            setIsAuthLoading(false);
+            return;
         }
 
-        const handleVerifyToken = (data) => {
+        // Timeout de sécurité : si le serveur ne répond pas après 3s, on arrête le loading
+        const timeout = setTimeout(() => {
+            setIsAuthLoading(false);
+        }, 3000);
+
+        const handleAuthenticated = (data) => {
+            clearTimeout(timeout);
             if (data && data.pseudo) {
-                loginUser(data.pseudo, data.gridID);
+                loginUser(data.pseudo, data.gridID, data.gridName);
             }
+            setIsAuthLoading(false);
         };
 
-        socket.on('verifyToken', handleVerifyToken);
+        socket.on('authenticated', handleAuthenticated);
 
         return () => {
-            socket.off('verifyToken', handleVerifyToken);
+            clearTimeout(timeout);
+            socket.off('authenticated', handleAuthenticated);
         };
     }, []);
 
 
     return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, chatbox, selectedColor, selectColor, user, loginUser, updateGridID, logoutUser }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser }}>
             {children}
         </UIContext.Provider>
     );
@@ -1286,40 +1643,13 @@ export const UIProvider = ({ children }) => {
 export const useUI = () => useContext(UIContext);
 </file>
 
-<file path="client/src/views/GameView.jsx">
-import Canvas from '../components/features/Canvas'
-import ColorPalette from '../components/features/ColorPalette';
-import Chatbox from '../components/features/Chatbox';
-import { useUI } from '../context/UIProvider'
-
-function GameView({ roomID }) {
-    const { palette, chatbox } = useUI();
-
-    return (
-        <div >
-            <div className="absolute inset-0 overflow-auto bg-slate-200">
-                <Canvas roomID={roomID} />
-            </div>
-            {/* Les fenêtres */}
-            {palette.isOpen && (
-                <ColorPalette />
-            )}
-            {chatbox.isOpen && (
-                <Chatbox roomID={roomID} onClose={chatbox.close} />
-            )}
-        </div>
-    )
-}
-
-export default GameView
-</file>
-
 <file path="client/src/views/LobbyView.jsx">
 import { useEffect, useState } from 'react';
 import { Grid3x3, RefreshCcw } from 'lucide-react';
 import { useUI } from "../context/UIProvider";
 import { socket } from '../socket';
 import RoomCard from '../components/UI/RoomCard';
+import Gallery from '../components/features/Gallery';
 
 function LobbyView({ }) {
 
@@ -1334,9 +1664,7 @@ function LobbyView({ }) {
 
     // Reprise d'une grid
     const handleResume = () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        socket.emit('resumeGrid', { token }, (response) => {
+        socket.emit('resumeGrid', {}, (response) => {
             if (response.error) {
                 console.error(response.error);
                 return;
@@ -1354,6 +1682,7 @@ function LobbyView({ }) {
         // Au lancement du lobby, on demande les rooms
         socket.on('activeGrids', (data) => {
             setRooms(Object.values(data));
+
         });
 
         // En temps réel, quand on a une create
@@ -1368,20 +1697,22 @@ function LobbyView({ }) {
 
 
         return () => {
+
             socket.off('activeGrids');
             socket.off('createCanvas');
             socket.off('roomClosed');
         };
     }, []);
 
+
     return (
-
-
         <div className="flex w-full bg-neutral-content h-full text-center">
+
+            <Gallery />
 
             {/* Zone personnelle*/}
             <div className="flex flex-col h-screen-max w-1/3 bg-base-200 m-3 rounded-2xl shadow-2xl relative overflow-hidden">
-                <div className="p-8 pb-4 text-left w-full">
+                <div className="p-8 pb-4 text-center w-full">
                     <h1 className="text-3xl font-bold text-slate-800">Jouer</h1>
                     <p className="text-slate-500 text-sm mt-2 font-medium">Créez ou reprenez votre partie actuelle.</p>
                 </div>
@@ -1429,7 +1760,7 @@ function LobbyView({ }) {
             </div>
 
             {/* Zone publique */}
-            <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl">
+            <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl relative">
                 <div className="p-8">
                     <h1 className="text-3xl font-bold text-slate-800 mb-8">Salons disponibles</h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1452,7 +1783,7 @@ function LobbyView({ }) {
                         )}
 
                         {/* Un bouton pour refresh pour avoir a faire f5 */}
-                        <button onClick={handleRefresh} className="btn btn-primary aspect-square rounded-3xl top-5 right-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
+                        <button onClick={handleRefresh} className="absolute btn btn-primary aspect-square rounded-3xl top-5 left-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
 
                     </div>
                 </div>
@@ -1466,57 +1797,404 @@ function LobbyView({ }) {
 export default LobbyView
 </file>
 
-<file path="server/package.json">
-{
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "dev": "node --watch index.js",
-    "start": "node index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.1.1",
-    "socket.io": "^4.7.4"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.3"
-  }
+<file path="client/src/socket.js">
+import io from 'socket.io-client';
+
+export const socket = io(import.meta.env.VITE_API_URL, {
+    auth: {
+        token: localStorage.getItem('token')
+    }
+});
+
+export function updateSocketAuth() {
+    socket.auth = { token: localStorage.getItem('token') };
+    socket.disconnect().connect();
 }
 </file>
 
-<file path="client/src/App.jsx">
-import { UIProvider } from './context/UIProvider';
-import MainLayout from './layouts/MainLayout';
+<file path="client/src/components/features/LoginForm.jsx">
+import React from 'react';
+import { useUI } from '../../context/UIProvider';
+import { useState } from 'react';
+import { updateSocketAuth } from '../../socket';
+
+function LoginForm({ }) {
+    const { loginUser } = useUI();
+
+    const nodeRef = React.useRef(null);
+
+    // Fonction pour basculer entre inscription et connexion
+    const [isRegistering, setIsRegistering] = useState(false);
+    const toggleRegister = () => { setIsRegistering(prev => !prev); setError(''); };
+
+    //Variables pour stocker les inputs
+    const [pseudo, setPseudo] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
 
-function App() {
+    //Fonction pour envoyer dans la DB
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Empêche le rechargement de la page par défaut
+        setError("");
+        setSuccess("");
+
+        try {
+            const url = isRegistering ? '/api/register' : '/api/login';
+            const response = await fetch(import.meta.env.VITE_API_URL + url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pseudo, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Si erreur
+                throw new Error(data.message || "Une erreur est survenue");
+            }
+
+            setPassword('');
+            setSuccess(data.message);
+            if (isRegistering) {
+                toggleRegister(); // On bascule vers le login
+            } else {
+                localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
+                updateSocketAuth(); // On reconnecte le socket avec le nouveau token
+                loginUser(pseudo, data.gridID, data.gridName); // On met le pseudo dans le context global
+            }
+
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return ( //Interface de la page de connexion
+        <div ref={nodeRef} className="bg-white/80 backdrop-blur-xl p-5 sm:p-6 rounded-[1.5rem] shadow-[0_8px_32px_rgba(0,0,0,0.1)] w-[90%] max-w-sm border border-white/50">
+
+            {/* Titre */}
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center text-gray-800">
+                {isRegistering ? "Inscription" : "Connexion"}
+            </h2>
 
 
+            <form onSubmit={handleSubmit} className="space-y-3">
 
+                {/*Pseudo */}
+                <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Pseudo</label>
+                    <input
+                        type="text"
+                        className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm rounded-xl bg-gray-100/50 backdrop-blur-sm border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder-gray-400 shadow-sm"
+                        placeholder="Ton pseudo..."
+                        value={pseudo}
+                        onChange={(e) => setPseudo(e.target.value)}
+                        required
+                    />
+                </div>
 
-  return (
-    <UIProvider>
-      <MainLayout>
+                {/* Mot de passe */}
+                <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                    <input
+                        type="password"
+                        className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm rounded-xl bg-gray-100/50 backdrop-blur-sm border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder-gray-400 shadow-sm"
+                        placeholder="🚨 bdd non sécurisée 🚨"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
 
+                <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold py-2.5 text-sm sm:text-base rounded-xl shadow-md transform transition hover:-translate-y-1 mt-2"
+                >
+                    {isRegistering ? "S'inscrire" : "Se connecter"}
+                </button>
 
+            </form>
 
-      </MainLayout>
-    </UIProvider>
-  );
+            <div className="mt-4 text-center text-sm text-gray-500">
+                {isRegistering
+                    ? <>Déjà un compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">Se connecter</span></>
+                    : <>Pas encore de compte ? <span onClick={toggleRegister} className="text-blue-600 cursor-pointer hover:underline">S'inscrire</span></>
+                }
+            </div>
+
+            {/* Info, Ok ou pas OK */}
+            {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+            {success && <p className="text-green-500 text-center mt-4">{success}</p>}
+
+        </div>
+    )
 }
 
-export default App;
+export default LoginForm
+</file>
+
+<file path="client/src/views/GameView.jsx">
+import Canvas from '../components/features/Canvas'
+import ColorPalette from '../components/features/ColorPalette';
+import Chatbox from '../components/features/Chatbox';
+import { useUI } from '../context/UIProvider'
+import GameUI from '../components/features/GameUI';
+
+function GameView({ roomID }) {
+    const { palette, chatbox } = useUI();
+
+    return (
+        <div className="absolute inset-0">
+            {/* Zone du jeu */}
+            <div className="absolute inset-0 overflow-hidden bg-slate-200">
+                <Canvas roomID={roomID} />
+            </div>
+
+            {/* UI */}
+            <GameUI roomID={roomID} />
+            {/* Les fenêtres */}
+            {palette.isOpen && (
+                <ColorPalette />
+            )}
+            {chatbox.isOpen && (
+                <Chatbox roomID={roomID} onClose={chatbox.close} />
+            )}
+        </div>
+    )
+}
+
+export default GameView
+</file>
+
+<file path="client/src/components/features/Canvas.jsx">
+import { useEffect, useRef, useState } from 'react';
+import { socket } from '../../socket.js';
+import { useUI } from '../../context/UIProvider';
+
+function Canvas({ roomID }) {
+
+    const canvasRef = useRef(null);
+    const PIXEL_SIZE = 20;
+    const { selectedColor, exitGame, user } = useUI();
+    const [roomName, setRoomName] = useState('');
+    const [scale, setScale] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+
+
+    // Création du canvas
+    useEffect(() => {
+
+        // On rejoint la room socket avec notre roomID reçu via le choix de lobby
+        socket.emit('joinRoom', { roomId: roomID });
+
+        // On reçoit l'état de la grid
+        socket.on('gridState', (data) => {
+            if (!canvasRef.current) return;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d')
+            const width = data.width;
+            const height = data.height;
+            setRoomName(data.name);
+
+            // On dimensionne le canvas
+            canvas.width = width * PIXEL_SIZE;
+            canvas.height = height * PIXEL_SIZE;
+
+            // On dessine le quadrillage
+            ctx.beginPath()
+            ctx.strokeStyle = '#ddd'
+            ctx.lineWidth = 1
+            for (let gx = 0; gx <= width; gx++) {
+                ctx.moveTo(gx * PIXEL_SIZE, 0)
+                ctx.lineTo(gx * PIXEL_SIZE, height * PIXEL_SIZE)
+            }
+            for (let gy = 0; gy <= height; gy++) {
+                ctx.moveTo(0, gy * PIXEL_SIZE)
+                ctx.lineTo(width * PIXEL_SIZE, gy * PIXEL_SIZE)
+            }
+            ctx.stroke()
+
+            // On dessine les pixels existants (s'il y en a)
+            for (const coords in data.pixels) {
+                const pixelColor = data.pixels[coords];
+                const [x, y] = coords.split(',');
+                ctx.fillStyle = pixelColor;
+                ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            }
+        });
+
+        // écoute de ce que font les autres + dessin
+        socket.on('drawPixel', (data) => {
+            const ctx = canvasRef.current.getContext('2d')
+            ctx.fillStyle = data.color
+            ctx.fillRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+
+            // Redessiner la bordure si c'est blanc
+            if (data.color.startsWith('#ffffff')) {
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(data.x * PIXEL_SIZE, data.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            }
+        });
+
+        // Si l'host ferme la room, on retourne au lobby
+        socket.on('roomClosed', (closedRoomId) => {
+            if (closedRoomId === roomID) {
+                exitGame();
+            }
+        });
+
+        // Nettoyage quand le composant se démonte
+        return () => {
+            socket.off('drawPixel')
+            socket.off('gridState')
+            socket.off('roomClosed')
+        };
+
+    }, []);
+
+    // Dessin d'un pixel au clic
+    const drawPixel = (event) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+
+        // Position du clic par rapport au canvas
+        const coordX = (event.clientX - rect.left) / scale;
+        const coordY = (event.clientY - rect.top) / scale;
+
+        // Convertir en coordonnées de la grid
+        const x = Math.floor(coordX / PIXEL_SIZE)
+        const y = Math.floor(coordY / PIXEL_SIZE)
+
+        // Dessiner localement
+        const ctx = canvasRef.current.getContext('2d')
+        ctx.fillStyle = selectedColor
+        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
+
+        // Redessiner la bordure si on met du blanc
+        if (selectedColor.startsWith('#ffffff')) {
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+        }
+
+        // Envoyer au serveur
+        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
+    };
+
+    // Gestion zoom
+    const handleWheel = (event) => {
+        event.preventDefault();
+        if (event.deltaY < 0) {
+            setScale(Math.min(scale * 1.1, 2));
+        } else {
+            setScale(Math.max(scale / 1.1, 0.5));
+        }
+    };
+
+    // Gestion déplacement avec click molette ou Toucher
+    const hasMoved = useRef(false);
+    const pointerDownPos = useRef({ x: 0, y: 0 });
+    const pinchDist = useRef(null);
+
+    const handlePointerDown = (event) => {
+        // Clic molette (PC) OU 1 doigt (Mobile)
+        if (event.button === 1 || event.pointerType === 'touch') {
+            setIsDragging(true);
+            hasMoved.current = false;
+            pointerDownPos.current = { x: event.clientX, y: event.clientY };
+            setDragStart({ x: event.clientX - position.x, y: event.clientY - position.y });
+        }
+    };
+
+    const handlePointerMove = (event) => {
+        if (isDragging) {
+            // Marge de tolérance (10px) pour éviter qu'un simple tap tremblant sur mobile soit considéré comme un drag
+            const dist = Math.hypot(event.clientX - pointerDownPos.current.x, event.clientY - pointerDownPos.current.y);
+            if (dist > 10) {
+                hasMoved.current = true;
+            }
+
+            let newX = event.clientX - dragStart.x;
+            let newY = event.clientY - dragStart.y;
+
+            if (canvasRef.current && hasMoved.current) {
+                const canvas = canvasRef.current;
+                const boundX = Math.max(0, (canvas.width * scale - window.innerWidth) / 2) + 150;
+                const boundY = Math.max(0, (canvas.height * scale - window.innerHeight) / 2) + 150;
+                newX = Math.max(-boundX, Math.min(boundX, newX));
+                newY = Math.max(-boundY, Math.min(boundY, newY));
+                setPosition({ x: newX, y: newY });
+            }
+        }
+    };
+
+    const handlePointerUp = () => {
+        setIsDragging(false);
+        pinchDist.current = null;
+    };
+
+
+    // Zoom Pinch ultra-compact (Mobile)
+    const handleTouchZoomStart = (e) => {
+        if (e.touches.length === 2) {
+            pinchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            setIsDragging(false);
+        }
+    };
+
+    const handleTouchZoom = (e) => {
+        if (e.touches.length === 2 && pinchDist.current) {
+            const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            // On calcule un différentiel très faible et on l'applique
+            const diff = currentDist - pinchDist.current;
+
+            // Sensibilité (0.01)
+            setScale(s => Math.min(Math.max(s + (diff * 0.01), 0.5), 3));
+            pinchDist.current = currentDist;
+        }
+    };
+
+    // Wrapper pour le clic qui draw seulement s'il n'y a pas eu de pan (déplacement)
+    const handleDraw = (e) => {
+        // e.button !== 1 empêche de dessiner si on fait juste le clic molette sans bouger
+        if (!hasMoved.current && e.button !== 1) {
+            drawPixel(e);
+        }
+        hasMoved.current = false;
+    };
+
+    return (
+        <>
+            <div className="absolute w-full z-10 flex justify-center mt-5 pt-12 md:pt-0 pointer-events-none">
+                <h1 className="font-bold uppercase py-2.5 text-xl bg-slate-200/80 rounded-lg px-4 backdrop-blur-sm pointer-events-auto hidden md:block">{roomName}</h1>
+            </div>
+
+            <div
+                className="w-full h-full flex items-center justify-center p-3 touch-none"
+                onWheel={handleWheel}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                onTouchStart={handleTouchZoomStart}
+                onTouchMove={handleTouchZoom}
+            >
+                <canvas
+                    ref={canvasRef}
+                    onPointerUp={handleDraw}
+                    className="bg-white shadow-2xl shrink-0 cursor-crosshair"
+                    style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-in-out', transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
+                />
+            </div >
+        </>
+    )
+};
+
+export default Canvas
 </file>
 
 <file path="server/index.js">
@@ -1525,8 +2203,9 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import 'dotenv/config';
+import './db.js';
 import jwt from 'jsonwebtoken';
-
+import { createCanvas } from 'canvas';
 import authRouter from './routes/auth.js';
 import Grid from './models/Grid.js';
 import User from './models/User.js';
@@ -1535,17 +2214,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+const corsOptions = {
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/api', authRouter);
 
 // Création du serveur HTTP & Socket.io
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
-  }
+  cors: corsOptions
 });
 
 
@@ -1562,92 +2250,109 @@ async function saveGridToDB(roomId, grid) {
   }
 }
 
-// Connection avec socket
+// Middleware d'authentification Socket.io, check 1x le token
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error('Token manquant'));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.idUser);
+    if (!user) {
+      return next(new Error('Utilisateur introuvable'));
+    }
+    // On attache les infos au socket — disponibles dans TOUS les handlers ensuite
+    socket.userId = decoded.idUser;
+    socket.pseudo = user.pseudo;
+    next();
+  } catch (err) {
+    return next(new Error('Token invalide'));
+  }
+});
+
+// Connection avec socket (le middleware a déjà vérifié le token, on a socket.userId et socket.pseudo)
 io.on('connection', (socket) => {
+
+  // On renvoie les infos de l'utilisateur au client pour l'auto-connect
+  socket.emit('authenticated', { pseudo: socket.pseudo, gridID: null });
+  // On cherche le gridID en async (pour ne pas bloquer la connexion)
+  User.findById(socket.userId).then(user => {
+    if (user && user.gridID) {
+      socket.emit('authenticated', { pseudo: socket.pseudo, gridID: user.gridID });
+    }
+  });
 
   //Reception + envoi des messages du chat
   socket.on('sendMessage', (data) => {
-    activeGrids[data.roomId].chatMessages.push({ pseudo: data.pseudo, message: data.message, senderId: socket.id });
-    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: data.pseudo, message: data.message });
+    if (!activeGrids[data.roomId]) return;
+    activeGrids[data.roomId].chatMessages.push({ pseudo: socket.pseudo, message: data.message, senderId: socket.id });
+    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: socket.pseudo, message: data.message });
   });
 
   // Recup historique messages
   socket.on('getChatMessages', (data) => {
+    if (!activeGrids[data.roomId]) return;
     socket.emit('chatMessages', activeGrids[data.roomId].chatMessages);
   });
 
   // Envoi des rooms après demande du lobby
-  socket.on('getActiveGrids', () => {
+  socket.on('getActiveGrids', (data) => {
     socket.emit('activeGrids', activeGrids);
-  });
-
-  // verification token pour log auto
-  socket.on('verifyToken', async (token) => {
-    if (!token) return;
-    try {
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decodedToken.idUser);
-      if (user) {
-        socket.emit('verifyToken', { pseudo: user.pseudo, gridID: user.gridID });
-      }
-    } catch (err) {
-      console.error("Token invalide:", err.message);
-    }
   });
 
   //Création du Canvas avec callback pour renvoyer direct l'ID
   socket.on('newGrid', async (data, callback) => {
+    try {
+      // Vérifier si l'utilisateur a déjà une grille
+      const user = await User.findById(socket.userId);
+      if (user.gridID) {
+        return callback({ error: "Vous avez déjà une partie en cours ! Veuillez la reprendre." });
+      }
 
-    // Vérifie si le token est valide
-    const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
+      // Premiere save dans la DB
+      const newGrid = new Grid({
+        name: data.name,
+        width: data.width,
+        height: data.height,
+        ownerID: socket.userId
+      });
+      await newGrid.save();
+      // On lie à l'user
+      await User.findByIdAndUpdate(socket.userId, {
+        $set: { gridID: newGrid.id }
+      });
 
-    // Vérifier si l'utilisateur a déjà une grille
-    const user = await User.findById(decoded.idUser);
-    if (user.gridID) {
-      return callback({ error: "Vous avez déjà une partie en cours ! Veuillez la reprendre." });
+      //Save du Canvas dans la mémoire
+      activeGrids[newGrid.id] = {
+        id: newGrid.id,
+        host: socket.id,
+        name: data.name,
+        width: data.width,
+        height: data.height,
+        chatMessages: [],
+        playersList: [],
+        pixels: {}
+      }
+
+      // le host rejoint la room
+      socket.join(newGrid.id)
+
+      // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
+      io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id })
+
+      // On répond au host avec l'ID de sa room (comme un return)
+      callback({ id: newGrid.id, name: data.name, host: socket.id })
+    } catch (err) {
+      console.error('Erreur newGrid:', err);
+      callback({ error: 'Erreur lors de la création de la grille.' });
     }
-
-    // Premiere save dans la DB
-    const newGrid = new Grid({
-      name: data.name,
-      width: data.width,
-      height: data.height,
-      ownerID: decoded.idUser
-    });
-    await newGrid.save();
-    // On lie à l'user
-    await User.findByIdAndUpdate(decoded.idUser, {
-      $set: { gridID: newGrid.id },
-      $push: { myGrids: newGrid.id }
-    });
-
-
-    //Save du Canvas dans la mémoire
-    activeGrids[newGrid.id] = {
-      id: newGrid.id,
-      host: socket.id,
-      name: data.name,
-      width: data.width,
-      height: data.height,
-      chatMessages: [],
-      pixels: {}
-    }
-
-    // le host rejoint la room
-    socket.join(newGrid.id)
-
-    // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
-    io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id })
-
-    // On répond au host avec l'ID de sa room (comme un return)
-    callback({ id: newGrid.id, name: data.name, host: socket.id })
   });
 
   // Reprendre la grid
   socket.on('resumeGrid', async (data, callback) => {
     try {
-      const decoded = jwt.verify(data.token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.idUser);
+      const user = await User.findById(socket.userId);
 
       if (!user || !user.gridID) {
         return callback({ error: "Aucune partie trouvée." });
@@ -1669,6 +2374,7 @@ io.on('connection', (socket) => {
         width: grid.width,
         height: grid.height,
         chatMessages: [],
+        playersList: [],
         pixels: grid.pixels ? Object.fromEntries(grid.pixels) : {}
       };
 
@@ -1684,40 +2390,52 @@ io.on('connection', (socket) => {
     }
   });
 
-  //Placement de pixel
+  //Placement de pixel (plus besoin de vérifier le token, le middleware l'a déjà fait)
   socket.on('pixelPlaced', (data) => {
-    console.log(`Pixel placé : ${data.x}:${data.y} avec la couleur ${data.color} et id: ${data.roomId}`)
-
+    if (!activeGrids[data.roomId]) return;
 
     //Ajout du pixel dans le canvas
     activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
 
     // Envoie du pixel à tous les joueurs de la room
     socket.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
-
   });
 
-  // Rejoindre room
-  socket.on('joinRoom', (data) => {
-    socket.join(data.roomId)
-    // On prévient tout le monde que quelqu'un est entré dans la room
-    socket.to(data.roomId).emit('joinedRoom', { pseudo: data.pseudo });
+  socket.on('getPlayersList', (data) => {
+    if (!activeGrids[data.roomId]) return;
+    socket.emit('playersList', activeGrids[data.roomId].playersList);
+  });
 
+  // Rejoindre room (pseudo vient du middleware, plus du client)
+  socket.on('joinRoom', (data) => {
+    if (!activeGrids[data.roomId]) return;
+    socket.join(data.roomId);
+
+    socket.data.roomId = data.roomId;
+
+    activeGrids[data.roomId].playersList.push(socket.pseudo);
+    // On prévient tout le monde que quelqu'un est entré dans la room
+    socket.to(data.roomId).emit('joinedRoom', { pseudo: socket.pseudo });
 
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
     socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name });
-  })
+  });
 
   // Joueur quitte la room
   socket.on('exitGame', (data) => {
-    console.log(`Le joueur ${socket.id} a quitté la room id: ${data.roomId}`)
-    socket.leave(data.roomId)
-  })
+    if (activeGrids[data.roomId]) {
+      activeGrids[data.roomId].playersList = activeGrids[data.roomId].playersList.filter(p => p !== socket.pseudo);
+
+      // On prévient tous les joueurs que la liste a changé
+      io.in(data.roomId).emit('playersList', activeGrids[data.roomId].playersList);
+      socket.to(data.roomId).emit('exitGame', { user: socket.pseudo });
+    }
+    socket.leave(data.roomId);
+  });
 
   // L'host ferme la room → tout le monde est renvoyé au lobby
   socket.on('closeRoom', async (data) => {
-    console.log(`${socket.id} (host) ferme la room ${data.roomId}`)
 
     // On récupère la grid AVANT de la supprimer
     const grid = activeGrids[data.roomId];
@@ -1731,8 +2449,85 @@ io.on('connection', (socket) => {
     // Puis on sauvegarde dans MongoDB en arrière-plan
     if (grid) await saveGridToDB(data.roomId, grid);
 
-    // L'host quitte aussi la room socket
     socket.leave(data.roomId)
+  })
+
+  // Finish du Canvas
+  socket.on('finishCanvas', async (data) => {
+    try {
+      await User.findByIdAndUpdate(socket.userId, {
+        $set: { gridID: null }
+      })
+
+      const grid = activeGrids[data.roomId];
+      if (!grid) return;
+
+      //Création du canvas
+      const canvas = createCanvas(grid.width * 20, grid.height * 20);
+      const ctx = canvas.getContext('2d');
+
+      // Fond blanc
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (const coords in grid.pixels) {
+        const pixelColor = grid.pixels[coords];
+        const [x, y] = coords.split(',');
+        ctx.fillStyle = pixelColor;
+        ctx.fillRect(x * 20, y * 20, 20, 20);
+      }
+
+      const gridImage = canvas.toDataURL('image/webp');
+
+      // On ajoute la grille à l'utilisateur
+      await User.findByIdAndUpdate(socket.userId, {
+        $push: { myGrids: { nom: grid.name, image: gridImage } }
+      });
+
+      delete activeGrids[data.roomId];
+      await Grid.findByIdAndDelete(data.roomId)
+      io.emit('roomClosed', data.roomId);
+    } catch (err) {
+      console.error('Erreur finishCanvas:', err);
+    }
+  })
+
+  // Delete Canvas
+  socket.on('deleteCanvas', async (data) => {
+    try {
+      await User.findByIdAndUpdate(socket.userId, {
+        $set: { gridID: null }
+      })
+
+      // Delete dans la mémoire
+      delete activeGrids[data.roomId];
+      // Delete dans la DB
+      await Grid.findByIdAndDelete(data.roomId)
+      io.emit('roomClosed', data.roomId);
+    } catch (err) {
+      console.error('Erreur deleteCanvas:', err);
+    }
+  })
+
+  //Get Gallery
+  socket.on('askGallery', async (callback) => {
+
+    const users = await User.find({ "myGrids.0": { $exists: true } });
+
+    const allGrids = users.flatMap(user =>
+      user.myGrids.map(grid => ({
+        name: grid.nom,
+        image: grid.image,
+        author: user.pseudo
+      }))
+    );
+
+    callback({ grids: allGrids });
+  })
+
+  socket.on('getColors', async () => {
+    const user = await User.findById(socket.userId);
+    socket.emit('colors', { colors: user.colors });
   })
 
   //Deco

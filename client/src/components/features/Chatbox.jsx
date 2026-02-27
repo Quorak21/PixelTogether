@@ -19,7 +19,7 @@ function Chatbox({ onClose, roomID }) {
     const sendMessage = (e) => {
         e.preventDefault();
         if (inputValue.trim()) {
-            socket.emit('sendMessage', { roomId: roomID, message: inputValue, pseudo: user.pseudo });
+            socket.emit('sendMessage', { roomId: roomID, message: inputValue });
             setInputValue('');
         }
     };

@@ -19,7 +19,7 @@ function Canvas({ roomID }) {
     useEffect(() => {
 
         // On rejoint la room socket avec notre roomID reçu via le choix de lobby
-        socket.emit('joinRoom', { roomId: roomID, pseudo: user.pseudo });
+        socket.emit('joinRoom', { roomId: roomID });
 
         // On reçoit l'état de la grid
         socket.on('gridState', (data) => {
@@ -111,11 +111,8 @@ function Canvas({ roomID }) {
             ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
         }
 
-        // Récup du token de l'user s'il en a un
-        const token = localStorage.getItem('token');
-
         // Envoyer au serveur
-        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID, token });
+        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
     };
 
     // Gestion zoom

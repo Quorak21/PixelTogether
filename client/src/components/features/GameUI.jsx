@@ -12,15 +12,13 @@ function GameUI({ roomID }) {
 
   // Fin du canvas
   const finishCanvas = () => {
-    const token = localStorage.getItem('token');
-    socket.emit('finishCanvas', { roomId: roomID, token });
+    socket.emit('finishCanvas', { roomId: roomID });
     updateGridID(null);
     exitGame();
   };
 
   const deleteCanvas = () => {
-    const token = localStorage.getItem('token');
-    socket.emit('deleteCanvas', { roomId: roomID, token });
+    socket.emit('deleteCanvas', { roomId: roomID });
     updateGridID(null);
     exitGame();
   };

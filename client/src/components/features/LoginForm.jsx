@@ -1,6 +1,7 @@
 import React from 'react';
 import { useUI } from '../../context/UIProvider';
 import { useState } from 'react';
+import { updateSocketAuth } from '../../socket';
 
 function LoginForm({ }) {
     const { loginUser } = useUI();
@@ -39,13 +40,13 @@ function LoginForm({ }) {
                 throw new Error(data.message || "Une erreur est survenue");
             }
 
-            setPseudo('');
             setPassword('');
             setSuccess(data.message);
             if (isRegistering) {
                 toggleRegister(); // On bascule vers le login
             } else {
                 localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
+                updateSocketAuth(); // On reconnecte le socket avec le nouveau token
                 loginUser(pseudo, data.gridID, data.gridName); // On met le pseudo dans le context global
             }
 
