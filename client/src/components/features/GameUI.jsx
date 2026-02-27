@@ -81,8 +81,8 @@ function GameUI({ roomID }) {
 
       {/* Fenêtres modales */}
       <div className="pointer-events-auto">
-        {showFinishModal && <FinishConfirm title="Terminer" message="Êtes-vous sûr de vouloir terminer votre grille ? Vous ne pourrez plus la modifier !" onConfirm={finishCanvas} onCancel={() => setShowFinishModal(false)} />}
-        {showDeleteModal && <FinishConfirm title="Suppression" message="Êtes-vous sûr de vouloir supprimer votre grille ?" onConfirm={deleteCanvas} onCancel={() => setShowDeleteModal(false)} />}
+        {showFinishModal && <FinishConfirm title="Terminer" message="Êtes-vous sûr de vouloir terminer votre grille ? Vous ne pourrez plus la modifier !" onConfirm={finishCanvas} onCancel={() => setShowFinishModal(false)} buttonText="Terminer" buttonColor="bg-indigo-500 hover:bg-indigo-600" />}
+        {showDeleteModal && <FinishConfirm title="Suppression" message="Êtes-vous sûr de vouloir supprimer votre grille ?" onConfirm={deleteCanvas} onCancel={() => setShowDeleteModal(false)} buttonText="Supprimer" buttonColor="bg-red-500 hover:bg-red-600" />}
       </div>
     </div>
   )

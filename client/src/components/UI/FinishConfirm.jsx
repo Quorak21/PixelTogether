@@ -1,4 +1,4 @@
-const FinishConfirm = ({ onCancel, onConfirm, title = "", message = "" }) => {
+const FinishConfirm = ({ onCancel, onConfirm, title = "", message = "", buttonText = "", buttonColor = "" }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm">
@@ -15,9 +15,9 @@ const FinishConfirm = ({ onCancel, onConfirm, title = "", message = "" }) => {
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors font-medium shadow-sm"
+                        className={`px-4 py-2 ${buttonColor} hover:bg-red-600 text-white rounded-md transition-colors font-medium shadow-sm`}
                     >
-                        Supprimer
+                        {buttonText}
                     </button>
                 </div>
             </div>
