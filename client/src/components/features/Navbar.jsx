@@ -2,7 +2,7 @@ import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket.js';
 
 function Navbar() {
-  const { login, exitGame, currentRoomID, currentHost, user, logoutUser, gameMode, gallery } = useUI();
+  const { exitGame, currentRoomID, currentHost, user, logoutUser, gameMode, gallery } = useUI();
 
   const handleExit = () => {
     if (currentRoomID) {
@@ -28,14 +28,12 @@ function Navbar() {
             Galerie
           </button>
         )}
-        {user ? (
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-primary">{user.pseudo}</span>
-            <button onClick={() => { logoutUser(); handleExit(); }} className="btn btn-outline btn-sm">Déconnexion</button>
-          </div>
-        ) : (
-          <button onClick={login.open} className="btn btn-primary font-bold text-white">Connexion</button>
-        )}
+
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-primary">{user.pseudo}</span>
+          <button onClick={() => { logoutUser(); handleExit(); }} className="btn btn-outline btn-sm">Déconnexion</button>
+        </div>
+
       </div>
     </div>
   )

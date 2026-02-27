@@ -19,7 +19,6 @@ export const UIProvider = ({ children }) => {
     const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
 
     // Fenêtres dynamiques
-    const login = useToggle();
     const gridCreate = useToggle();
     const palette = useToggle();
     const chatbox = useToggle();
@@ -31,6 +30,7 @@ export const UIProvider = ({ children }) => {
 
     // Utilisateur connecté
     const [user, setUser] = useState(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(!!localStorage.getItem('token')); // true si un token existe au démarrage
     const loginUser = (pseudo, gridID, gridName) => { setUser({ pseudo, gridID, gridName: gridName || gridID }) };
     const updateGridID = (newGridID) => { setUser(prev => prev ? { ...prev, gridID: newGridID } : null) };
     const logoutUser = () => { setUser(null); localStorage.removeItem('token'); };
@@ -39,24 +39,34 @@ export const UIProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
             socket.emit('verifyToken', token);
+
+            // Timeout de sécurité : si le serveur ne répond pas après 3s, on arrête le loading
+            const timeout = setTimeout(() => {
+                setIsAuthLoading(false);
+            }, 3000);
+
+            const handleVerifyToken = (data) => {
+                clearTimeout(timeout);
+                if (data && data.pseudo) {
+                    loginUser(data.pseudo, data.gridID, data.gridName);
+                }
+                setIsAuthLoading(false);
+            };
+
+            socket.on('verifyToken', handleVerifyToken);
+
+            return () => {
+                clearTimeout(timeout);
+                socket.off('verifyToken', handleVerifyToken);
+            };
+        } else {
+            setIsAuthLoading(false);
         }
-
-        const handleVerifyToken = (data) => {
-            if (data && data.pseudo) {
-                loginUser(data.pseudo, data.gridID, data.gridName);
-            }
-        };
-
-        socket.on('verifyToken', handleVerifyToken);
-
-        return () => {
-            socket.off('verifyToken', handleVerifyToken);
-        };
     }, []);
 
 
     return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, login, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, user, loginUser, updateGridID, logoutUser }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, user, isAuthLoading, loginUser, updateGridID, logoutUser }}>
             {children}
         </UIContext.Provider>
     );
