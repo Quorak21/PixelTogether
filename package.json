@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "canvas": "^3.2.1",
     "lucide-react": "^0.563.0",
     "mongoose": "^9.2.0",
     "react-draggable": "^4.5.0"

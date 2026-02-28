@@ -129,10 +129,12 @@ function Canvas({ roomID }) {
     const hasMoved = useRef(false);
     const pointerDownPos = useRef({ x: 0, y: 0 });
     const pinchDist = useRef(null);
+    const isPinching = useRef(false);
 
     const handlePointerDown = (event) => {
         // Clic molette (PC) OU 1 doigt (Mobile)
         if (event.button === 1 || event.pointerType === 'touch') {
+            isPinching.current = false;
             setIsDragging(true);
             hasMoved.current = false;
             pointerDownPos.current = { x: event.clientX, y: event.clientY };
@@ -165,6 +167,7 @@ function Canvas({ roomID }) {
     const handlePointerUp = () => {
         setIsDragging(false);
         pinchDist.current = null;
+        // On laisse isPinching actif jusqu'au prochain pointerDown
     };
 
 
@@ -172,6 +175,7 @@ function Canvas({ roomID }) {
     const handleTouchZoomStart = (e) => {
         if (e.touches.length === 2) {
             pinchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            isPinching.current = true;
             setIsDragging(false);
         }
     };
@@ -191,7 +195,8 @@ function Canvas({ roomID }) {
     // Wrapper pour le clic qui draw seulement s'il n'y a pas eu de pan (déplacement)
     const handleDraw = (e) => {
         // e.button !== 1 empêche de dessiner si on fait juste le clic molette sans bouger
-        if (!hasMoved.current && e.button !== 1) {
+        // isPinching empêche de dessiner après un pinch-zoom sur mobile
+        if (!hasMoved.current && e.button !== 1 && !isPinching.current) {
             drawPixel(e);
         }
         hasMoved.current = false;
