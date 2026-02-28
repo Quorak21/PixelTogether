@@ -166,20 +166,24 @@ io.on('connection', (socket) => {
         return callback({ error: "Grille introuvable dans la base de données." });
       }
 
-      // On la charge en mémoire
+      // On la charge en mémoire (seulement si pas déjà active)
+      const alreadyActive = !!activeGrids[gridIdStr];
+
       activeGrids[gridIdStr] = {
         id: gridIdStr,
         host: socket.id,
         name: grid.name,
         width: grid.width,
         height: grid.height,
-        chatMessages: [],
-        playersList: [],
-        pixels: grid.pixels ? Object.fromEntries(grid.pixels) : {}
+        chatMessages: activeGrids[gridIdStr]?.chatMessages || [],
+        playersList: activeGrids[gridIdStr]?.playersList || [],
+        pixels: alreadyActive ? activeGrids[gridIdStr].pixels : (grid.pixels ? Object.fromEntries(grid.pixels) : {})
       };
 
-      // Prévenir le lobby qu'une "ancienne" room est à nouveau active
-      io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id });
+      // Prévenir le lobby qu'une "ancienne" room est à nouveau active (seulement si elle n'existait pas déjà)
+      if (!alreadyActive) {
+        io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id });
+      }
 
       socket.join(gridIdStr);
       callback({ id: gridIdStr, name: activeGrids[gridIdStr].name, host: activeGrids[gridIdStr].host });

@@ -35,13 +35,16 @@ function LobbyView({ }) {
 
         // Au lancement du lobby, on demande les rooms
         socket.on('activeGrids', (data) => {
-            setRooms(Object.values(data));
-
+            setRooms(Object.values(data).filter(room => room && room.id));
         });
 
-        // En temps réel, quand on a une create
+        // En temps réel, quand on a une create (on évite les doublons)
         socket.on('createCanvas', (data) => {
-            setRooms(prev => [...prev, data]);
+            setRooms(prev => {
+                // Si la room existe déjà, on ne l'ajoute pas
+                if (prev.some(room => room.id === data.id)) return prev;
+                return [...prev, data];
+            });
         });
 
         // pareil mais quand une grid est fermée
