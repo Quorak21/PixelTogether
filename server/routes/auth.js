@@ -3,9 +3,18 @@ import User from '../models/User.js';
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
+const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 5, // Limite chaque IP à 5 requêtes par windowMs
+    message: { message: "Trop de tentatives, veuillez réessayer plus tard." }
+});
+
+// Appliquer le rate limiter à toutes les routes d'API
+router.use(apiLimiter);
 
 // Inscription
 router.post('/register', async (req, res) => {
@@ -18,9 +27,9 @@ router.post('/register', async (req, res) => {
         }
 
         // Min 6 caractères, au moins une majuscule, une minuscule et un chiffre
-        // if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(req.body.password)) {
-        //     return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères, une majuscule, une minuscule et un chiffre." });
-        // }
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(req.body.password)) {
+            return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères, une majuscule, une minuscule et un chiffre." });
+        }
 
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 

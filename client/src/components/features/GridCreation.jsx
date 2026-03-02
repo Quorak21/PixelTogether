@@ -8,6 +8,7 @@ function GridCreation({ }) {
     const [xSize, setXSize] = useState(40);
     const [ySize, setYSize] = useState(40);
     const [gridName, setGridName] = useState('');
+    const [error, setError] = useState('');
 
     const nodeRef = React.useRef(null);
 
@@ -20,7 +21,7 @@ function GridCreation({ }) {
 
         socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
             if (response.error) {
-                alert(response.error);
+                setError(response.error);
                 return;
             }
             updateGridID(response.id);
@@ -87,6 +88,9 @@ function GridCreation({ }) {
                         <button type="submit" className="w-55 mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">
                             Créer
                         </button>
+                        <div>
+                            <p className="text-red-500">{error}</p>
+                        </div>
                     </form>
                 </div >
 

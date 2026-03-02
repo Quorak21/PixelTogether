@@ -11,6 +11,7 @@ function Chatbox({ onClose, roomID }) {
     const [chatMessages, setChatMessages] = useState([]);
     const [userPanelOpen, setUserPanelOpen] = useState(false);
     const [playersList, setPlayersList] = useState([]);
+    const [error, setError] = useState('');
 
     const { user, currentHost } = useUI();
 
@@ -19,7 +20,12 @@ function Chatbox({ onClose, roomID }) {
     const sendMessage = (e) => {
         e.preventDefault();
         if (inputValue.trim()) {
-            socket.emit('sendMessage', { roomId: roomID, message: inputValue });
+            socket.emit('sendMessage', { roomId: roomID, message: inputValue }, (response) => {
+                if (response.error) {
+                    setError(response.error);
+                    return;
+                }
+            });
             setInputValue('');
         }
     };
@@ -73,7 +79,7 @@ function Chatbox({ onClose, roomID }) {
         >
             <div
                 ref={nodeRef}
-                className={`fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200 ${isMinimized ? 'w-64 h-auto' : 'w-80 h-[26rem]'
+                className={`fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-y-auto overflow-x-hidden border border-base-200 ${isMinimized ? 'w-64 h-auto' : 'w-80 h-[26rem]'
                     }`}
             >
                 {/* Header */}
@@ -117,7 +123,7 @@ function Chatbox({ onClose, roomID }) {
                 {/* Body */}
                 {!isMinimized && (
                     <>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200/30">
+                        <div className="flex-1 overflow-y-scroll p-4 space-y-3 bg-base-200/30">
                             {userPanelOpen ? (
                                 <>
                                     <h1 className="text-center font-bold text-lg underline">Liste des joueurs</h1>
@@ -144,13 +150,13 @@ function Chatbox({ onClose, roomID }) {
                                 </div>
                             ) : (
                                 chatMessages.map((msg, i) => (
-                                    <div key={i} className="flex items-center gap-1 text-sm">
+                                    <div key={i} className="flex items-start gap-1 text-sm min-w-0">
                                         {msg.senderId === currentHost ? (
                                             <span className="flex items-center gap-1 font-bold text-red-500 mr-2"><Crown size={16} color='black' fill='gold' /> {msg.pseudo}:</span>
                                         ) : (
                                             <span className="font-bold text-secondary mr-2">{msg.pseudo}:</span>
                                         )}
-                                        <span className="text-base-content/90">{msg.message}</span>
+                                        <span className="text-base-content/90 break-all min-w-0">{msg.message}</span>
                                     </div>
                                 ))
                             )}
@@ -162,6 +168,7 @@ function Chatbox({ onClose, roomID }) {
                                         type="text"
                                         className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
                                         placeholder="Écrire un message..."
+                                        maxLength={200}
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
                                     />

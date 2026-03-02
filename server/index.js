@@ -39,8 +39,7 @@ const io = new Server(httpServer, {
 
 // BDD des Canvas sur le serveur
 const activeGrids = {};
-
-// Auto-save toutes les 30 secondes
+// Auto-save toutes les 15 secondes
 setInterval(() => {
   Object.values(activeGrids).forEach(grid => {
     if (grid.isModified) {
@@ -50,8 +49,6 @@ setInterval(() => {
     }
   });
 }, 15000);
-
-
 // Sauvegarde les pixels de la grid dans MongoDB
 async function saveGridToDB(roomId, grid) {
   try {
@@ -79,7 +76,7 @@ async function saveGridToDB(roomId, grid) {
     console.error(`❌ Erreur sauvegarde grid:`, err);
   }
 }
-
+// Recup des images pour lobby
 async function getGridsImagesFromDB() {
   const images = {};
   for (const gridId in activeGrids) {
@@ -90,7 +87,6 @@ async function getGridsImagesFromDB() {
   }
   return images;
 }
-
 // Middleware d'authentification Socket.io, check 1x le token
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
@@ -111,7 +107,6 @@ io.use(async (socket, next) => {
     return next(new Error('Token invalide'));
   }
 });
-
 // Connection avec socket (le middleware a déjà vérifié le token, on a socket.userId et socket.pseudo)
 io.on('connection', (socket) => {
 
@@ -132,6 +127,12 @@ io.on('connection', (socket) => {
   //Reception + envoi des messages du chat
   socket.on('sendMessage', (data) => {
     if (!activeGrids[data.roomId]) return;
+
+    const regexMessage = /^.{1,200}$/;
+    if (!data.message || typeof data.message !== 'string' || !regexMessage.test(data.message)) {
+      return;
+    }
+
     activeGrids[data.roomId].chatMessages.push({ pseudo: socket.pseudo, message: data.message, senderId: socket.id });
     io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: socket.pseudo, message: data.message });
   });
@@ -155,6 +156,16 @@ io.on('connection', (socket) => {
       const user = await User.findById(socket.userId);
       if (user.gridID) {
         return callback({ error: "Vous avez déjà une partie en cours ! Veuillez la reprendre." });
+      }
+
+      // Vérification des dimensions
+      if (!Number.isInteger(data.width) || !Number.isInteger(data.height) || data.width < 20 || data.width > 100 || data.height < 20 || data.height > 100) {
+        return callback({ error: "Les dimensions doivent être comprises entre 20 et 100." });
+      }
+      // Vérif du nom
+      const regexGridName = /^[a-zA-Z0-9_]{3,20}$/;
+      if (!data.name || typeof data.name !== 'string' || !regexGridName.test(data.name)) {
+        return callback({ error: "Le nom doit contenir entre 3 et 20 caractères." });
       }
 
       // Premiere save dans la DB
@@ -251,6 +262,10 @@ io.on('connection', (socket) => {
   //Placement de pixel (plus besoin de vérifier le token, le middleware l'a déjà fait)
   socket.on('pixelPlaced', (data) => {
     if (!activeGrids[data.roomId]) return;
+
+    // Vérification des limites du canvas + regex couleur
+    const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+    if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
 
     //Ajout du pixel dans le canvas
     activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
