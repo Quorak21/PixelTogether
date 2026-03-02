@@ -174,6 +174,7 @@ io.on('connection', (socket) => {
       activeGrids[newGrid.id] = {
         id: newGrid.id,
         host: socket.id,
+        pseudo: socket.pseudo,
         name: data.name,
         width: data.width,
         height: data.height,
@@ -222,6 +223,7 @@ io.on('connection', (socket) => {
       activeGrids[gridIdStr] = {
         id: gridIdStr,
         host: socket.id,
+        pseudo: socket.pseudo,
         name: grid.name,
         width: grid.width,
         height: grid.height,
@@ -234,7 +236,7 @@ io.on('connection', (socket) => {
       // Prévenir le lobby qu'une "ancienne" room est à nouveau active (seulement si elle n'existait pas déjà)
       if (!alreadyActive) {
         const images = await getGridsImagesFromDB();
-        io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id, image: images });
+        io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id, image: images, pseudo: socket.pseudo });
       }
 
       socket.join(gridIdStr);
