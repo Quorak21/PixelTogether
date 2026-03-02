@@ -7,7 +7,8 @@ const gridSchema = new mongoose.Schema({
     isPublic: { type: Boolean, default: false },
     ownerID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     isFinished: { type: Boolean, default: false },
-    pixels: { type: Map, of: String, default: {} }
+    pixels: { type: Map, of: String, default: {} },
+    image: { type: String, default: null }
 });
 
 const Grid = mongoose.model('Grid', gridSchema);

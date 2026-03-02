@@ -1,7 +1,7 @@
-import { Palette, Eraser, MessageCircle, Save, BadgeX } from 'lucide-react';
+import { Eraser, MessageCircle, Save, BadgeX } from 'lucide-react';
 import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FinishConfirm from '../UI/FinishConfirm';
 
 function GameUI({ roomID }) {
@@ -9,6 +9,7 @@ function GameUI({ roomID }) {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   // Fin du canvas
   const finishCanvas = () => {
@@ -22,6 +23,17 @@ function GameUI({ roomID }) {
     updateGridID(null);
     exitGame();
   };
+
+  useEffect(() => {
+    socket.on('gridSaved', () => {
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+      }, 2000);
+    });
+    return () => socket.off('gridSaved');
+  }, []);
+
 
   const GlassButton = ({ onClick, children, className = "", title }) => (
     <button
@@ -47,6 +59,13 @@ function GameUI({ roomID }) {
         <GlassButton onClick={() => selectColor('#ffffff')} title="Gomme">
           <Eraser className="w-6 h-6 sm:w-7 sm:h-7" />
         </GlassButton>
+      </div>
+
+      {/* Haut gauche */}
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-col items-center gap-3 sm:gap-4 pointer-events-auto">
+
+        {saved && <span className="text-black text-lg font-bold animate-pulse">💾 saved ...</span>}
+
       </div>
 
       {/* Bas Gauche */}

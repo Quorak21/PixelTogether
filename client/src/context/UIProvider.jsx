@@ -61,7 +61,7 @@ export const UIProvider = ({ children }) => {
 
 
     const [isAuthLoading, setIsAuthLoading] = useState(!!localStorage.getItem('token')); // true si un token existe au démarrage
-    const loginUser = (pseudo, gridID, gridName) => { setUser({ pseudo, gridID, gridName: gridName || gridID }) };
+    const loginUser = (pseudo, gridID, gridName, userImg) => { setUser({ pseudo, gridID, gridName: gridName || gridID, userImg }) };
     const updateGridID = (newGridID) => { setUser(prev => prev ? { ...prev, gridID: newGridID } : null) };
     const logoutUser = () => { setUser(null); localStorage.removeItem('token'); };
     //auto-connect : le middleware serveur vérifie le token, puis envoie 'authenticated'
@@ -81,7 +81,7 @@ export const UIProvider = ({ children }) => {
         const handleAuthenticated = (data) => {
             clearTimeout(timeout);
             if (data && data.pseudo) {
-                loginUser(data.pseudo, data.gridID, data.gridName);
+                loginUser(data.pseudo, data.gridID, data.gridName, data.userImg);
             }
             setIsAuthLoading(false);
         };

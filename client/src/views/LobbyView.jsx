@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Grid3x3, RefreshCcw } from 'lucide-react';
+import { RefreshCcw, Plus, Play, LogIn, Grid3x3 } from 'lucide-react';
 import { useUI } from "../context/UIProvider";
 import { socket } from '../socket';
 import RoomCard from '../components/UI/RoomCard';
 import Gallery from '../components/features/Gallery';
 
 function LobbyView({ }) {
-
     const { gridCreate, joinGame, user, login } = useUI();
-
     const [rooms, setRooms] = useState([]);
+    const [images, setImages] = useState([]);
 
     // Demande au serveur de renvoyer la liste des rooms
     const handleRefresh = () => {
@@ -35,119 +34,119 @@ function LobbyView({ }) {
 
         // Au lancement du lobby, on demande les rooms
         socket.on('activeGrids', (data) => {
-            setRooms(Object.values(data).filter(room => room && room.id));
+            setRooms(Object.values(data.activeGrids || {}).filter(room => room && room.id));
+            setImages(data.images);
         });
 
         // En temps réel, quand on a une create (on évite les doublons)
         socket.on('createCanvas', (data) => {
             setRooms(prev => {
-                // Si la room existe déjà, on ne l'ajoute pas
                 if (prev.some(room => room.id === data.id)) return prev;
                 return [...prev, data];
             });
+            setImages(data.image);
+        });
+        socket.on('roomClosed', (data) => {
+            setRooms(prev => prev.filter(room => room.id !== data.roomId));
+            setImages(data.image);
         });
 
-        // pareil mais quand une grid est fermée
-        socket.on('roomClosed', (roomId) => {
-            setRooms(prev => prev.filter(room => room.id !== roomId));
-        });
-
+        // Rafraichissement automatique toutes les 15s (comme l'autosave du serveur)
+        const refreshInterval = setInterval(() => {
+            socket.emit('getActiveGrids');
+        }, 15000);
 
         return () => {
-
             socket.off('activeGrids');
             socket.off('createCanvas');
             socket.off('roomClosed');
+            clearInterval(refreshInterval);
         };
     }, []);
 
+    const mainAction = user ? (user.gridID ? handleResume : gridCreate.open) : login.open;
+    const ActionIcon = user ? (user.gridID ? () => {
+        const gridImage = images[user.gridID] || user.userImg;
+        return gridImage ? (
+            <img
+                src={gridImage}
+                alt="Reprendre"
+                className="object-contain w-[90%] h-[90%]"
+            />
+        ) : <Play size={64} className="text-primary-content/90 group-hover:text-white group-hover:scale-110 transition-transform duration-300 z-10" strokeWidth={1.5} />
+    } : Plus) : LogIn;
+    const actionTitle = user ? (user.gridID ? "Continuer" : "Nouvelle grille") : "Se connecter";
+    const buttonText = user ? (user.gridID ? "Reprendre" : "Créer") : "Connexion";
 
     return (
-        <div className="flex w-full bg-neutral-content h-full text-center">
-
+        <div className="flex w-full bg-base-100 h-full overflow-hidden">
             <Gallery />
 
-            {/* Zone personnelle*/}
-            <div className="flex flex-col h-screen-max w-1/3 bg-base-200 m-3 rounded-2xl shadow-2xl relative overflow-hidden">
-                <div className="p-8 pb-4 text-center w-full">
-                    <h1 className="text-3xl font-bold text-slate-800">Jouer</h1>
-                    <p className="text-slate-500 text-sm mt-2 font-medium">Créez ou reprenez votre partie actuelle.</p>
-                </div>
+            {/* Zone de jeu unique */}
+            <div className="flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-y-auto w-full">
+                <div className="w-full max-w-7xl mx-auto flex flex-col h-full">
 
-                <div className="flex-1 flex flex-col items-center p-6 w-full">
-                    {user ? (
-                        user.gridID ? (
-                            <button
-                                onClick={handleResume}
-                                className="group relative flex flex-col items-center justify-center w-full max-w-[280px] aspect-square rounded-[2.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_8px_30px_rgb(99,102,241,0.3)] hover:shadow-[0_8px_40px_rgb(99,102,241,0.5)] hover:-translate-y-2 transition-all duration-300 border border-white/10"
-                            >
-                                <div className="absolute inset-0 rounded-[2.5rem] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                                <div className="p-5 bg-white/10 rounded-full mb-6 shadow-inner ring-1 ring-white/20 group-hover:scale-110 transition-transform duration-300">
-                                    <Grid3x3 size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
-                                </div>
-                                <h2 className="font-bold uppercase tracking-widest text-2xl text-white mb-2 drop-shadow-sm">Continuer</h2>
-                            </button>
-                        ) : (
-                            <button
-                                onClick={gridCreate.open}
-                                className="group relative flex flex-col items-center justify-center w-full max-w-[280px] aspect-square rounded-[2.5rem] bg-gradient-to-br from-emerald-400 to-teal-500 shadow-[0_8px_30px_rgb(16,185,129,0.3)] hover:shadow-[0_8px_40px_rgb(16,185,129,0.5)] hover:-translate-y-2 transition-all duration-300 border border-white/10"
-                            >
-                                <div className="absolute inset-0 rounded-[2.5rem] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                                <div className="p-5 bg-white/10 rounded-full mb-6 shadow-inner ring-1 ring-white/20 group-hover:scale-110 transition-transform duration-300">
-                                    <Grid3x3 size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
-                                </div>
-                                <h2 className="font-bold uppercase tracking-widest text-2xl text-white mb-2 drop-shadow-sm">New Game</h2>
-                                <span className="text-sm text-teal-50 font-medium normal-case opacity-80 group-hover:opacity-100 transition-opacity">Créer une grille</span>
-                            </button>
-                        )
-                    ) : (
-                        <button
-                            onClick={login.open}
-                            className="group relative flex flex-col items-center justify-center w-full max-w-[280px] aspect-square rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_8px_40px_rgb(59,130,246,0.5)] hover:-translate-y-2 transition-all duration-300 border border-white/10"
-                        >
-                            <div className="absolute inset-0 rounded-[2.5rem] bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                            <div className="p-5 bg-white/10 rounded-full mb-6 shadow-inner ring-1 ring-white/20 group-hover:scale-110 transition-transform duration-300">
-                                <Grid3x3 size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
-                            </div>
-                            <h2 className="font-bold uppercase tracking-widest text-2xl text-white mb-2 drop-shadow-sm">New Game</h2>
-                            <span className="text-sm text-blue-100 font-medium normal-case opacity-80 group-hover:opacity-100 transition-opacity">Connexion requise</span>
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h1 className="text-4xl md:text-5xl font-black text-base-content tracking-tight">Lobby</h1>
+                            <p className="text-base-content/60 mt-2 text-lg font-medium">Rejoignez une partie publique ou créez la vôtre.</p>
+                        </div>
+                        <button onClick={handleRefresh} className="btn btn-circle bg-base-100 border-none shadow-sm hover:bg-base-300 hover:rotate-180 transition-all duration-500">
+                            <RefreshCcw className="w-5 h-5 text-base-content/70" />
                         </button>
-                    )}
-                </div>
-            </div>
+                    </div>
 
-            {/* Zone publique */}
-            <div className="flex flex-col items-center font-bold h-screen-max w-2/3 uppercase text-xl bg-base-200 m-3 p-3 rounded-2xl shadow-2xl relative">
-                <div className="p-8">
-                    <h1 className="text-3xl font-bold text-slate-800 mb-8">Salons disponibles</h1>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {/* Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
 
+                        {/* 1. Carte joueur */}
+                        <div onClick={mainAction} className="card bg-primary text-primary-content shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border-none group relative overflow-hidden flex flex-col">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"></div>
+                            <figure className="aspect-square w-full relative flex items-center justify-center bg-black/10 overflow-hidden">
+                                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_2px_2px,_currentColor_1px,_transparent_0)] bg-[length:16px_16px]" />
+                                <ActionIcon size={64} className="text-primary-content/90 group-hover:text-white group-hover:scale-110 transition-transform duration-300 z-10" strokeWidth={1.5} />
+                            </figure>
+                            <div className="card-body items-center p-6 flex flex-col z-10">
+                                <h2 className="card-title text-2xl font-bold tracking-tight mb-2">
+                                    {actionTitle}
+                                </h2>
+                                <div className="card-actions justify-center mt-3">
+                                    <button className="btn bg-base-100 text-primary hover:bg-white border-none w-full shadow-sm group-hover:shadow-md transition-all">
+                                        {buttonText}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Liste des salons */}
                         {rooms.map((room) => (
                             <RoomCard
                                 key={room.id}
                                 roomName={room.name}
                                 roomId={room.id}
                                 host={room.host}
+                                pseudo={user.pseudo}
+                                image={images[room.id]}
+                                playerCount={room.playersList?.length || 0}
                                 onJoin={(id, host) => user ? joinGame(id, host) : login.open()}
                             />
                         ))}
 
-                        {/* Si pas de rooms, un petit message */}
-                        {rooms.length === 0 && (
-                            <div className="col-span-full text-center text-slate-500 py-10 italic">
-                                Aucune partie en cours. Créez-en une !
-                            </div>
-                        )}
-
-                        {/* Un bouton pour refresh pour avoir a faire f5 */}
-                        <button onClick={handleRefresh} className="absolute btn btn-primary aspect-square rounded-3xl top-5 left-5 absolute hover:scale-110 transition-all duration-300"><RefreshCcw color="#ffffffff" /></button>
-
                     </div>
+
+                    {/* Si pas de rooms (à part la carte joueur), un petit message */}
+                    {rooms.length === 0 && (
+                        <div className="flex-1 flex flex-col items-center justify-center text-base-content/40 italic pb-20">
+                            <Grid3x3 size={64} className="mb-6 opacity-20" strokeWidth={1} />
+                            <p className="text-lg">Aucune partie publique en cours.</p>
+                            <p className="text-base">Soyez le premier à en créer une !</p>
+                        </div>
+                    )}
+
                 </div>
             </div>
-
-        </div >
-
+        </div>
     )
 }
 

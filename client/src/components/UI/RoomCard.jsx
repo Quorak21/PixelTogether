@@ -1,46 +1,39 @@
-import { Grid3x3 } from 'lucide-react';
+import { Grid3x3, Users, Crown } from 'lucide-react';
 
-function RoomCard({ roomName, roomId, host, onJoin }) {
-
-
+function RoomCard({ roomName, roomId, pseudo, host, onJoin, image, playerCount }) {
   return (
-    // LA CARTE GLOBALE
-    <div className="group bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-default flex flex-col">
-
-      {/* 1. ZONE IMAGE (LE HAUT DE LA CARTE) */}
-      {/* h-48 : Hauteur fixe pour que toutes les cartes soient alignées */}
-      <div className="h-30 bg-slate-100 flex items-center justify-center group-hover:bg-blue-50/50 transition-colors relative overflow-hidden relative">
-
-        {/* Un petit fond abstrait pour faire joli (optionnel) */}
-        <div className="absolute inset-0 bg-grid-slate-200/[0.5] bg-[length:20px_20px]" />
-        <Grid3x3 size={75} />
-
-      </div>
-
-      {/* 2. ZONE CONTENU (LE BAS DE LA CARTE) */}
-      {/* flex-1 : pousse le contenu pour remplir la carte si besoin */}
-      <div className="p-5 flex flex-col gap-4 justify-between border-t border-slate-100">
+    <div className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] group flex flex-col">
+      <figure className="aspect-square w-full bg-base-200 relative overflow-hidden cursor-pointer flex items-center justify-center group-hover:bg-primary/5 transition-colors" onClick={() => onJoin(roomId, host)}>
+        <img
+          src={image}
+          alt={roomName}
+          className="object-contain w-[90%] h-[90%]"
+        />
+      </figure>
+      <div className="card-body p-6 flex flex-col justify-between">
         <div>
-
-          {/* LE NOM DE LA ROOM */}
-          {/* 'truncate' est VITAL : coupe le texte avec "..." s'il est trop long */}
-          <h3 className="text-xl font-bold text-slate-800 truncate" title={roomName}>
-            {roomName}
-          </h3>
+          <h2 className="card-title text-xlfont-bold justify-between text-base-content truncate mb-2" title={roomName}>
+            <span>{roomName}</span><span className="text-primary flex items-center gap-2"><Crown size={20} color="gold" /><span className="first-letter:uppercase">{pseudo}</span></span>
+          </h2>
+          <div className="text-sm text-base-content/60 font-medium flex items-center gap-2">
+            <span className="flex items-center gap-2"><Users size={16} /> {playerCount || 0} joueur{playerCount > 1 ? 's' : ''}</span>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute  h-full w-full rounded-full bg-success opacity-75"></span>
+              <span className="relative  rounded-full h-2.5 w-2.5 bg-success"></span>
+            </span>
+          </div>
         </div>
-
-        {/* 3. LE BOUTON REJOINDRE */}
-        {/* w-full : prend toute la largeur */}
-        {/* active:scale-[0.98] : petit effet d'enfoncement au clic */}
-        <button
-          onClick={() => onJoin(roomId, host)}
-          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:ring-4 focus:ring-blue-500/30"
-        >
-          Rejoindre
-        </button>
+        <div className="card-actions justify-end mt-6">
+          <button
+            onClick={() => onJoin(roomId, host)}
+            className="btn btn-outline btn-primary w-full shadow-sm"
+          >
+            Rejoindre
+          </button>
+        </div>
       </div>
     </div>
   );
-};
+}
 
-export default RoomCard
+export default RoomCard;

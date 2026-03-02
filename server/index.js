@@ -40,14 +40,55 @@ const io = new Server(httpServer, {
 // BDD des Canvas sur le serveur
 const activeGrids = {};
 
+// Auto-save toutes les 30 secondes
+setInterval(() => {
+  Object.values(activeGrids).forEach(grid => {
+    if (grid.isModified) {
+      saveGridToDB(grid.id, grid);
+      grid.isModified = false;
+      io.to(grid.id).emit('gridSaved', grid.id);
+    }
+  });
+}, 15000);
+
+
 // Sauvegarde les pixels de la grid dans MongoDB
 async function saveGridToDB(roomId, grid) {
   try {
     await Grid.findByIdAndUpdate(roomId, { pixels: grid.pixels });
+
+    //Création de l'image via Canvas
+    const canvas = createCanvas(grid.width * 20, grid.height * 20);
+    const ctx = canvas.getContext('2d');
+    // Fond blanc
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (const coords in grid.pixels) {
+      const pixelColor = grid.pixels[coords];
+      const [x, y] = coords.split(',');
+      ctx.fillStyle = pixelColor;
+      ctx.fillRect(x * 20, y * 20, 20, 20);
+    }
+    const gridImage = canvas.toDataURL('image/webp');
+    //Et on save l'image dans la BDD
+    await Grid.findByIdAndUpdate(roomId, { image: gridImage });
+
     console.log(`💾 Grid "${grid.name}" mise à jour dans MongoDB`);
   } catch (err) {
     console.error(`❌ Erreur sauvegarde grid:`, err);
   }
+}
+
+async function getGridsImagesFromDB() {
+  const images = {};
+  for (const gridId in activeGrids) {
+    const grid = await Grid.findById(gridId);
+    if (grid && grid.image) {
+      images[gridId] = grid.image;
+    }
+  }
+  return images;
 }
 
 // Middleware d'authentification Socket.io, check 1x le token
@@ -77,9 +118,14 @@ io.on('connection', (socket) => {
   // On renvoie les infos de l'utilisateur au client pour l'auto-connect
   socket.emit('authenticated', { pseudo: socket.pseudo, gridID: null });
   // On cherche le gridID en async (pour ne pas bloquer la connexion)
-  User.findById(socket.userId).then(user => {
+  User.findById(socket.userId).then(async user => {
     if (user && user.gridID) {
-      socket.emit('authenticated', { pseudo: socket.pseudo, gridID: user.gridID });
+      let userImg = null;
+      try {
+        const grid = await Grid.findById(user.gridID);
+        if (grid) userImg = grid.image;
+      } catch (e) { }
+      socket.emit('authenticated', { pseudo: socket.pseudo, gridID: user.gridID, userImg });
     }
   });
 
@@ -97,8 +143,9 @@ io.on('connection', (socket) => {
   });
 
   // Envoi des rooms après demande du lobby
-  socket.on('getActiveGrids', (data) => {
-    socket.emit('activeGrids', activeGrids);
+  socket.on('getActiveGrids', async (data) => {
+    const images = await getGridsImagesFromDB();
+    socket.emit('activeGrids', { activeGrids, images });
   });
 
   //Création du Canvas avec callback pour renvoyer direct l'ID
@@ -132,14 +179,17 @@ io.on('connection', (socket) => {
         height: data.height,
         chatMessages: [],
         playersList: [],
-        pixels: {}
+        pixels: {},
+        isModified: false,
       }
 
       // le host rejoint la room
       socket.join(newGrid.id)
 
+      const images = await getGridsImagesFromDB();
+
       // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
-      io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id })
+      io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id, image: images })
 
       // On répond au host avec l'ID de sa room (comme un return)
       callback({ id: newGrid.id, name: data.name, host: socket.id })
@@ -177,12 +227,14 @@ io.on('connection', (socket) => {
         height: grid.height,
         chatMessages: activeGrids[gridIdStr]?.chatMessages || [],
         playersList: activeGrids[gridIdStr]?.playersList || [],
-        pixels: alreadyActive ? activeGrids[gridIdStr].pixels : (grid.pixels ? Object.fromEntries(grid.pixels) : {})
+        pixels: alreadyActive ? activeGrids[gridIdStr].pixels : (grid.pixels ? Object.fromEntries(grid.pixels) : {}),
+        isModified: false,
       };
 
       // Prévenir le lobby qu'une "ancienne" room est à nouveau active (seulement si elle n'existait pas déjà)
       if (!alreadyActive) {
-        io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id });
+        const images = await getGridsImagesFromDB();
+        io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id, image: images });
       }
 
       socket.join(gridIdStr);
@@ -200,6 +252,9 @@ io.on('connection', (socket) => {
 
     //Ajout du pixel dans le canvas
     activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
+
+    // On marque la grille comme modifiée pour l'autosave
+    activeGrids[data.roomId].isModified = true;
 
     // Envoie du pixel à tous les joueurs de la room
     socket.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
@@ -244,8 +299,10 @@ io.on('connection', (socket) => {
     // On récupère la grid AVANT de la supprimer
     const grid = activeGrids[data.roomId];
 
+    const images = await getGridsImagesFromDB();
+
     // On prévient tous les joueurs dans la room qu'elle est fermée
-    io.emit('roomClosed', data.roomId);
+    io.emit('roomClosed', { roomId: data.roomId, image: images });
 
     // On supprime de la mémoire tout de suite (pour que le lobby soit à jour)
     delete activeGrids[data.roomId];
@@ -290,7 +347,8 @@ io.on('connection', (socket) => {
 
       delete activeGrids[data.roomId];
       await Grid.findByIdAndDelete(data.roomId)
-      io.emit('roomClosed', data.roomId);
+      const images = await getGridsImagesFromDB();
+      io.emit('roomClosed', { roomId: data.roomId, image: images });
     } catch (err) {
       console.error('Erreur finishCanvas:', err);
     }
@@ -307,7 +365,8 @@ io.on('connection', (socket) => {
       delete activeGrids[data.roomId];
       // Delete dans la DB
       await Grid.findByIdAndDelete(data.roomId)
-      io.emit('roomClosed', data.roomId);
+      const images = await getGridsImagesFromDB();
+      io.emit('roomClosed', { roomId: data.roomId, image: images });
     } catch (err) {
       console.error('Erreur deleteCanvas:', err);
     }
@@ -341,7 +400,8 @@ io.on('connection', (socket) => {
       if (activeGrids[roomId].host === socket.id) {
         console.log(`🔒 Fermeture auto de la room ${roomId} (host déconnecté)`)
         const grid = activeGrids[roomId];
-        io.emit('roomClosed', roomId);
+        const images = await getGridsImagesFromDB();
+        io.emit('roomClosed', { roomId, image: images });
         delete activeGrids[roomId];
         await saveGridToDB(roomId, grid);
       }
