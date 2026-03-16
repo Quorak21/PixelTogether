@@ -99,17 +99,6 @@ function Canvas({ roomID }) {
         const x = Math.floor(coordX / PIXEL_SIZE)
         const y = Math.floor(coordY / PIXEL_SIZE)
 
-        // Dessiner localement
-        const ctx = canvasRef.current.getContext('2d')
-        ctx.fillStyle = selectedColor
-        ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE)
-
-        // Redessiner la bordure si on met du blanc
-        if (selectedColor.startsWith('#ffffff')) {
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-        }
 
         // Envoyer au serveur
         socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });

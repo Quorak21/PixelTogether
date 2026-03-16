@@ -71,7 +71,7 @@ function LobbyView({ }) {
             <img
                 src={gridImage}
                 alt="Reprendre"
-                className="object-contain w-[90%] h-[90%]"
+                className="object-contain z-40 w-[90%] h-[90%]"
             />
         ) : <Play size={64} className="text-primary-content/90 group-hover:text-white group-hover:scale-110 transition-transform duration-300 z-10" strokeWidth={1.5} />
     } : Plus) : LogIn;
@@ -140,7 +140,6 @@ function LobbyView({ }) {
                         <div className="flex-1 flex flex-col items-center justify-center text-base-content/40 italic pb-20">
                             <Grid3x3 size={64} className="mb-6 opacity-20" strokeWidth={1} />
                             <p className="text-lg">Aucune partie publique en cours.</p>
-                            <p className="text-base">Soyez le premier à en créer une !</p>
                         </div>
                     )}
 

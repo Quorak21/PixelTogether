@@ -37,8 +37,10 @@ const io = new Server(httpServer, {
 });
 
 
-// BDD des Canvas sur le serveur
+// Variable nécessaire
 const activeGrids = {};
+const activeUsers = {};
+const pixelCooldown = 200;
 // Auto-save toutes les 15 secondes
 setInterval(() => {
   Object.values(activeGrids).forEach(grid => {
@@ -146,7 +148,14 @@ io.on('connection', (socket) => {
   // Envoi des rooms après demande du lobby
   socket.on('getActiveGrids', async (data) => {
     const images = await getGridsImagesFromDB();
-    socket.emit('activeGrids', { activeGrids, images });
+    // Filtrer les grids privées pour ne pas les afficher dans le lobby
+    const filteredGrids = {};
+    for (const gridId in activeGrids) {
+      if (activeGrids[gridId].type !== 'private') {
+        filteredGrids[gridId] = activeGrids[gridId];
+      }
+    }
+    socket.emit('activeGrids', { activeGrids: filteredGrids, images });
   });
 
   //Création du Canvas avec callback pour renvoyer direct l'ID
@@ -156,6 +165,12 @@ io.on('connection', (socket) => {
       const user = await User.findById(socket.userId);
       if (user.gridID) {
         return callback({ error: "Vous avez déjà une partie en cours ! Veuillez la reprendre." });
+      }
+
+      // Vérification du type
+      const allowedTypes = ['public', 'limited', 'private'];
+      if (!data.type || !allowedTypes.includes(data.type)) {
+        return callback({ error: "Type de grille invalide." });
       }
 
       // Vérification des dimensions
@@ -173,7 +188,8 @@ io.on('connection', (socket) => {
         name: data.name,
         width: data.width,
         height: data.height,
-        ownerID: socket.userId
+        ownerID: socket.userId,
+        type: data.type
       });
       await newGrid.save();
       // On lie à l'user
@@ -193,15 +209,17 @@ io.on('connection', (socket) => {
         playersList: [],
         pixels: {},
         isModified: false,
+        type: data.type,
       }
 
       // le host rejoint la room
       socket.join(newGrid.id)
-
       const images = await getGridsImagesFromDB();
 
       // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
-      io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id, image: images })
+      if (data.type !== 'private') {
+        io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id, image: images })
+      }
 
       // On répond au host avec l'ID de sa room (comme un return)
       callback({ id: newGrid.id, name: data.name, host: socket.id })
@@ -242,13 +260,17 @@ io.on('connection', (socket) => {
         playersList: activeGrids[gridIdStr]?.playersList || [],
         pixels: alreadyActive ? activeGrids[gridIdStr].pixels : (grid.pixels ? Object.fromEntries(grid.pixels) : {}),
         isModified: false,
+        type: grid.type
       };
 
       // Prévenir le lobby qu'une "ancienne" room est à nouveau active (seulement si elle n'existait pas déjà)
-      if (!alreadyActive) {
-        const images = await getGridsImagesFromDB();
-        io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id, image: images, pseudo: socket.pseudo });
+      if (grid.type !== 'private') { // Grille privée = 0 visu sur le lobby
+        if (!alreadyActive) {
+          const images = await getGridsImagesFromDB();
+          io.emit('createCanvas', { width: grid.width, height: grid.height, name: grid.name, id: gridIdStr, host: socket.id, image: images, pseudo: socket.pseudo });
+        }
       }
+
 
       socket.join(gridIdStr);
       callback({ id: gridIdStr, name: activeGrids[gridIdStr].name, host: activeGrids[gridIdStr].host });
@@ -262,19 +284,24 @@ io.on('connection', (socket) => {
   //Placement de pixel (plus besoin de vérifier le token, le middleware l'a déjà fait)
   socket.on('pixelPlaced', (data) => {
     if (!activeGrids[data.roomId]) return;
+    const now = Date.now();
 
-    // Vérification des limites du canvas + regex couleur
-    const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
-    if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
+    if (now - (activeUsers[socket.userId] || 0) > pixelCooldown) {
 
-    //Ajout du pixel dans le canvas
-    activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
+      // Vérification des limites du canvas + regex couleur
+      const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+      if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
 
-    // On marque la grille comme modifiée pour l'autosave
-    activeGrids[data.roomId].isModified = true;
+      //Ajout du pixel dans le canvas
+      activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
 
-    // Envoie du pixel à tous les joueurs de la room
-    socket.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
+      // On marque la grille comme modifiée pour l'autosave
+      activeGrids[data.roomId].isModified = true;
+
+      // Envoie du pixel à tous les joueurs de la room
+      io.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
+      activeUsers[socket.userId] = now;
+    }
   });
 
   socket.on('getPlayersList', (data) => {
@@ -285,6 +312,7 @@ io.on('connection', (socket) => {
   // Rejoindre room (pseudo vient du middleware, plus du client)
   socket.on('joinRoom', (data) => {
     if (!activeGrids[data.roomId]) return;
+
     socket.join(data.roomId);
 
     socket.data.roomId = data.roomId;
@@ -296,6 +324,7 @@ io.on('connection', (socket) => {
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
     socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name });
+
   });
 
   // Joueur quitte la room
@@ -421,6 +450,7 @@ io.on('connection', (socket) => {
         io.emit('roomClosed', { roomId, image: images });
         delete activeGrids[roomId];
         await saveGridToDB(roomId, grid);
+        delete activeUsers[socket.userId];
       }
     }
   });

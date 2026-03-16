@@ -7,7 +7,7 @@ function RoomCard({ roomName, roomId, pseudo, host, onJoin, image, playerCount }
         <img
           src={image}
           alt={roomName}
-          className="object-contain w-[90%] h-[90%]"
+          className="object-contain z-45 w-[90%] h-[90%]"
         />
       </figure>
       <div className="card-body p-6 flex flex-col justify-between">

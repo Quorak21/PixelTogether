@@ -4,11 +4,15 @@ const gridSchema = new mongoose.Schema({
     name: { type: String, required: true },
     width: { type: Number, required: true },
     height: { type: Number, required: true },
-    isPublic: { type: Boolean, default: false },
     ownerID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    isFinished: { type: Boolean, default: false },
     pixels: { type: Map, of: String, default: {} },
-    image: { type: String, default: null }
+    image: { type: String, default: null },
+    type: {
+        type: String,
+        enum: ['public', 'limited', 'private'],
+        default: 'public'
+    },
+    invitedUsers: { type: Array, default: [] }
 });
 
 const Grid = mongoose.model('Grid', gridSchema);

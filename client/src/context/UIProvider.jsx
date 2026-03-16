@@ -23,6 +23,7 @@ export const UIProvider = ({ children }) => {
     const palette = useToggle();
     const chatbox = useToggle();
     const gallery = useToggle();
+    const helpGridCreation = useToggle();
 
     // Couleur
     const [selectedColor, setSelectedColor] = useState('#ffffffff');
@@ -52,7 +53,7 @@ export const UIProvider = ({ children }) => {
         }
     }, [user]);
 
-    // Sauvegarder les couleurs quand elles changent (si un utilisateur est connecté)
+    // Sauvegarder les couleurs quand elles changent
     useEffect(() => {
         if (user && user.pseudo) {
             localStorage.setItem(`chosenColors_${user.pseudo}`, JSON.stringify(chosenColors));
@@ -96,7 +97,7 @@ export const UIProvider = ({ children }) => {
 
 
     return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser, helpGridCreation }}>
             {children}
         </UIContext.Provider>
     );

@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useUI } from '../../context/UIProvider';
 import { X } from 'lucide-react';
 import { socket } from '../../socket.js';
+import { BadgeQuestionMark } from 'lucide-react';
+import HelpGridCreation from '../UI/HelpGridCreation';
+
 
 function GridCreation({ }) {
     //Variables size grid
@@ -9,17 +12,18 @@ function GridCreation({ }) {
     const [ySize, setYSize] = useState(40);
     const [gridName, setGridName] = useState('');
     const [error, setError] = useState('');
+    const [type, setType] = useState('public');
 
     const nodeRef = React.useRef(null);
 
     // Fermeture
-    const { gridCreate, joinGame, updateGridID } = useUI();
+    const { gridCreate, joinGame, updateGridID, helpGridCreation } = useUI();
 
     // Envoi info au serveur
     const createNewGrid = async (e) => {
         e.preventDefault();
 
-        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName }, (response) => {
+        socket.emit('newGrid', { width: xSize, height: ySize, name: gridName, type: type }, (response) => {
             if (response.error) {
                 setError(response.error);
                 return;
@@ -85,9 +89,27 @@ function GridCreation({ }) {
                                     onChange={(e) => setYSize(parseInt(e.target.value))} />
                             </div>
                         </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <label className="text-sm text-gray-600">Type :</label>
+                            <div className="flex items-center gap-2 relative p-1">
+                                <select
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                    className="px-3 py-2 rounded-lg bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="public">Public</option>
+                                    <option value="limited">Limité </option>
+                                    <option value="private">Privé</option>
+                                </select>
+                                <button type="button" onMouseEnter={helpGridCreation.open} onMouseLeave={helpGridCreation.close} ><BadgeQuestionMark className="hover:size-7" color="#6e6e6eff" /></button>
+                                {helpGridCreation.isOpen ? <HelpGridCreation /> : null}
+                            </div>
+
+                        </div>
                         <button type="submit" className="w-55 mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">
                             Créer
                         </button>
+
                         <div>
                             <p className="text-red-500">{error}</p>
                         </div>
