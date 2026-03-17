@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { socket } from '../../socket.js';
 import { useUI } from '../../context/UIProvider';
 
-function Canvas({ roomID }) {
+function Canvas({ roomID, setGridType }) {
 
     const canvasRef = useRef(null);
     const PIXEL_SIZE = 20;
@@ -28,6 +28,7 @@ function Canvas({ roomID }) {
             const ctx = canvas.getContext('2d')
             const width = data.width;
             const height = data.height;
+            setGridType(data.type);
             setRoomName(data.name);
 
             // On dimensionne le canvas
@@ -72,8 +73,8 @@ function Canvas({ roomID }) {
         });
 
         // Si l'host ferme la room, on retourne au lobby
-        socket.on('roomClosed', (closedRoomId) => {
-            if (closedRoomId === roomID) {
+        socket.on('roomClosed', (data) => {
+            if (data.roomId === roomID) {
                 exitGame();
             }
         });

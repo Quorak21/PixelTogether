@@ -129,6 +129,7 @@ function LobbyView({ }) {
                                 pseudo={room.pseudo}
                                 image={images[room.id]}
                                 playerCount={room.playersList?.length || 0}
+                                type={room.type}
                                 onJoin={(id, host) => user ? joinGame(id, host) : login.open()}
                             />
                         ))}

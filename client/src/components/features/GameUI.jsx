@@ -1,11 +1,11 @@
-import { Eraser, MessageCircle, Save, BadgeX } from 'lucide-react';
+import { Eraser, MessageCircle, Save, BadgeX, UserRoundPlus } from 'lucide-react';
 import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket';
 import { useState, useEffect } from 'react';
 import FinishConfirm from '../UI/FinishConfirm';
 
-function GameUI({ roomID }) {
-  const { palette, selectedColor, selectColor, chatbox, currentHost, updateGridID, exitGame } = useUI();
+function GameUI({ roomID, gridType }) {
+  const { palette, selectedColor, selectColor, chatbox, currentHost, updateGridID, exitGame, inviteWindow } = useUI();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
@@ -90,7 +90,13 @@ function GameUI({ roomID }) {
       )}
 
       {/* Bas droite */}
-      <div className="absolute bottom-10 right-4 sm:bottom-6 sm:right-6 pointer-events-auto">
+      <div className="absolute bottom-10 right-4 sm:bottom-6 sm:right-6 flex gap-3 sm:gap-4 flex-col sm:flex-row pointer-events-auto">
+        {currentHost === socket.id && gridType === 'limited' && (
+
+          <GlassButton onClick={inviteWindow.open} title="Inviter des joueurs">
+            <UserRoundPlus className="w-6 h-6 sm:w-7 sm:h-7" />
+          </GlassButton>
+        )}
         <GlassButton onClick={chatbox.open} title="Ouvrir le chat">
           <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7" />
         </GlassButton>

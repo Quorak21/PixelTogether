@@ -24,6 +24,7 @@ export const UIProvider = ({ children }) => {
     const chatbox = useToggle();
     const gallery = useToggle();
     const helpGridCreation = useToggle();
+    const inviteWindow = useToggle();
 
     // Couleur
     const [selectedColor, setSelectedColor] = useState('#ffffffff');
@@ -97,7 +98,7 @@ export const UIProvider = ({ children }) => {
 
 
     return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser, helpGridCreation }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser, helpGridCreation, inviteWindow }}>
             {children}
         </UIContext.Provider>
     );

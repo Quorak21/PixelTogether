@@ -85,7 +85,7 @@ function LoginForm({ }) {
                     <input
                         type="password"
                         className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm rounded-xl bg-gray-100/50 backdrop-blur-sm border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder-gray-400 shadow-sm"
-                        placeholder="🚨 bdd non sécurisée 🚨"
+                        placeholder="Mot de passe..."
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required

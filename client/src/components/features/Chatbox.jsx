@@ -52,7 +52,7 @@ function Chatbox({ onClose, roomID }) {
             setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.user, message: 'a quitté la room, bye !' }]);
         });
         socket.on('playersList', (data) => {
-            setPlayersList(data || []);
+            setPlayersList(data.activePlayers || []);
         });
 
 

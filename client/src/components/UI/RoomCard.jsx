@@ -1,6 +1,6 @@
-import { Grid3x3, Users, Crown } from 'lucide-react';
+import { Users, Crown } from 'lucide-react';
 
-function RoomCard({ roomName, roomId, pseudo, host, onJoin, image, playerCount }) {
+function RoomCard({ roomName, roomId, pseudo, host, onJoin, image, playerCount, type }) {
   return (
     <div className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] group flex flex-col">
       <figure className="aspect-square w-full bg-base-200 relative overflow-hidden cursor-pointer flex items-center justify-center group-hover:bg-primary/5 transition-colors" onClick={() => onJoin(roomId, host)}>
@@ -15,12 +15,15 @@ function RoomCard({ roomName, roomId, pseudo, host, onJoin, image, playerCount }
           <h2 className="card-title text-xlfont-bold justify-between text-base-content truncate mb-2" title={roomName}>
             <span>{roomName}</span><span className="text-primary flex items-center gap-2"><Crown size={20} color="gold" /><span className="first-letter:uppercase">{pseudo}</span></span>
           </h2>
-          <div className="text-sm text-base-content/60 font-medium flex items-center gap-2">
-            <span className="flex items-center gap-2"><Users size={16} /> {playerCount || 0} joueur{playerCount > 1 ? 's' : ''}</span>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute  h-full w-full rounded-full bg-success opacity-75"></span>
-              <span className="relative  rounded-full h-2.5 w-2.5 bg-success"></span>
-            </span>
+          <div className="text-sm text-base-content/60 font-medium flex justify-between gap-2">
+            <div className="flex items-center gap-2"><Users size={16} /> {playerCount || 0} joueur{playerCount > 1 ? 's' : ''}</div>
+            <div className="flex">
+              {type === 'limited' ? (
+                <span className="text-sm font-bold text-success">Restreint</span>
+              ) : (
+                <span className="text-sm font-bold text-success">Public</span>
+              )}
+            </div>
           </div>
         </div>
         <div className="card-actions justify-end mt-6">

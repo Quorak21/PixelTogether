@@ -158,6 +158,34 @@ io.on('connection', (socket) => {
     socket.emit('activeGrids', { activeGrids: filteredGrids, images });
   });
 
+  // Invitation d'un joueur
+  socket.on('invitePlayer', async (data, callback) => {
+    if (!activeGrids[data.roomId]) return;
+    const grid = activeGrids[data.roomId];
+
+    const regexPseudo = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!data.pseudo || typeof data.pseudo !== 'string' || !regexPseudo.test(data.pseudo)) {
+      return callback({ error: "Pseudo invalide." });
+    }
+
+    const user = await User.findOne({ pseudo: data.pseudo });
+    if (!user) {
+      return callback({ error: data.pseudo + " n'a pas été trouvé !" });
+    }
+
+
+    if (!grid.invitedUsers.includes(data.pseudo)) {
+      grid.invitedUsers.push(data.pseudo);
+      socket.emit('playerList', { roomId: data.roomId, invitedUsers: grid.invitedUsers });
+      callback({ success: data.pseudo + " a été invité !" });
+    }
+    else
+      callback({ error: data.pseudo + " est déjà invité !" });
+
+    if (grid) await saveGridToDB(data.roomId, grid);
+
+  });
+
   //Création du Canvas avec callback pour renvoyer direct l'ID
   socket.on('newGrid', async (data, callback) => {
     try {
@@ -183,13 +211,17 @@ io.on('connection', (socket) => {
         return callback({ error: "Le nom doit contenir entre 3 et 20 caractères." });
       }
 
+      // L'hôte est toujours invité par défaut (si limited ou private)
+      const hostID = [socket.pseudo];
+
       // Premiere save dans la DB
       const newGrid = new Grid({
         name: data.name,
         width: data.width,
         height: data.height,
         ownerID: socket.userId,
-        type: data.type
+        type: data.type,
+        invitedUsers: hostID
       });
       await newGrid.save();
       // On lie à l'user
@@ -210,6 +242,7 @@ io.on('connection', (socket) => {
         pixels: {},
         isModified: false,
         type: data.type,
+        invitedUsers: hostID
       }
 
       // le host rejoint la room
@@ -218,7 +251,7 @@ io.on('connection', (socket) => {
 
       // On prévient TOUT LE MONDE qu'une nouvelle room existe (pour le lobby)
       if (data.type !== 'private') {
-        io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id, image: images })
+        io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id, image: images, type: data.type, pseudo: socket.pseudo })
       }
 
       // On répond au host avec l'ID de sa room (comme un return)
@@ -260,7 +293,8 @@ io.on('connection', (socket) => {
         playersList: activeGrids[gridIdStr]?.playersList || [],
         pixels: alreadyActive ? activeGrids[gridIdStr].pixels : (grid.pixels ? Object.fromEntries(grid.pixels) : {}),
         isModified: false,
-        type: grid.type
+        type: grid.type,
+        invitedUsers: alreadyActive ? activeGrids[gridIdStr].invitedUsers : (grid.invitedUsers || [])
       };
 
       // Prévenir le lobby qu'une "ancienne" room est à nouveau active (seulement si elle n'existait pas déjà)
@@ -292,6 +326,9 @@ io.on('connection', (socket) => {
       const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
       if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
 
+      // Bloquer les joueurs non invités en limited
+      if (activeGrids[data.roomId].type === 'limited' && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
+
       //Ajout du pixel dans le canvas
       activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
 
@@ -306,7 +343,7 @@ io.on('connection', (socket) => {
 
   socket.on('getPlayersList', (data) => {
     if (!activeGrids[data.roomId]) return;
-    socket.emit('playersList', activeGrids[data.roomId].playersList);
+    socket.emit('playersList', { activePlayers: activeGrids[data.roomId].playersList, invitedUsers: activeGrids[data.roomId].invitedUsers });
   });
 
   // Rejoindre room (pseudo vient du middleware, plus du client)
@@ -323,7 +360,7 @@ io.on('connection', (socket) => {
 
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
-    socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name });
+    socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name, type: grid.type });
 
   });
 
@@ -411,6 +448,7 @@ io.on('connection', (socket) => {
       delete activeGrids[data.roomId];
       // Delete dans la DB
       await Grid.findByIdAndDelete(data.roomId)
+      // On fait close tout le monde
       const images = await getGridsImagesFromDB();
       io.emit('roomClosed', { roomId: data.roomId, image: images });
     } catch (err) {
@@ -444,7 +482,6 @@ io.on('connection', (socket) => {
     // On parcourt toutes les grids pour voir si ce joueur en hostait une pour la fermer
     for (const roomId in activeGrids) {
       if (activeGrids[roomId].host === socket.id) {
-        console.log(`🔒 Fermeture auto de la room ${roomId} (host déconnecté)`)
         const grid = activeGrids[roomId];
         const images = await getGridsImagesFromDB();
         io.emit('roomClosed', { roomId, image: images });
