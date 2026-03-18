@@ -210,6 +210,7 @@ function Canvas({ roomID, setGridType }) {
             >
                 <canvas
                     ref={canvasRef}
+                    id="canvas"
                     onPointerUp={handleDraw}
                     className="bg-white shadow-2xl shrink-0 cursor-crosshair"
                     style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-in-out', transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}

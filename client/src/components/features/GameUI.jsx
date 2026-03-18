@@ -3,6 +3,7 @@ import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket';
 import { useState, useEffect } from 'react';
 import FinishConfirm from '../UI/FinishConfirm';
+import EndScreen from '../UI/EndScreen';
 
 function GameUI({ roomID, gridType }) {
   const { palette, selectedColor, selectColor, chatbox, currentHost, updateGridID, exitGame, inviteWindow } = useUI();
@@ -10,10 +11,22 @@ function GameUI({ roomID, gridType }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showEndScreen, setShowEndScreen] = useState(false);
+  const [snapshot, setSnapshot] = useState("");
 
-  // Fin du canvas
-  const finishCanvas = () => {
-    socket.emit('finishCanvas', { roomId: roomID });
+
+  const askGallery = () => {
+    const canvasElement = document.getElementById('canvas');
+    if (canvasElement) {
+      const snapshot = canvasElement.toDataURL('image/png');
+      setSnapshot(snapshot);
+    }
+    setShowFinishModal(false);
+    setShowEndScreen(true);
+  };
+
+  const finishCanvas = (isPublic) => {
+    socket.emit('finishCanvas', { roomId: roomID, onGallery: isPublic });
     updateGridID(null);
     exitGame();
   };
@@ -104,9 +117,16 @@ function GameUI({ roomID, gridType }) {
 
       {/* Fenêtres modales */}
       <div className="pointer-events-auto">
-        {showFinishModal && <FinishConfirm title="Terminer" message="Êtes-vous sûr de vouloir terminer votre grille ? Vous ne pourrez plus la modifier !" onConfirm={finishCanvas} onCancel={() => setShowFinishModal(false)} buttonText="Terminer" buttonColor="bg-indigo-500 hover:bg-indigo-600" />}
+        {showFinishModal && <FinishConfirm title="Terminer" message="Êtes-vous sûr de vouloir terminer votre grille ? Vous ne pourrez plus la modifier !" onConfirm={askGallery} onCancel={() => setShowFinishModal(false)} buttonText="Terminer" buttonColor="bg-indigo-500 hover:bg-indigo-600" />}
         {showDeleteModal && <FinishConfirm title="Suppression" message="Êtes-vous sûr de vouloir supprimer votre grille ?" onConfirm={deleteCanvas} onCancel={() => setShowDeleteModal(false)} buttonText="Supprimer" buttonColor="bg-red-500 hover:bg-red-600" />}
       </div>
+
+
+      {/* End Screen */}
+      <div className="pointer-events-auto">
+        {showEndScreen && (<EndScreen onConfirm={finishCanvas} onCancel={() => setShowEndScreen(false)} image={snapshot} />)}
+      </div>
+
     </div>
   )
 }

@@ -54,7 +54,7 @@ setInterval(() => {
 // Sauvegarde les pixels de la grid dans MongoDB
 async function saveGridToDB(roomId, grid) {
   try {
-    await Grid.findByIdAndUpdate(roomId, { pixels: grid.pixels });
+    await Grid.findByIdAndUpdate(roomId, { pixels: grid.pixels, invitedUsers: grid.invitedUsers });
 
     //Création de l'image via Canvas
     const canvas = createCanvas(grid.width * 20, grid.height * 20);
@@ -318,16 +318,17 @@ io.on('connection', (socket) => {
   //Placement de pixel (plus besoin de vérifier le token, le middleware l'a déjà fait)
   socket.on('pixelPlaced', (data) => {
     if (!activeGrids[data.roomId]) return;
-    const now = Date.now();
 
+    // Gestion cooldown
+    const now = Date.now();
     if (now - (activeUsers[socket.userId] || 0) > pixelCooldown) {
 
-      // Vérification des limites du canvas + regex couleur
+      // Regex couleur
       const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
       if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
 
       // Bloquer les joueurs non invités en limited
-      if (activeGrids[data.roomId].type === 'limited' && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
+      if ((activeGrids[data.roomId].type === 'limited' || activeGrids[data.roomId].type === 'private') && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
 
       //Ajout du pixel dans le canvas
       activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
@@ -349,6 +350,7 @@ io.on('connection', (socket) => {
   // Rejoindre room (pseudo vient du middleware, plus du client)
   socket.on('joinRoom', (data) => {
     if (!activeGrids[data.roomId]) return;
+    if (activeGrids[data.roomId].type === 'private' && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
 
     socket.join(data.roomId);
 
@@ -425,7 +427,7 @@ io.on('connection', (socket) => {
 
       // On ajoute la grille à l'utilisateur
       await User.findByIdAndUpdate(socket.userId, {
-        $push: { myGrids: { nom: grid.name, image: gridImage } }
+        $push: { myGrids: { nom: grid.name, image: gridImage, onGallery: data.onGallery } }
       });
 
       delete activeGrids[data.roomId];
@@ -433,7 +435,7 @@ io.on('connection', (socket) => {
       const images = await getGridsImagesFromDB();
       io.emit('roomClosed', { roomId: data.roomId, image: images });
     } catch (err) {
-      console.error('Erreur finishCanvas:', err);
+      console.error('Erreur:', err);
     }
   })
 
@@ -461,11 +463,14 @@ io.on('connection', (socket) => {
 
     const users = await User.find({ "myGrids.0": { $exists: true } });
 
+
+
+
     const allGrids = users.flatMap(user =>
-      user.myGrids.map(grid => ({
+      user.myGrids.filter(grid => grid.onGallery === true).map(grid => ({
         name: grid.nom,
         image: grid.image,
-        author: user.pseudo
+        author: user.pseudo,
       }))
     );
 
