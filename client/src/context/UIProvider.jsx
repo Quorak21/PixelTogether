@@ -16,7 +16,7 @@ export const UIProvider = ({ children }) => {
     const [currentHost, setCurrentHost] = useState(null);
     const newGame = () => setGameMode(true);
     const joinGame = (roomID, host) => { setCurrentRoomID(roomID); setCurrentHost(host); setGameMode(true); };
-    const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); };
+    const exitGame = () => { setCurrentRoomID(null); setCurrentHost(null); setGameMode(false); chatbox.close(); palette.close(); inviteWindow.close(); };
 
     // Fenêtres dynamiques
     const gridCreate = useToggle();
@@ -35,6 +35,13 @@ export const UIProvider = ({ children }) => {
 
     // Couleurs actives choisies (persistance locale par utilisateur)
     const [chosenColors, setChosenColors] = useState(Array(10).fill(null));
+
+    // Afficher gallerie personnelle
+    const [showPersonalGallery, setShowPersonalGallery] = useState(false);
+
+    // Gold
+    const [gold, setGold] = useState();
+
 
     // Mettre à jour les couleurs quand l'utilisateur change
     useEffect(() => {
@@ -98,7 +105,7 @@ export const UIProvider = ({ children }) => {
 
 
     return (
-        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser, helpGridCreation, inviteWindow }}>
+        <UIContext.Provider value={{ gameMode, currentRoomID, currentHost, newGame, joinGame, exitGame, gridCreate, palette, chatbox, gallery, selectedColor, selectColor, chosenColors, setChosenColors, user, isAuthLoading, loginUser, updateGridID, logoutUser, helpGridCreation, inviteWindow, showPersonalGallery, setShowPersonalGallery, gold, setGold }}>
             {children}
         </UIContext.Provider>
     );

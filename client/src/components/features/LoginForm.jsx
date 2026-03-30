@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { updateSocketAuth } from '../../socket';
 
 function LoginForm({ }) {
-    const { loginUser } = useUI();
+    const { loginUser, setGold } = useUI();
 
     const nodeRef = React.useRef(null);
 
@@ -48,6 +48,7 @@ function LoginForm({ }) {
                 localStorage.setItem('token', data.token); // On stocke le JWT token, valide 7 jours
                 updateSocketAuth(); // On reconnecte le socket avec le nouveau token
                 loginUser(pseudo, data.gridID, data.gridName); // On met le pseudo dans le context global
+                setGold(data.gold);
             }
 
         } catch (err) {

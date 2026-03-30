@@ -12,7 +12,6 @@ const Confetti = () => {
     canvas.height = window.innerHeight;
 
     const particles = [];
-    // Des couleurs fluo, ultra vibrantes et très visibles
     const colors = ['#FF0055', '#00FF66', '#00AAFF', '#FFD700', '#FF6600', '#CC00FF', '#ffffff'];
 
     // Left cannon
@@ -20,9 +19,9 @@ const Confetti = () => {
       particles.push({
         x: canvas.width * 0.1,
         y: canvas.height + 20,
-        r: Math.random() * 8 + 6, // Un peu plus grand pour être plus visible
-        dx: Math.random() * 15 + 5, 
-        dy: Math.random() * -22 - 15, 
+        r: Math.random() * 8 + 6,
+        dx: Math.random() * 15 + 5,
+        dy: Math.random() * -22 - 15,
         color: colors[Math.floor(Math.random() * colors.length)],
         tilt: Math.floor(Math.random() * 10) - 10,
         tiltAngleIncrement: (Math.random() * 0.07) + 0.05,
@@ -36,7 +35,7 @@ const Confetti = () => {
         x: canvas.width * 0.9,
         y: canvas.height + 20,
         r: Math.random() * 8 + 6, // Un peu plus grand
-        dx: Math.random() * -15 - 5, 
+        dx: Math.random() * -15 - 5,
         dy: Math.random() * -22 - 15,
         color: colors[Math.floor(Math.random() * colors.length)],
         tilt: Math.floor(Math.random() * 10) - 10,
@@ -74,7 +73,7 @@ const Confetti = () => {
       canvas.height = window.innerHeight;
     };
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
@@ -95,12 +94,12 @@ const EndScreen = ({ onCancel, onConfirm, image = "" }) => {
       <div className="min-h-[100dvh] flex items-center justify-center p-2 sm:p-4">
 
         {/* Main Container */}
-        <div 
+        <div
           className="relative z-10 flex flex-col items-center justify-center w-full max-w-lg p-5 sm:p-8 bg-white/10 border border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.1)] rounded-3xl backdrop-blur-xl my-4 sm:my-8"
           style={{ animation: 'pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
         >
           {/* Close Button */}
-          <button 
+          <button
             onClick={onCancel}
             className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/70 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-2 transition-all z-20"
           >
@@ -139,16 +138,16 @@ const EndScreen = ({ onCancel, onConfirm, image = "" }) => {
           {/* Image with Rainbow Halo - Scaled down slightly on mobile */}
           <div className="relative mb-5 sm:mb-8 flex items-center justify-center w-48 h-48 sm:w-64 sm:h-64">
             {/* Halo */}
-            <div 
+            <div
               className="absolute w-full h-full opacity-100 blur-xl rounded-full scale-[1.15] sm:scale-125"
-              style={{ 
+              style={{
                 background: 'conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00ffff, #0000ff, #8b00ff, #ff0000)',
                 animation: 'halo-spin 4s linear infinite'
               }}
             ></div>
 
             {/* Image */}
-            <div 
+            <div
               style={{ animation: 'float 4s ease-in-out infinite' }}
               className="relative z-10 p-2 sm:p-3 bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-4 border-white"
             >
@@ -170,7 +169,7 @@ const EndScreen = ({ onCancel, onConfirm, image = "" }) => {
 
           {/* Action Buttons */}
           <div className="flex flex-col w-full gap-3 sm:gap-4 px-2 sm:px-0">
-            <button 
+            <button
               onClick={() => onConfirm(true)}
               className="relative overflow-hidden group flex-1 flex items-center justify-center gap-2 sm:gap-3 py-3 sm:py-4 px-4 sm:px-6 rounded-2xl bg-gradient-to-b from-green-400 to-green-500 text-white font-extrabold text-lg sm:text-xl shadow-[0_6px_0_rgb(21,128,61),0_10px_25px_rgba(34,197,94,0.6)] hover:translate-y-[2px] hover:shadow-[0_4px_0_rgb(21,128,61),0_8px_15px_rgba(34,197,94,0.5)] active:translate-y-[6px] active:shadow-[0_0px_0_rgb(21,128,61),0_0px_0px_rgba(34,197,94,0.5)] transition-all"
             >
@@ -179,7 +178,7 @@ const EndScreen = ({ onCancel, onConfirm, image = "" }) => {
               <span className="drop-shadow-sm leading-none pt-1">Publier dans la galerie !</span>
             </button>
 
-            <button 
+            <button
               onClick={() => onConfirm(false)}
               className="relative overflow-hidden group flex-1 flex items-center justify-center gap-2 sm:gap-3 py-2.5 sm:py-3 px-4 sm:px-6 rounded-2xl bg-gradient-to-b from-slate-500 to-slate-600 text-white font-bold text-base sm:text-lg shadow-[0_4px_0_rgb(51,65,85),0_8px_20px_rgba(51,65,85,0.5)] hover:translate-y-[2px] hover:shadow-[0_2px_0_rgb(51,65,85),0_4px_10px_rgba(51,65,85,0.4)] active:translate-y-[4px] active:shadow-[0_0px_0_rgb(51,65,85),0_0px_0px_rgba(51,65,85,0.4)] transition-all mt-1 sm:mt-2"
             >

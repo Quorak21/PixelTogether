@@ -6,14 +6,12 @@ function Canvas({ roomID, setGridType }) {
 
     const canvasRef = useRef(null);
     const PIXEL_SIZE = 20;
-    const { selectedColor, exitGame, user } = useUI();
+    const { selectedColor, exitGame, user, gold, setGold } = useUI();
     const [roomName, setRoomName] = useState('');
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-
 
     // Création du canvas
     useEffect(() => {
@@ -102,7 +100,9 @@ function Canvas({ roomID, setGridType }) {
 
 
         // Envoyer au serveur
-        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID });
+        socket.emit('pixelPlaced', { x, y, color: selectedColor, roomId: roomID }, (response) => {
+            setGold(response.gold);
+        });
     };
 
     // Gestion zoom

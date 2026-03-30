@@ -27,8 +27,9 @@ router.post('/register', async (req, res) => {
         }
 
         // Min 6 caractères, au moins une majuscule, une minuscule et un chiffre
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(req.body.password)) {
-            return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères, une majuscule, une minuscule et un chiffre." });
+        // /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*()_+\-=]{6,}$/
+        if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=]{6,}$/.test(req.body.password)) {
+            return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères." });
         }
 
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -57,13 +58,15 @@ router.post('/register', async (req, res) => {
         if (err.name === 'ValidationError') {
             return res.status(400).json({ message: "Pseudo et mot de passe sont obligatoires." });
         }
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: "Une erreur est survenue." });
     }
 });
 
 // Connexion
 router.post('/login', async (req, res) => {
     try {
+        if (typeof req.body.pseudo !== 'string') return res.status(400);
+
         // On cherche le joueur par son pseudo
         const joueur = await User.findOne({ pseudo: req.body.pseudo.toLowerCase().trim() });
 
@@ -80,11 +83,12 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign({ idUser: joueur._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
         joueur.token = token;
 
-        res.json({ message: "Bienvenue, " + joueur.pseudo + " !", token, gridID: joueur.gridID });
+        // On envoie le nombre de pièces du joueur
+        res.json({ message: "Bienvenue, " + joueur.pseudo + " !", token, gridID: joueur.gridID, gold: joueur.gold });
 
     } catch (err) {
         console.error("❌ Erreur :", err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: "Une erreur est survenue." });
     }
 });
 

@@ -3,17 +3,24 @@ import React, { useEffect, useState } from 'react';
 import { useUI } from "../../context/UIProvider";
 import { X, Palette, Cog, Check, Plus } from 'lucide-react';
 import { socket } from '../../socket';
+import coins from "../../assets/images/coins.png";
 
 function ColorPalette() {
 
     const nodeRef = React.useRef(null);
-    const { palette, selectColor, selectedColor, chosenColors, setChosenColors } = useUI();
+    const { palette, selectColor, selectedColor, chosenColors, setChosenColors, gold, setGold } = useUI();
     const [colors, setColors] = useState([]);
 
     const [isEditing, setIsEditing] = useState(false);
     const [editingIndex, setEditingIndex] = useState(0);
 
+    const [isBuying, setIsBuying] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
     const toggleEditing = () => { setIsEditing(prev => !prev); };
+    const toggleBuying = () => { setIsBuying(prev => !prev); };
+
+    const [buyNewColor, setBuyNewColor] = useState("#aabbcc");
 
     useEffect(() => {
         socket.emit('getColors', {});
@@ -49,13 +56,33 @@ function ColorPalette() {
         setEditingIndex(prev => (prev + 1) % 10);
     };
 
+    const buyColor = (color) => {
+        socket.emit('buyColor', { color }, (response) => {
+            if (response.success) {
+                setGold(response.gold);
+                setChosenColors(prev => {
+                    const newColors = [...prev];
+                    newColors[editingIndex] = color;
+                    return newColors;
+                });
+                setEditingIndex(prev => (prev + 1) % 10);
+                // Rafraîchir le stock
+                socket.emit('getColors', {});
+                toggleBuying();
+                setErrorMessage("");
+            } else {
+                setErrorMessage(response.message);
+            }
+        });
+    };
+
     return (
         palette.isOpen ? (
             <Draggable
                 nodeRef={nodeRef}
                 handle=".drag-handle"
                 cancel="button"
-                defaultPosition={{ x: window.innerWidth - 500, y: 100 }}
+                defaultPosition={{ x: Math.max(10, window.innerWidth - 450), y: 100 }}
                 bounds="body"
             >
                 <div ref={nodeRef} className="fixed top-0 left-0 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200 w-[18rem] sm:w-[22rem]">
@@ -64,7 +91,7 @@ function ColorPalette() {
                     <div className="drag-handle bg-neutral text-neutral-content p-3 flex justify-between items-center cursor-move select-none group transition-colors">
                         <div className="flex items-center gap-2">
                             <Palette size={18} color="white" />
-                            <span className="font-bold text-md tracking-wide">{isEditing ? "Personnalisation" : "Couleurs actives"}</span>
+                            <span className="font-bold text-md tracking-wide">{isEditing ? "Personnalisation" : isBuying ? "Boutique" : "Couleurs actives"}</span>
                         </div>
                         <div className="flex items-center gap-1 cursor-default opacity-80 group-hover:opacity-100 transition-opacity">
                             <button
@@ -108,7 +135,7 @@ function ColorPalette() {
                             </div>
 
                             {/* Stock complet */}
-                            <div className="p-4 sm:p-5 bg-base-200/30">
+                            <div className="p-4 sm:p-5 bg-base-200/30 max-h-48 overflow-y-auto">
                                 <div className="text-xs font-bold text-base-content/50 uppercase tracking-wider mb-3 text-center">Stock disponible</div>
                                 <div className="grid grid-cols-5 gap-3 justify-items-center">
                                     {colors.map((color, index) => (
@@ -127,13 +154,68 @@ function ColorPalette() {
                                         title="Débloquer de nouvelles couleurs (Bientôt !)"
                                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 border-2 border-dashed border-base-content/40 bg-base-300 hover:bg-base-200 flex items-center justify-center opacity-80 hover:opacity-100 transition-all hover:scale-105 active:scale-95 cursor-pointer text-base-content/60 hover:text-base-content/90"
                                         onClick={() => {
-                                            // Future action: open shop
-                                            console.log("Ouvrir la boutique de couleurs");
+                                            toggleBuying();
+                                            toggleEditing();
                                         }}
                                     >
                                         <Plus size={20} strokeWidth={2.5} />
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    ) : isBuying ? (
+                        <div className="flex flex-col">
+                            {/* Aperçu couleur */}
+                            <div className="p-4 sm:p-5 bg-base-200/50 border-b border-base-content/10">
+                                <div className="text-xs font-bold text-base-content/50 uppercase tracking-wider mb-3 text-center">Nouvelle couleur</div>
+                                <div className="flex flex-col items-center gap-3">
+                                    {/* Grande preview ronde */}
+                                    <div
+                                        className="w-20 h-20 rounded-full shadow-lg border-4 border-base-100 transition-colors duration-300"
+                                        style={{ backgroundColor: buyNewColor }}
+                                    />
+                                    {/* Color picker + hex */}
+                                    <div className="flex items-center gap-2">
+                                        <label className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer shadow-sm border-2 border-base-content/10 hover:scale-110 transition-transform" title="Choisir une couleur">
+                                            <input
+                                                type="color"
+                                                value={buyNewColor}
+                                                onChange={(e) => setBuyNewColor(e.target.value)}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <div className="w-full h-full" style={{ backgroundColor: buyNewColor }} />
+                                        </label>
+                                        <input
+                                            className="input input-bordered input-sm w-28 font-mono text-center tracking-wide uppercase"
+                                            type="text"
+                                            value={buyNewColor}
+                                            onChange={(e) => setBuyNewColor(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bouton d'achat */}
+                            <div className="p-4 sm:p-5 bg-base-200/30 flex flex-col items-center gap-3">
+                                <div className="flex items-center gap-1.5 bg-warning/15 text-warning-content px-3 py-1 rounded-full">
+                                    <img src={coins} alt="gold" className="w-5 h-5" />
+                                    <span className={`font-bold text-sm ${gold >= 100 ? 'text-success' : 'text-error'}`}>100</span>
+                                </div>
+                                <div className="flex gap-2 w-full">
+                                    <button
+                                        className="btn btn-outline btn-sm flex-1 rounded-full"
+                                        onClick={() => toggleBuying()}
+                                    >
+                                        Retour
+                                    </button>
+                                    <button
+                                        className={`btn ${gold >= 100 ? 'btn-success' : 'btn-disabled'} btn-sm flex-1 rounded-full gap-1 shadow-md hover:shadow-lg transition-shadow`}
+                                        onClick={() => { buyColor(buyNewColor) }}
+                                    >
+                                        Acheter
+                                    </button>
+                                </div>
+                                {errorMessage && <p className="text-error text-sm">{errorMessage}</p>}
                             </div>
                         </div>
                     ) : (
@@ -166,8 +248,9 @@ function ColorPalette() {
                         </div>
                     )}
 
+
                 </div>
-            </Draggable>
+            </Draggable >
         ) : null
     )
 }

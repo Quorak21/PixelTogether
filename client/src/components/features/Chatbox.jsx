@@ -6,6 +6,7 @@ import { useUI } from '../../context/UIProvider';
 
 function Chatbox({ onClose, roomID }) {
     const nodeRef = React.useRef(null);
+    const messagesEndRef = React.useRef(null);
     const [isMinimized, setIsMinimized] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
@@ -38,31 +39,37 @@ function Chatbox({ onClose, roomID }) {
     useEffect(() => {
         socket.emit('getChatMessages', { roomId: roomID });
 
-        socket.on('chatMessages', (data) => {
-            setChatMessages(data);
-        });
-        socket.on('receiveMessage', (data) => {
-            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: data.message }]);
-        });
-        socket.on('joinedRoom', (data) => {
-            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.pseudo, message: 'a rejoint la room, welcome !' }]);
+        const onChatMessages = (data) => setChatMessages(data);
+        const onReceiveMessage = (data) => setChatMessages(prev => [...prev, { senderId: data.senderId, pseudo: data.pseudo, type: 'message', message: data.message }]);
+        const onJoinedRoom = (data) => {
+            setChatMessages(prev => [...prev, { senderId: data.senderId, pseudo: data.pseudo, type: 'info', message: 'a rejoint la partie.' }]);
             socket.emit('getPlayersList', { roomId: roomID });
-        });
-        socket.on('exitGame', (data) => {
-            setChatMessages((prevMessages) => [...prevMessages, { senderId: data.senderId, pseudo: data.user, message: 'a quitté la room, bye !' }]);
-        });
-        socket.on('playersList', (data) => {
-            setPlayersList(data.activePlayers || []);
-        });
+        };
+        const onExitGame = (data) => setChatMessages(prev => [...prev, { senderId: data.senderId, pseudo: data.user, type: 'info', message: 'a quitté la partie.' }]);
+        const onPlayersList = (data) => setPlayersList(data.activePlayers || []);
 
+        socket.on('chatMessages', onChatMessages);
+        socket.on('receiveMessage', onReceiveMessage);
+        socket.on('joinedRoom', onJoinedRoom);
+        socket.on('exitGame', onExitGame);
+        socket.on('playersList', onPlayersList);
 
         return () => {
-            socket.off('receiveMessage');
-            socket.off('joinedRoom');
-            socket.off('chatMessages');
-            socket.off('playersList');
+            socket.off('chatMessages', onChatMessages);
+            socket.off('receiveMessage', onReceiveMessage);
+            socket.off('joinedRoom', onJoinedRoom);
+            socket.off('exitGame', onExitGame);
+            socket.off('playersList', onPlayersList);
         };
     }, []);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [chatMessages, userPanelOpen]);
 
 
     // Calcul de la position par défaut (en bas à droite)
@@ -149,22 +156,35 @@ function Chatbox({ onClose, roomID }) {
                                     <p>Aucun message pour le moment.</p>
                                 </div>
                             ) : (
-                                chatMessages.map((msg, i) => (
-                                    <div key={i} className="flex items-start gap-1 text-sm min-w-0">
-                                        {msg.senderId === currentHost ? (
-                                            <span className="flex items-center gap-1 font-bold text-red-500 mr-2"><Crown size={16} color='black' fill='gold' /> {msg.pseudo}:</span>
-                                        ) : (
-                                            <span className="font-bold text-secondary mr-2">{msg.pseudo}:</span>
-                                        )}
-                                        <span className="text-base-content/90 break-all min-w-0">{msg.message}</span>
-                                    </div>
-                                ))
+                                chatMessages.map((msg, i) => {
+                                    if (msg.type === 'info') {
+                                        return (
+                                            <div key={i} className="flex justify-center my-1">
+                                                <span className="text-xs bg-base-300 text-base-content/70 px-3 py-1 rounded-full italic shadow-sm">
+                                                    <span className="font-bold">{msg.pseudo}</span> {msg.message}
+                                                </span>
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div key={i} className="flex items-start gap-1 text-sm min-w-0">
+                                            {msg.senderId === currentHost ? (
+                                                <span className="flex items-center gap-1 font-bold text-red-500 mr-2"><Crown size={16} color='black' fill='gold' /> {msg.pseudo}:</span>
+                                            ) : (
+                                                <span className="font-bold text-secondary mr-2">{msg.pseudo}:</span>
+                                            )}
+                                            <span className="text-base-content/90 break-all min-w-0">{msg.message}</span>
+                                        </div>
+                                    );
+                                })
                             )}
+                            <div ref={messagesEndRef} />
                         </div>
                         {!userPanelOpen && (
                             <div className="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
                                 <form onSubmit={sendMessage} className="flex gap-2 relative items-center">
                                     <input
+                                        autoFocus
                                         type="text"
                                         className="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
                                         placeholder="Écrire un message..."

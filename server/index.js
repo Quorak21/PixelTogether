@@ -9,6 +9,7 @@ import { createCanvas } from 'canvas';
 import authRouter from './routes/auth.js';
 import Grid from './models/Grid.js';
 import User from './models/User.js';
+import sanitizeHtml from 'sanitize-html';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,8 @@ const io = new Server(httpServer, {
 const activeGrids = {};
 const activeUsers = {};
 const pixelCooldown = 200;
+// Regex couleur
+const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 // Auto-save toutes les 15 secondes
 setInterval(() => {
   Object.values(activeGrids).forEach(grid => {
@@ -104,6 +107,7 @@ io.use(async (socket, next) => {
     // On attache les infos au socket — disponibles dans TOUS les handlers ensuite
     socket.userId = decoded.idUser;
     socket.pseudo = user.pseudo;
+    socket.gold = user.gold;
     next();
   } catch (err) {
     return next(new Error('Token invalide'));
@@ -113,7 +117,8 @@ io.use(async (socket, next) => {
 io.on('connection', (socket) => {
 
   // On renvoie les infos de l'utilisateur au client pour l'auto-connect
-  socket.emit('authenticated', { pseudo: socket.pseudo, gridID: null });
+  socket.emit('authenticated', { pseudo: socket.pseudo, gridID: null, gold: socket.gold });
+
   // On cherche le gridID en async (pour ne pas bloquer la connexion)
   User.findById(socket.userId).then(async user => {
     if (user && user.gridID) {
@@ -135,8 +140,10 @@ io.on('connection', (socket) => {
       return;
     }
 
-    activeGrids[data.roomId].chatMessages.push({ pseudo: socket.pseudo, message: data.message, senderId: socket.id });
-    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: socket.pseudo, message: data.message });
+    const cleanMessage = sanitizeHtml(data.message);
+
+    activeGrids[data.roomId].chatMessages.push({ pseudo: socket.pseudo, message: cleanMessage, senderId: socket.id });
+    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: socket.pseudo, message: cleanMessage });
   });
 
   // Recup historique messages
@@ -316,22 +323,26 @@ io.on('connection', (socket) => {
   });
 
   //Placement de pixel (plus besoin de vérifier le token, le middleware l'a déjà fait)
-  socket.on('pixelPlaced', (data) => {
+  socket.on('pixelPlaced', async (data, callback) => {
     if (!activeGrids[data.roomId]) return;
 
     // Gestion cooldown
     const now = Date.now();
     if (now - (activeUsers[socket.userId] || 0) > pixelCooldown) {
 
-      // Regex couleur
-      const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+
       if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
 
       // Bloquer les joueurs non invités en limited
       if ((activeGrids[data.roomId].type === 'limited' || activeGrids[data.roomId].type === 'private') && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
 
+      // Vérifier si la couleur change
+      const pixelSpot = `${data.x},${data.y}`;
+      const oldColor = activeGrids[data.roomId].pixels[pixelSpot];
+      const colorChanged = oldColor !== data.color;
+
       //Ajout du pixel dans le canvas
-      activeGrids[data.roomId].pixels[`${data.x},${data.y}`] = data.color;
+      activeGrids[data.roomId].pixels[pixelSpot] = data.color;
 
       // On marque la grille comme modifiée pour l'autosave
       activeGrids[data.roomId].isModified = true;
@@ -339,6 +350,17 @@ io.on('connection', (socket) => {
       // Envoie du pixel à tous les joueurs de la room
       io.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
       activeUsers[socket.userId] = now;
+
+
+
+      // On donne 1 gold seulement si la couleur a changé
+      if (colorChanged) {
+        const user = await User.findByIdAndUpdate(socket.userId, { $inc: { gold: 1 } }, { new: true });
+        callback({ gold: user.gold });
+      } else {
+        const user = await User.findById(socket.userId);
+        callback({ gold: user.gold });
+      }
     }
   });
 
@@ -427,7 +449,7 @@ io.on('connection', (socket) => {
 
       // On ajoute la grille à l'utilisateur
       await User.findByIdAndUpdate(socket.userId, {
-        $push: { myGrids: { nom: grid.name, image: gridImage, onGallery: data.onGallery } }
+        $push: { myGrids: { nom: grid.name, image: gridImage, onGallery: data.onGallery, date: Date.now() } }
       });
 
       delete activeGrids[data.roomId];
@@ -463,23 +485,87 @@ io.on('connection', (socket) => {
 
     const users = await User.find({ "myGrids.0": { $exists: true } });
 
-
-
-
+    // On recup d'abord tout
     const allGrids = users.flatMap(user =>
       user.myGrids.filter(grid => grid.onGallery === true).map(grid => ({
         name: grid.nom,
         image: grid.image,
         author: user.pseudo,
+        date: grid.date,
       }))
     );
 
-    callback({ grids: allGrids });
+    // On trie par date
+    allGrids.sort((a, b) => b.date - a.date);
+
+    // On slice les 50 derniers
+    const finalGrids = allGrids.slice(0, 50);
+
+    callback({ grids: finalGrids });
+  })
+
+  // Gallery Perso
+  socket.on('askMyGallery', async (callback) => {
+    const user = await User.findById(socket.userId);
+
+    const myGrids = user.myGrids.map(grid => ({
+      name: grid.nom,
+      image: grid.image,
+      author: user.pseudo,
+      onGallery: grid.onGallery,
+      id: grid.id,
+      date: grid.date,
+    })).sort((a, b) => b.date - a.date);
+
+
+    callback({ grids: myGrids });
+  })
+
+
+  // Update grid pour public
+  socket.on('updateGridOnGallery', async (data) => {
+    const user = await User.findById(socket.userId);
+    const grid = user.myGrids.id(data.gridId);
+    if (grid) {
+      grid.onGallery = data.newValue;
+      await user.save();
+    }
+  })
+
+  // delete Grid
+  socket.on('deleteGrid', async ({ gridId }) => {
+    const user = await User.findById(socket.userId);
+    const grid = user.myGrids.id(gridId);
+    if (grid) {
+      grid.deleteOne();
+      await user.save();
+    }
   })
 
   socket.on('getColors', async () => {
     const user = await User.findById(socket.userId);
     socket.emit('colors', { colors: user.colors });
+  })
+
+  // Achat nouvelle couleur
+  socket.on('buyColor', async (data, callback) => {
+    const user = await User.findById(socket.userId);
+    if (!regColor.test(data.color)) {
+      callback({ success: false, message: "Couleur invalide" });
+      return;
+    }
+    if (user.colors.includes(data.color)) {
+      callback({ success: false, message: "Vous avez déjà cette couleur" });
+      return;
+    }
+    if (user.gold >= 100) {
+      user.gold -= 100;
+      user.colors.push(data.color);
+      await user.save();
+      callback({ success: true, gold: user.gold });
+    } else {
+      callback({ success: false, message: "Pas assez d'or" });
+    }
   })
 
   //Deco
@@ -493,6 +579,10 @@ io.on('connection', (socket) => {
         delete activeGrids[roomId];
         await saveGridToDB(roomId, grid);
         delete activeUsers[socket.userId];
+      } else if (activeGrids[roomId].playersList.includes(socket.pseudo)) {
+        activeGrids[roomId].playersList = activeGrids[roomId].playersList.filter(p => p !== socket.pseudo);
+        io.in(roomId).emit('playersList', activeGrids[roomId].playersList);
+        socket.to(roomId).emit('exitGame', { user: socket.pseudo });
       }
     }
   });
@@ -501,4 +591,4 @@ io.on('connection', (socket) => {
 //Lancement du serveur
 httpServer.listen(PORT, () => {
   console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
-});
+}); 

@@ -7,7 +7,7 @@ function Footer() {
         <h2 className="font-bold text-lg text-primary">Dokk Corp. © 2026</h2>
       </div>
       <div className="">
-        <p className="text-sm text-gray-500">Version pré-alpha 0.1.0</p>
+        <p className="text-sm text-gray-500">Version alpha 0.1.9</p>
       </div>
     </div>
 

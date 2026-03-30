@@ -1,4 +1,4 @@
-import { Eraser, MessageCircle, Save, BadgeX, UserRoundPlus } from 'lucide-react';
+import { Eraser, MessageCircle, Save, BadgeX, UserRoundPlus, Bell } from 'lucide-react';
 import { useUI } from "../../context/UIProvider";
 import { socket } from '../../socket';
 import { useState, useEffect } from 'react';
@@ -13,6 +13,9 @@ function GameUI({ roomID, gridType }) {
   const [saved, setSaved] = useState(false);
   const [showEndScreen, setShowEndScreen] = useState(false);
   const [snapshot, setSnapshot] = useState("");
+  const [notification, setNotification] = useState(false);
+
+
 
 
   const askGallery = () => {
@@ -38,14 +41,26 @@ function GameUI({ roomID, gridType }) {
   };
 
   useEffect(() => {
-    socket.on('gridSaved', () => {
+    const handleGridSaved = () => {
       setSaved(true);
       setTimeout(() => {
         setSaved(false);
       }, 2000);
-    });
-    return () => socket.off('gridSaved');
-  }, []);
+    };
+
+    const handleReceiveMessage = () => {
+      if (chatbox.isOpen) return;
+      setNotification(true);
+    };
+    
+    socket.on('gridSaved', handleGridSaved);
+    socket.on('receiveMessage', handleReceiveMessage);
+
+    return () => {
+      socket.off('gridSaved', handleGridSaved);
+      socket.off('receiveMessage', handleReceiveMessage);
+    }
+  }, [chatbox.isOpen]);
 
 
   const GlassButton = ({ onClick, children, className = "", title }) => (
@@ -110,7 +125,13 @@ function GameUI({ roomID, gridType }) {
             <UserRoundPlus className="w-6 h-6 sm:w-7 sm:h-7" />
           </GlassButton>
         )}
-        <GlassButton onClick={chatbox.open} title="Ouvrir le chat">
+        {notification &&
+          <>
+            <span className="w-6 h-6 sm:w-6 sm:h-6 rounded-full bg-success z-50 absolute top-0 left-0" />
+            <Bell color="green" size={20} className="animate-bounce z-50 absolute top-0 left-0" />
+          </>
+        }
+        <GlassButton onClick={() => { chatbox.toggle(); setNotification(false); }} title="Ouvrir le chat">
           <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7" />
         </GlassButton>
       </div>
