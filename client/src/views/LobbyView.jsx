@@ -6,7 +6,7 @@ import RoomCard from '../components/UI/RoomCard';
 import Gallery from '../components/features/Gallery';
 
 function LobbyView({ }) {
-    const { gridCreate, joinGame, user, login } = useUI();
+    const { gridCreate, joinGame, user, login, setGold } = useUI();
     const [rooms, setRooms] = useState([]);
     const [images, setImages] = useState([]);
 
@@ -36,6 +36,7 @@ function LobbyView({ }) {
         socket.on('activeGrids', (data) => {
             setRooms(Object.values(data.activeGrids || {}).filter(room => room && room.id));
             setImages(data.images);
+            setGold(data.gold);
         });
 
         // En temps réel, quand on a une create (on évite les doublons)

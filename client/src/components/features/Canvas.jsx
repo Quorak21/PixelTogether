@@ -77,7 +77,7 @@ function Canvas({ roomID, setGridType }) {
             }
         });
 
-        // Nettoyage quand le composant se démonte
+        // Nettoyage
         return () => {
             socket.off('drawPixel')
             socket.off('gridState')

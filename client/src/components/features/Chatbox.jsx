@@ -12,6 +12,7 @@ function Chatbox({ onClose, roomID }) {
     const [chatMessages, setChatMessages] = useState([]);
     const [userPanelOpen, setUserPanelOpen] = useState(false);
     const [playersList, setPlayersList] = useState([]);
+    const [hostPseudo, setHostPseudo] = useState(null);
     const [error, setError] = useState('');
 
     const { user, currentHost } = useUI();
@@ -46,7 +47,12 @@ function Chatbox({ onClose, roomID }) {
             socket.emit('getPlayersList', { roomId: roomID });
         };
         const onExitGame = (data) => setChatMessages(prev => [...prev, { senderId: data.senderId, pseudo: data.user, type: 'info', message: 'a quitté la partie.' }]);
-        const onPlayersList = (data) => setPlayersList(data.activePlayers || []);
+        const onPlayersList = (data) => {
+            setPlayersList(data.activePlayers || []);
+            if (data.hostPseudo) {
+                setHostPseudo(data.hostPseudo);
+            }
+        };
 
         socket.on('chatMessages', onChatMessages);
         socket.on('receiveMessage', onReceiveMessage);
@@ -145,7 +151,7 @@ function Chatbox({ onClose, roomID }) {
                                                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
                                                 </span>
                                                 <span className="text-sm font-bold">{player}</span>
-                                                {player === user.pseudo && <span className="text-xs text-gray-400 ml-auto"><Crown size={16} color='black' fill='gold' /></span>}
+                                                {player === hostPseudo && <span className="text-xs text-gray-400 ml-auto" title="Hôte de la partie"><Crown size={16} color='black' fill='gold' /></span>}
                                             </li>
                                         ))}
                                     </ul>

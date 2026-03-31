@@ -27,7 +27,7 @@ export const UIProvider = ({ children }) => {
     const inviteWindow = useToggle();
 
     // Couleur
-    const [selectedColor, setSelectedColor] = useState('#ffffffff');
+    const [selectedColor, setSelectedColor] = useState('#000000');
     const selectColor = (color) => setSelectedColor(color);
 
     // Utilisateur connecté
@@ -49,7 +49,9 @@ export const UIProvider = ({ children }) => {
             const saved = localStorage.getItem(`chosenColors_${user.pseudo}`);
             if (saved) {
                 try {
-                    setChosenColors(JSON.parse(saved));
+                    const parsedColors = JSON.parse(saved);
+                    setChosenColors(parsedColors);
+                    setSelectedColor(parsedColors[0]);
                 } catch (e) {
                     setChosenColors(Array(10).fill(null));
                 }

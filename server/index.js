@@ -162,7 +162,7 @@ io.on('connection', (socket) => {
         filteredGrids[gridId] = activeGrids[gridId];
       }
     }
-    socket.emit('activeGrids', { activeGrids: filteredGrids, images });
+    socket.emit('activeGrids', { activeGrids: filteredGrids, images, gold: socket.gold });
   });
 
   // Invitation d'un joueur
@@ -366,7 +366,11 @@ io.on('connection', (socket) => {
 
   socket.on('getPlayersList', (data) => {
     if (!activeGrids[data.roomId]) return;
-    socket.emit('playersList', { activePlayers: activeGrids[data.roomId].playersList, invitedUsers: activeGrids[data.roomId].invitedUsers });
+    socket.emit('playersList', { 
+        activePlayers: activeGrids[data.roomId].playersList, 
+        invitedUsers: activeGrids[data.roomId].invitedUsers,
+        hostPseudo: activeGrids[data.roomId].pseudo 
+    });
   });
 
   // Rejoindre room (pseudo vient du middleware, plus du client)
@@ -378,9 +382,11 @@ io.on('connection', (socket) => {
 
     socket.data.roomId = data.roomId;
 
-    activeGrids[data.roomId].playersList.push(socket.pseudo);
-    // On prévient tout le monde que quelqu'un est entré dans la room
-    socket.to(data.roomId).emit('joinedRoom', { pseudo: socket.pseudo });
+    if (!activeGrids[data.roomId].playersList.includes(socket.pseudo)) {
+      activeGrids[data.roomId].playersList.push(socket.pseudo);
+      // On prévient tout le monde que quelqu'un est entré dans la room
+      socket.to(data.roomId).emit('joinedRoom', { pseudo: socket.pseudo });
+    }
 
     // Envoi de l'état de la Grid au joueur qui vient de rejoindre
     const grid = activeGrids[data.roomId];
@@ -394,7 +400,11 @@ io.on('connection', (socket) => {
       activeGrids[data.roomId].playersList = activeGrids[data.roomId].playersList.filter(p => p !== socket.pseudo);
 
       // On prévient tous les joueurs que la liste a changé
-      io.in(data.roomId).emit('playersList', activeGrids[data.roomId].playersList);
+      io.in(data.roomId).emit('playersList', {
+        activePlayers: activeGrids[data.roomId].playersList,
+        invitedUsers: activeGrids[data.roomId].invitedUsers,
+        hostPseudo: activeGrids[data.roomId].pseudo
+      });
       socket.to(data.roomId).emit('exitGame', { user: socket.pseudo });
     }
     socket.leave(data.roomId);
@@ -488,10 +498,13 @@ io.on('connection', (socket) => {
     // On recup d'abord tout
     const allGrids = users.flatMap(user =>
       user.myGrids.filter(grid => grid.onGallery === true).map(grid => ({
+        id: grid.id,
         name: grid.nom,
         image: grid.image,
+        likes: grid.likedBy.length,
         author: user.pseudo,
         date: grid.date,
+        liked: grid.likedBy.includes(socket.userId),
       }))
     );
 
@@ -515,6 +528,8 @@ io.on('connection', (socket) => {
       onGallery: grid.onGallery,
       id: grid.id,
       date: grid.date,
+      likes: grid.likedBy.length,
+      liked: grid.likedBy.includes(socket.userId),
     })).sort((a, b) => b.date - a.date);
 
 
@@ -568,6 +583,19 @@ io.on('connection', (socket) => {
     }
   })
 
+  // Système de like
+  socket.on('likeGrid', async ({ gridId }, callback) => {
+    const user = await User.findOneAndUpdate(
+      { "myGrids._id": gridId },
+      { $addToSet: { "myGrids.$.likedBy": socket.userId } },
+      { new: true }
+    );
+    if (!user) return;
+    const likes = user.myGrids.id(gridId).likedBy.length;
+
+    callback({ success: true, likes: likes });
+  })
+
   //Deco
   socket.on('disconnect', async () => {
     // On parcourt toutes les grids pour voir si ce joueur en hostait une pour la fermer
@@ -581,7 +609,11 @@ io.on('connection', (socket) => {
         delete activeUsers[socket.userId];
       } else if (activeGrids[roomId].playersList.includes(socket.pseudo)) {
         activeGrids[roomId].playersList = activeGrids[roomId].playersList.filter(p => p !== socket.pseudo);
-        io.in(roomId).emit('playersList', activeGrids[roomId].playersList);
+        io.in(roomId).emit('playersList', {
+          activePlayers: activeGrids[roomId].playersList,
+          invitedUsers: activeGrids[roomId].invitedUsers,
+          hostPseudo: activeGrids[roomId].pseudo
+        });
         socket.to(roomId).emit('exitGame', { user: socket.pseudo });
       }
     }
