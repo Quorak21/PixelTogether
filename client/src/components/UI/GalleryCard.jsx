@@ -40,7 +40,7 @@ const GalleryCard = ({ item, index, personal, onDelete, onPublic }) => {
                     {!personal && (
                         <div className="flex items-center mt-2 gap-2 text-white/80">
                             <User size={14} className="opacity-70" />
-                            <p className="text-sm font-medium drop-shadow-md">{item.author}</p>
+                            <p className="text-sm font-medium drop-shadow-md first-letter:uppercase">{item.author}</p>
                         </div>
                     )}
                 </div>
