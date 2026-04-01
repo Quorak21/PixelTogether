@@ -213,7 +213,7 @@ io.on('connection', (socket) => {
         return callback({ error: "Les dimensions doivent être comprises entre 20 et 100." });
       }
       // Vérif du nom
-      const regexGridName = /^[a-zA-Z0-9_]{3,20}$/;
+      const regexGridName = /^[a-zA-Z0-9_ ]{3,20}$/;
       if (!data.name || typeof data.name !== 'string' || !regexGridName.test(data.name)) {
         return callback({ error: "Le nom doit contenir entre 3 et 20 caractères." });
       }
@@ -366,10 +366,10 @@ io.on('connection', (socket) => {
 
   socket.on('getPlayersList', (data) => {
     if (!activeGrids[data.roomId]) return;
-    socket.emit('playersList', { 
-        activePlayers: activeGrids[data.roomId].playersList, 
-        invitedUsers: activeGrids[data.roomId].invitedUsers,
-        hostPseudo: activeGrids[data.roomId].pseudo 
+    socket.emit('playersList', {
+      activePlayers: activeGrids[data.roomId].playersList,
+      invitedUsers: activeGrids[data.roomId].invitedUsers,
+      hostPseudo: activeGrids[data.roomId].pseudo
     });
   });
 
