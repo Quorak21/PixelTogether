@@ -76,7 +76,6 @@ async function saveGridToDB(roomId, grid) {
     //Et on save l'image dans la BDD
     await Grid.findByIdAndUpdate(roomId, { image: gridImage });
 
-    console.log(`💾 Grid "${grid.name}" mise à jour dans MongoDB`);
   } catch (err) {
     console.error(`❌ Erreur sauvegarde grid:`, err);
   }
@@ -162,7 +161,8 @@ io.on('connection', (socket) => {
         filteredGrids[gridId] = activeGrids[gridId];
       }
     }
-    socket.emit('activeGrids', { activeGrids: filteredGrids, images, gold: socket.gold });
+    const user = await User.findById(socket.userId);
+    socket.emit('activeGrids', { activeGrids: filteredGrids, images, gold: user.gold });
   });
 
   // Invitation d'un joueur
