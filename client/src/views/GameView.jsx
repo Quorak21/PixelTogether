@@ -84,7 +84,7 @@ function GameView({ roomID }) {
             </div>
 
             {/* Infobulle connection */}
-            {socket.id === currentHost && hintMessage && (
+            {hintMessage && (
                 <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-opacity duration-1000 ease-out">
                     <div className="bg-primary/95 text-primary-content backdrop-blur-md px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 animate-bounce border-2 border-primary-content/20">
                         <span className="text-sm font-bold tracking-wide">{hintMessage}</span>
