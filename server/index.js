@@ -398,8 +398,8 @@ io.on('connection', (socket) => {
   // Joueur quitte la room
   socket.on('exitGame', (data) => {
     if (activeGrids[data.roomId]) {
-      if (socket.userId !== activeGrids[data.roomId].host) {
-        return;
+      if (socket.id === activeGrids[data.roomId].host) {
+        return; // Le host doit utiliser closeRoom
       }
       activeGrids[data.roomId].playersList = activeGrids[data.roomId].playersList.filter(p => p !== socket.pseudo);
 
@@ -420,7 +420,7 @@ io.on('connection', (socket) => {
     // On récupère la grid AVANT de la supprimer
     const grid = activeGrids[data.roomId];
 
-    if (socket.userId !== grid.host) {
+    if (socket.id !== grid.host) {
       return;
     }
 
@@ -448,7 +448,7 @@ io.on('connection', (socket) => {
       const grid = activeGrids[data.roomId];
       if (!grid) return;
 
-      if (socket.userId !== grid.host) {
+      if (socket.id !== grid.host) {
         return;
       }
 
@@ -488,7 +488,7 @@ io.on('connection', (socket) => {
     const grid = activeGrids[data.roomId];
     if (!grid) return;
 
-    if (socket.userId !== grid.host) {
+    if (socket.id !== grid.host) {
       return;
     }
 
