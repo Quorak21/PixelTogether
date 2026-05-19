@@ -1,19 +1,30 @@
 # Stage 1: Build (Installation des dépendances)
-FROM node:22-alpine AS builder
+FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 COPY package*.json ./
-# On installe uniquement les dépendances de production pour alléger l'image
+
+# Si canvas nécessite toujours d'être compilé sur ce système, on installe les utilitaires de build
+RUN apt-get update && apt-get install -y \
+    build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# On installe uniquement les dépendances de production
 RUN npm ci --omit=dev 
 
 # Stage 2: Production
-FROM node:22-alpine AS runner
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+
+# Dépendances d'exécution (runtime) requises par canvas
+RUN apt-get update && apt-get install -y \
+    libcairo2 libpango-1.0-0 libjpeg62-turbo libgif7 librsvg2-2 \
+    && rm -rf /var/lib/apt/lists/*
 
 # On copie uniquement ce qui est nécessaire
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-# On copie les fichiers de l'application (index.js, db.js, dossiers routes/models/etc.)
+# On copie les fichiers de l'application
 COPY . .
 
 EXPOSE 3000
