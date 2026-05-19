@@ -397,6 +397,9 @@ io.on('connection', (socket) => {
   // Joueur quitte la room
   socket.on('exitGame', (data) => {
     if (activeGrids[data.roomId]) {
+      if (socket.userId !== activeGrids[data.roomId].host) {
+        return;
+      }
       activeGrids[data.roomId].playersList = activeGrids[data.roomId].playersList.filter(p => p !== socket.pseudo);
 
       // On prévient tous les joueurs que la liste a changé
@@ -415,6 +418,10 @@ io.on('connection', (socket) => {
 
     // On récupère la grid AVANT de la supprimer
     const grid = activeGrids[data.roomId];
+
+    if (socket.userId !== grid.host) {
+      return;
+    }
 
     const images = await getGridsImagesFromDB();
 
@@ -439,6 +446,10 @@ io.on('connection', (socket) => {
 
       const grid = activeGrids[data.roomId];
       if (!grid) return;
+
+      if (socket.userId !== grid.host) {
+        return;
+      }
 
       //Création du canvas
       const canvas = createCanvas(grid.width * 20, grid.height * 20);
@@ -473,6 +484,13 @@ io.on('connection', (socket) => {
 
   // Delete Canvas
   socket.on('deleteCanvas', async (data) => {
+    const grid = activeGrids[data.roomId];
+    if (!grid) return;
+
+    if (socket.userId !== grid.host) {
+      return;
+    }
+
     try {
       await User.findByIdAndUpdate(socket.userId, {
         $set: { gridID: null }
