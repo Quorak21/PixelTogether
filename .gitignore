@@ -34,6 +34,10 @@ Thumbs.db
 .vscode/
 *.swp
 
+# --- Cline (règles locales, miroir de .cursor/rules/) ---
+.clinerules
+.clinerules/
+
 # --- Fichiers Temporaires Word (Vu sur ton screen) ---
 # Ça évite de commiter les fichiers cachés bizarres quand ton Word est ouvert
 ~$*.docx
