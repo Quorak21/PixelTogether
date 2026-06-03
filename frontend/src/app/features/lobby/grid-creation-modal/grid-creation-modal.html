@@ -1,0 +1,109 @@
+@if (ui.gridCreationOpen()) {
+  <div class="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
+    <div
+      class="bg-base-100 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-sm relative animate-fade-in-up border border-base-300"
+    >
+      <button
+        type="button"
+        (click)="ui.gridCreationOpen.set(false)"
+        class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/60 hover:text-base-content"
+      >
+        ✕
+      </button>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-3 bg-primary/10 rounded-xl text-primary">▦</div>
+        <div>
+          <h2 class="text-2xl font-bold text-base-content">Nouvelle Grille</h2>
+          <p class="text-sm text-base-content/60">Configurez votre espace de jeu</p>
+        </div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="createNewGrid()" class="space-y-4">
+        <div class="form-control w-full">
+          <label class="label block text-center pb-1">
+            <span class="label-text font-bold text-base-content/80">Nom du salon</span>
+          </label>
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="Ma super oeuvre"
+            class="input input-bordered focus:border-primary focus:ring-1 focus:ring-primary w-full bg-base-200/50 transition-all font-medium"
+            required
+          />
+        </div>
+
+        <div class="form-control w-full">
+          <label class="label block text-center pb-1">
+            <span class="label-text font-bold text-base-content/80">Taille de l'espace de jeu</span>
+          </label>
+          <div class="flex items-center justify-center gap-4 bg-base-200/30 p-4 rounded-xl border border-base-200">
+            <div class="flex flex-col items-center gap-1">
+              <label class="text-xs text-base-content/60 font-semibold uppercase tracking-wider">Largeur</label>
+              <input
+                type="number"
+                min="20"
+                max="100"
+                formControlName="width"
+                class="input input-sm input-bordered focus:border-primary focus:ring-1 focus:ring-primary w-20 text-center font-bold text-lg bg-base-100 transition-all shadow-sm"
+                required
+              />
+            </div>
+            <span class="text-base-content/40 font-bold text-xl mt-4">×</span>
+            <div class="flex flex-col items-center gap-1">
+              <label class="text-xs text-base-content/60 font-semibold uppercase tracking-wider">Hauteur</label>
+              <input
+                type="number"
+                min="20"
+                max="100"
+                formControlName="height"
+                class="input input-sm input-bordered focus:border-primary focus:ring-1 focus:ring-primary w-20 text-center font-bold text-lg bg-base-100 transition-all shadow-sm"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-control w-full relative">
+          <div class="flex items-center justify-center gap-2 mb-2 relative w-full z-10">
+            <label class="label-text font-bold text-base-content/80 block">Confidentialite</label>
+            <button
+              type="button"
+              (mouseenter)="showHelp.set(true)"
+              (mouseleave)="showHelp.set(false)"
+              class="text-base-content/40 hover:text-primary transition-colors cursor-help"
+            >
+              ?
+            </button>
+            @if (showHelp()) {
+              <app-help-grid-creation />
+            }
+          </div>
+
+          <select
+            formControlName="type"
+            class="select select-bordered focus:border-primary focus:ring-1 focus:ring-primary w-full bg-base-200/50 transition-all font-medium"
+          >
+            <option value="public">Public</option>
+            <option value="limited">Restreint</option>
+            <option value="private">Prive</option>
+          </select>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" [disabled]="form.invalid || isSubmitting()" class="btn btn-primary w-full shadow-sm text-base">
+            Creer la grille
+          </button>
+        </div>
+
+        @if (error()) {
+          <div
+            class="mt-2 p-3 text-sm font-medium text-center text-error bg-error/10 border border-error/20 rounded-lg animate-fade-in-up"
+          >
+            {{ error() }}
+          </div>
+        }
+      </form>
+    </div>
+  </div>
+}

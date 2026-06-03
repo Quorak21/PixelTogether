@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "master", "main" ]
     paths:
-      - 'server/**'
+      - 'backend/**'
       - '.github/workflows/**'
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./server
-          file: ./server/dockerfile
+          context: ./backend
+          file: ./backend/dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/pixeltogether-server:latest

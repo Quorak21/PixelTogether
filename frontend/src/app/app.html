@@ -1,0 +1,21 @@
+@if (auth.isAuthLoading()) {
+  <div class="h-screen w-full flex items-center justify-center bg-base-200">
+    <h1 class="text-2xl font-bold text-primary">Chargement...</h1>
+  </div>
+} @else {
+  <div class="h-screen flex flex-col bg-gray-100 overflow-hidden">
+    @if (auth.currentUser()) {
+      <header class="flex-none z-50">
+        <app-navbar />
+      </header>
+    }
+
+    <main class="flex-1 relative overflow-hidden">
+      <router-outlet />
+    </main>
+
+    <footer class="flex-none z-40">
+      <app-footer />
+    </footer>
+  </div>
+}

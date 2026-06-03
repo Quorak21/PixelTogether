@@ -1,0 +1,104 @@
+<div class="absolute inset-0 pointer-events-none z-40">
+  <div class="absolute top-4 right-4 sm:top-6 sm:right-6 flex flex-col items-center gap-3 sm:gap-4 pointer-events-auto">
+    <button
+      type="button"
+      class="w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.18)] border-[3px] border-[#7a9dabc0] backdrop-blur-md flex-shrink-0"
+      [style.backgroundColor]="ui.selectedColor()"
+      (click)="ui.paletteOpen.set(true)"
+      title="Ouvrir la palette"
+    ></button>
+
+    <button
+      type="button"
+      class="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#7a9dabc0] text-white hover:bg-[#5e81ACd0] hover:scale-110 transition-all"
+      (click)="ui.setSelectedColor('#ffffff')"
+      title="Gomme"
+    >
+      ⌫
+    </button>
+  </div>
+
+  <div class="absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-col items-center gap-3 sm:gap-4 pointer-events-auto">
+    @if (saved()) {
+      <span class="text-black text-lg font-bold animate-pulse">💾 saved ...</span>
+    }
+  </div>
+
+  @if (isHost()) {
+    <div class="absolute bottom-10 left-4 sm:bottom-6 sm:left-6 flex gap-3 sm:gap-4 flex-col sm:flex-row pointer-events-auto">
+      <button
+        type="button"
+        class="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full !bg-indigo-500/90 !text-white"
+        (click)="showFinishModal.set(true)"
+        title="Sauvegarder"
+      >
+        💾
+      </button>
+      <button
+        type="button"
+        class="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full !bg-red-500/90 !text-white"
+        (click)="showDeleteModal.set(true)"
+        title="Supprimer"
+      >
+        🗑
+      </button>
+    </div>
+  }
+
+  <div class="absolute bottom-10 right-4 sm:bottom-6 sm:right-6 flex gap-3 sm:gap-4 flex-col sm:flex-row pointer-events-auto">
+    @if (isHost() && gridType() === 'limited') {
+      <button
+        type="button"
+        class="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#7a9dabc0] text-white"
+        (click)="ui.inviteWindowOpen.set(true)"
+        title="Inviter des joueurs"
+      >
+        👥
+      </button>
+    }
+
+    @if (notification()) {
+      <span class="w-6 h-6 sm:w-6 sm:h-6 rounded-full bg-success z-50 absolute top-0 left-0"></span>
+      <span class="animate-bounce z-50 absolute top-0 left-0">🔔</span>
+    }
+
+    <button
+      type="button"
+      class="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#7a9dabc0] text-white"
+      (click)="toggleChat()"
+      title="Ouvrir le chat"
+    >
+      💬
+    </button>
+  </div>
+</div>
+
+@if (showFinishModal()) {
+  <app-finish-confirm-modal
+    title="Terminer"
+    message="Etes-vous sur de vouloir terminer votre grille ? Vous ne pourrez plus la modifier !"
+    buttonText="Terminer"
+    buttonColor="bg-indigo-500 hover:bg-indigo-600"
+    (confirm)="askGallery()"
+    (cancel)="showFinishModal.set(false)"
+  />
+}
+
+@if (showDeleteModal()) {
+  <app-finish-confirm-modal
+    title="Suppression"
+    message="Etes-vous sur de vouloir supprimer votre grille ?"
+    buttonText="Supprimer"
+    buttonColor="bg-red-500 hover:bg-red-600"
+    (confirm)="deleteCanvas()"
+    (cancel)="showDeleteModal.set(false)"
+  />
+}
+
+@if (showEndScreen()) {
+  <app-end-screen-modal
+    [image]="snapshot()"
+    (confirm)="finishCanvas($event)"
+    (cancel)="showEndScreen.set(false)"
+  />
+}

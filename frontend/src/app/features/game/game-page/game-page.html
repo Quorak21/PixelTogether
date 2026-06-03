@@ -1,0 +1,25 @@
+<div class="absolute inset-0">
+  <div class="absolute inset-0 overflow-hidden bg-slate-200">
+    <app-canvas-board [roomId]="roomId()" (gridTypeChange)="gridType.set($event)" />
+  </div>
+
+  @if (hintMessage()) {
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-opacity duration-1000 ease-out">
+      <div class="bg-primary/95 text-primary-content backdrop-blur-md px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 animate-bounce border-2 border-primary-content/20">
+        <span class="text-sm font-bold tracking-wide">{{ hintMessage() }}</span>
+      </div>
+    </div>
+  }
+
+  <app-game-ui [roomId]="roomId()" [gridType]="gridType()" />
+
+  @if (ui.paletteOpen()) {
+    <app-color-palette />
+  }
+  @if (ui.chatboxOpen()) {
+    <app-chatbox [roomId]="roomId()" (close)="ui.chatboxOpen.set(false)" />
+  }
+  @if (ui.inviteWindowOpen()) {
+    <app-invite-window [roomId]="roomId()" (close)="ui.inviteWindowOpen.set(false)" />
+  }
+</div>

@@ -1,10 +1,14 @@
 {
+  "private": true,
+  "scripts": {
+    "frontend:dev": "npm run start --prefix frontend",
+    "frontend:build": "npm run build --prefix frontend",
+    "backend:dev": "npm run dev --prefix backend",
+    "backend:start": "npm run start --prefix backend"
+  },
   "dependencies": {
     "canvas": "^3.2.1",
     "express-rate-limit": "^8.2.1",
-    "lucide-react": "^0.563.0",
-    "mongoose": "^9.2.0",
-    "react-colorful": "^5.6.1",
-    "react-draggable": "^4.5.0"
+    "mongoose": "^9.2.0"
   }
 }
