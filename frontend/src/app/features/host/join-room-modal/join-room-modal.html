@@ -1,0 +1,44 @@
+@if (ui.joinRoomOpen()) {
+  <div class="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-base-100 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-sm relative border border-base-300">
+      <button
+        type="button"
+        (click)="close()"
+        class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/60 hover:text-base-content"
+        aria-label="Fermer"
+      >
+        ✕
+      </button>
+
+      <h2 class="text-xl font-bold text-base-content mb-6 pr-8">Rejoindre une partie</h2>
+
+      <form [formGroup]="form" (ngSubmit)="joinRoom()" class="space-y-5" autocomplete="off">
+        <div class="form-control w-full">
+          <label class="label pb-1" for="room-code">
+            <span class="label-text font-semibold text-base-content/80">Code de la partie</span>
+          </label>
+          <input
+            id="room-code"
+            type="text"
+            formControlName="code"
+            placeholder="ABC123"
+            maxlength="6"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            class="input input-bordered focus:border-primary w-full bg-base-200/50 font-mono tracking-widest uppercase"
+            required
+          />
+        </div>
+
+        <button type="submit" [disabled]="form.invalid" class="btn btn-primary w-full">
+          Rejoindre
+        </button>
+
+        @if (error()) {
+          <p class="text-sm text-center text-error">{{ error() }}</p>
+        }
+      </form>
+    </div>
+  </div>
+}

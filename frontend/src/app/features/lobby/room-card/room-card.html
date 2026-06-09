@@ -5,7 +5,11 @@
     class="aspect-square w-full bg-base-200 relative overflow-hidden cursor-pointer flex items-center justify-center group-hover:bg-primary/5 transition-colors"
     (click)="join.emit()"
   >
-    <img [src]="image()" [alt]="room().name" class="object-contain z-45 w-[90%] h-[90%]" />
+    @if (image()) {
+      <img [src]="image()" [alt]="room().name" class="object-contain z-45 w-[90%] h-[90%]" />
+    } @else {
+      <span class="text-5xl opacity-30">▦</span>
+    }
   </figure>
   <div class="card-body p-6 flex flex-col justify-between">
     <div>
@@ -16,20 +20,11 @@
         <span>{{ room().name }}</span>
         <span class="text-primary flex items-center gap-2">
           <span>👑</span>
-          <span class="first-letter:uppercase">{{ room().pseudo }}</span>
+          <span class="font-mono text-sm">{{ room().host.slice(0, 8) }}</span>
         </span>
       </h2>
-      <div class="text-sm text-base-content/60 font-medium flex justify-between gap-2">
-        <div class="flex items-center gap-2">
-          👥 {{ room().playersList.length || 0 }} joueur{{ room().playersList.length > 1 ? 's' : '' }}
-        </div>
-        <div class="flex">
-          @if (room().type === 'limited') {
-            <span class="text-sm font-bold text-success">Restreint</span>
-          } @else {
-            <span class="text-sm font-bold text-success">Public</span>
-          }
-        </div>
+      <div class="text-sm text-base-content/60 font-medium">
+        👥 {{ room().playersList.length || 0 }} joueur{{ room().playersList.length > 1 ? 's' : '' }}
       </div>
     </div>
     <div class="card-actions justify-end mt-6">

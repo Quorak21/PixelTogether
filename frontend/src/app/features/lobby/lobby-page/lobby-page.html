@@ -1,13 +1,11 @@
 <div class="flex w-full bg-base-100 h-full overflow-hidden">
-  <app-gallery-modal />
-
   <div class="flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-y-auto w-full">
     <div class="w-full max-w-7xl mx-auto flex flex-col h-full">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 class="text-4xl md:text-5xl font-black text-base-content tracking-tight">Lobby</h1>
           <p class="text-base-content/60 mt-2 text-lg font-medium">
-            Rejoignez une partie publique ou creez la votre.
+            Rejoignez une partie en cours ou créez la vôtre.
           </p>
         </div>
         <button
@@ -21,27 +19,20 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
         <div
-          (click)="handleMainAction()"
+          (click)="openCreateModal()"
           class="card bg-primary text-primary-content shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border-none group relative overflow-hidden flex flex-col"
         >
-          <div
-            class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"
-          ></div>
           <figure class="aspect-square w-full relative flex items-center justify-center bg-black/10 overflow-hidden">
             <div
               class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_2px_2px,_currentColor_1px,_transparent_0)] bg-[length:16px_16px]"
             ></div>
-            @if (showResumeImage()) {
-              <img [src]="showResumeImage()!" alt="Reprendre" class="object-contain z-40 w-[90%] h-[90%]" />
-            } @else {
-              <span class="text-6xl z-10">{{ mainActionIcon() }}</span>
-            }
+            <span class="text-6xl z-10">+</span>
           </figure>
           <div class="card-body items-center p-6 flex flex-col z-10">
-            <h2 class="card-title text-2xl font-bold tracking-tight mb-2">{{ mainActionTitle() }}</h2>
+            <h2 class="card-title text-2xl font-bold tracking-tight mb-2">Nouvelle partie</h2>
             <div class="card-actions justify-center mt-3">
               <button type="button" class="btn bg-base-100 text-primary hover:bg-white border-none w-full shadow-sm">
-                {{ mainActionButton() }}
+                Créer
               </button>
             </div>
           </div>
@@ -55,7 +46,7 @@
       @if (rooms().length === 0) {
         <div class="flex-1 flex flex-col items-center justify-center text-base-content/40 italic pb-20">
           <span class="text-6xl mb-6 opacity-20">▦</span>
-          <p class="text-lg">Aucune partie publique en cours.</p>
+          <p class="text-lg">Aucune partie en cours.</p>
         </div>
       }
     </div>

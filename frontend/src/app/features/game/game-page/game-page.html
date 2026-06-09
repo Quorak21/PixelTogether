@@ -1,25 +1,15 @@
-<div class="absolute inset-0">
-  <div class="absolute inset-0 overflow-hidden bg-slate-200">
-    <app-canvas-board [roomId]="roomId()" (gridTypeChange)="gridType.set($event)" />
+<div class="flex flex-col h-full min-h-0">
+  <div class="flex flex-1 min-h-0">
+    <div class="relative flex-1 min-w-0 overflow-hidden bg-slate-200">
+      <app-canvas-board [roomId]="roomId()" />
+    </div>
+
+    <aside class="shrink-0 w-80 min-h-0 border-l border-base-200 bg-base-100">
+      <app-chatbox [roomId]="roomId()" />
+    </aside>
   </div>
 
-  @if (hintMessage()) {
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-opacity duration-1000 ease-out">
-      <div class="bg-primary/95 text-primary-content backdrop-blur-md px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 animate-bounce border-2 border-primary-content/20">
-        <span class="text-sm font-bold tracking-wide">{{ hintMessage() }}</span>
-      </div>
-    </div>
-  }
-
-  <app-game-ui [roomId]="roomId()" [gridType]="gridType()" />
-
-  @if (ui.paletteOpen()) {
+  <footer class="shrink-0 border-t border-base-200 bg-base-100">
     <app-color-palette />
-  }
-  @if (ui.chatboxOpen()) {
-    <app-chatbox [roomId]="roomId()" (close)="ui.chatboxOpen.set(false)" />
-  }
-  @if (ui.inviteWindowOpen()) {
-    <app-invite-window [roomId]="roomId()" (close)="ui.inviteWindowOpen.set(false)" />
-  }
+  </footer>
 </div>

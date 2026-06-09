@@ -1,40 +1,23 @@
 <div class="navbar bg-base-100 shadow-lg z-50 relative">
-  <div class="flex-1">
+  <div class="flex-1 flex items-center gap-4 min-w-0">
     <button
       type="button"
-      class="btn btn-ghost text-xl text-primary font-bold uppercase"
+      class="btn btn-ghost text-xl text-primary font-bold uppercase shrink-0"
       (click)="handleExitToLobby()"
     >
       Pixel Together
     </button>
+    @if (ui.inRoom() && ui.gameTheme()) {
+      <span class="text-lg font-bold uppercase truncate text-base-content">{{ ui.gameTheme() }}</span>
+    }
   </div>
 
-  <div class="flex-none flex items-center gap-5">
-    <div class="flex items-center gap-2">
-      <span class="text-lg font-bold">{{ auth.gold() }}</span>
-      <img ngSrc="assets/images/coins.png" width="28" height="28" alt="gold" class="w-7 h-7" />
-    </div>
-
-    <div class="dropdown dropdown-end">
-      <button tabindex="0" class="btn btn-neutral rounded-full font-bold capitalize">
-        {{ auth.currentUser()?.pseudo }}
-      </button>
-      <ul
-        tabindex="0"
-        class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-44"
-      >
-        @if (!ui.gameMode()) {
-          <li>
-            <button type="button" (click)="openPublicGallery()">Galerie publique</button>
-          </li>
-          <li>
-            <button type="button" (click)="openPersonalGallery()">Ma galerie</button>
-          </li>
-        }
-        <li>
-          <button type="button" (click)="logout()">Deconnexion</button>
-        </li>
-      </ul>
-    </div>
+  <div class="flex-none flex items-center gap-3">
+    @if (ui.inRoom() && ui.currentProfile(); as profile) {
+      <div class="flex items-center gap-2 min-w-0">
+        <app-avatar-placeholder [color]="profile.avatarColor" size="sm" />
+        <span class="font-semibold text-sm truncate max-w-36">{{ profile.pseudo }}</span>
+      </div>
+    }
   </div>
 </div>

@@ -1,24 +1,18 @@
-<div class="absolute w-full z-10 flex justify-center mt-5 pt-12 md:pt-0 pointer-events-none">
-  <h1 class="font-bold uppercase py-2.5 text-xl bg-slate-200/80 rounded-lg px-4 backdrop-blur-sm pointer-events-auto hidden md:block">
-    {{ roomName() }}
-  </h1>
-</div>
-
 <div
-  class="w-full h-full flex items-center justify-center p-3 touch-none"
+  #viewport
+  class="flex items-center justify-center w-full h-full p-3 select-none"
   (wheel)="handleWheel($event)"
   (pointerdown)="handlePointerDown($event)"
   (pointermove)="handlePointerMove($event)"
   (pointerup)="handlePointerUp($event)"
   (pointerleave)="handlePointerUp($event)"
-  (touchstart)="handleTouchZoomStart($event)"
-  (touchmove)="handleTouchZoom($event)"
+  (contextmenu)="handleContextMenu($event)"
 >
   <canvas
     #canvasEl
     id="canvas"
     (pointerup)="handleDraw($event)"
-    class="bg-white shadow-2xl shrink-0 cursor-crosshair"
+    class="shrink-0 cursor-crosshair bg-white shadow-2xl"
     [style.transition]="isDragging() ? 'none' : 'transform 0.1s ease-in-out'"
     [style.transform]="'translate(' + position().x + 'px, ' + position().y + 'px) scale(' + scale() + ')'"
   ></canvas>

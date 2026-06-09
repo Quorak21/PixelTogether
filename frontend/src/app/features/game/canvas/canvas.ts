@@ -6,31 +6,29 @@ import {
   ElementRef,
   inject,
   input,
-  output,
   signal,
-  viewChild
+  viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { GridPrivacy, GridStatePayload } from '../../../types/entities';
+import { GridStatePayload } from '../../../types/entities';
 
 @Component({
   selector: 'app-canvas-board',
   templateUrl: './canvas.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CanvasComponent implements AfterViewInit {
   private readonly socket = inject(SocketService);
   private readonly ui = inject(UiStateService);
-  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly roomId = input.required<string>();
-  readonly gridTypeChange = output<GridPrivacy>();
+  readonly viewportEl = viewChild.required<ElementRef<HTMLDivElement>>('viewport');
   readonly canvasEl = viewChild.required<ElementRef<HTMLCanvasElement>>('canvasEl');
 
-  readonly roomName = signal('');
   readonly scale = signal(1);
   readonly position = signal({ x: 0, y: 0 });
   readonly isDragging = signal(false);
@@ -39,25 +37,43 @@ export class CanvasComponent implements AfterViewInit {
   private dragStart = { x: 0, y: 0 };
   private hasMoved = false;
   private pointerDownPos = { x: 0, y: 0 };
-  private pinchDist: number | null = null;
-  private isPinching = false;
 
   ngAfterViewInit(): void {
     this.socket.emit('joinRoom', { roomId: this.roomId() });
 
-    const onGridState = (data: GridStatePayload) => this.renderGrid(data);
+    const onJoinRoomError = (data: { error: string }) => {
+      const roomId = this.roomId();
+      if (data.error.includes('pas encore démarré') && roomId) {
+        this.ui.joinWaitingRoom(roomId);
+        void this.router.navigateByUrl(`/room/${roomId}`);
+        return;
+      }
+
+      this.ui.exitGame();
+      this.ui.joinRoomError.set(data.error);
+      this.ui.joinRoomOpen.set(true);
+      void this.router.navigateByUrl('/');
+    };
+    const onGridState = (data: GridStatePayload) => {
+      this.ui.setRole(data.role);
+      this.ui.gameTheme.set(data.name);
+      this.renderGrid(data);
+    };
     const onDrawPixel = (data: { x: number; y: number; color: string }) => this.drawSinglePixel(data);
     const onRoomClosed = (data: { roomId: string }) => {
       if (data.roomId === this.roomId()) {
         this.ui.exitGame();
+        this.router.navigateByUrl('/lobby');
       }
     };
 
+    this.socket.on<{ error: string }>('joinRoomError', onJoinRoomError);
     this.socket.on<GridStatePayload>('gridState', onGridState);
     this.socket.on<{ x: number; y: number; color: string }>('drawPixel', onDrawPixel);
     this.socket.on<{ roomId: string }>('roomClosed', onRoomClosed);
 
     this.destroyRef.onDestroy(() => {
+      this.socket.off('joinRoomError', onJoinRoomError as (...args: unknown[]) => void);
       this.socket.off('gridState', onGridState as (...args: unknown[]) => void);
       this.socket.off('drawPixel', onDrawPixel as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
@@ -65,25 +81,23 @@ export class CanvasComponent implements AfterViewInit {
   }
 
   handleDraw(event: PointerEvent): void {
-    if (this.hasMoved || event.button === 1 || this.isPinching) {
+    if (this.hasMoved || event.button !== 0) {
       this.hasMoved = false;
       return;
     }
 
     const canvas = this.canvasEl().nativeElement;
     const rect = canvas.getBoundingClientRect();
-    const coordX = (event.clientX - rect.left) / this.scale();
-    const coordY = (event.clientY - rect.top) / this.scale();
-    const x = Math.floor(coordX / this.pixelSize);
-    const y = Math.floor(coordY / this.pixelSize);
+    const relX = (event.clientX - rect.left) / rect.width;
+    const relY = (event.clientY - rect.top) / rect.height;
+    const x = Math.floor(relX * (canvas.width / this.pixelSize));
+    const y = Math.floor(relY * (canvas.height / this.pixelSize));
 
-    this.socket.emitWithAck<{ x: number; y: number; color: string; roomId: string }, { gold: number }>(
-      'pixelPlaced',
-      { x, y, color: this.ui.selectedColor(), roomId: this.roomId() }
-    ).then((response) => {
-      if (typeof response?.gold === 'number') {
-        this.auth.setGold(response.gold);
-      }
+    this.socket.emit('pixelPlaced', {
+      x,
+      y,
+      color: this.ui.selectedColor(),
+      roomId: this.roomId(),
     });
 
     this.hasMoved = false;
@@ -92,21 +106,25 @@ export class CanvasComponent implements AfterViewInit {
   handleWheel(event: WheelEvent): void {
     event.preventDefault();
     if (event.deltaY < 0) {
-      this.scale.set(Math.min(this.scale() * 1.1, 2));
+      this.scale.set(Math.min(this.scale() * 1.1, 3));
     } else {
-      this.scale.set(Math.max(this.scale() / 1.1, 0.5));
+      this.scale.set(Math.max(this.scale() / 1.1, 0.1));
     }
   }
 
+  handleContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+  }
+
   handlePointerDown(event: PointerEvent): void {
-    if (event.button === 1 || event.pointerType === 'touch') {
-      this.isPinching = false;
+    if (event.button === 2) {
+      event.preventDefault();
       this.isDragging.set(true);
       this.hasMoved = false;
       this.pointerDownPos = { x: event.clientX, y: event.clientY };
       this.dragStart = {
         x: event.clientX - this.position().x,
-        y: event.clientY - this.position().y
+        y: event.clientY - this.position().y,
       };
     }
   }
@@ -134,32 +152,8 @@ export class CanvasComponent implements AfterViewInit {
     }
   }
 
-  handlePointerUp(event: PointerEvent): void {
+  handlePointerUp(_event?: PointerEvent): void {
     this.isDragging.set(false);
-    this.pinchDist = null;
-  }
-
-  handleTouchZoomStart(event: TouchEvent): void {
-    if (event.touches.length === 2) {
-      this.pinchDist = Math.hypot(
-        event.touches[0].clientX - event.touches[1].clientX,
-        event.touches[0].clientY - event.touches[1].clientY
-      );
-      this.isPinching = true;
-      this.isDragging.set(false);
-    }
-  }
-
-  handleTouchZoom(event: TouchEvent): void {
-    if (event.touches.length === 2 && this.pinchDist) {
-      const currentDist = Math.hypot(
-        event.touches[0].clientX - event.touches[1].clientX,
-        event.touches[0].clientY - event.touches[1].clientY
-      );
-      const diff = currentDist - this.pinchDist;
-      this.scale.set(Math.min(Math.max(this.scale() + diff * 0.01, 0.5), 3));
-      this.pinchDist = currentDist;
-    }
   }
 
   private renderGrid(data: GridStatePayload): void {
@@ -171,8 +165,10 @@ export class CanvasComponent implements AfterViewInit {
 
     const width = data.width;
     const height = data.height;
-    this.roomName.set(data.name);
-    this.gridTypeChange.emit(data.type);
+
+    if (data.colors?.length) {
+      this.ui.setColorsFromGrid(data.colors);
+    }
 
     canvas.width = width * this.pixelSize;
     canvas.height = height * this.pixelSize;
@@ -195,6 +191,26 @@ export class CanvasComponent implements AfterViewInit {
       ctx.fillStyle = color;
       ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
     }
+
+    this.fitGridToViewport();
+  }
+
+  private fitGridToViewport(): void {
+    queueMicrotask(() => {
+      const viewport = this.viewportEl().nativeElement;
+      const canvas = this.canvasEl().nativeElement;
+      if (!canvas.width || !canvas.height) {
+        return;
+      }
+
+      const margin = 16;
+      const availableWidth = viewport.clientWidth - margin;
+      const availableHeight = viewport.clientHeight - margin;
+      const fitScale = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
+
+      this.scale.set(fitScale);
+      this.position.set({ x: 0, y: 0 });
+    });
   }
 
   private drawSinglePixel(data: { x: number; y: number; color: string }): void {

@@ -1,97 +1,92 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { AuthService } from './auth.service';
+import { computed, Injectable, signal } from '@angular/core';
+import { ParticipantRole, PlayerProfile } from '../../types/entities';
+
+const WHITE = '#ffffff';
+const DEFAULT_COLORS = [
+  '#000000',
+  '#ff0000',
+  '#ff6600',
+  '#ffff00',
+  '#00ff00',
+  '#00ccff',
+  '#0000ff',
+  '#9900ff',
+  '#ff00cc',
+  WHITE,
+];
 
 @Injectable({ providedIn: 'root' })
 export class UiStateService {
-  private readonly auth = inject(AuthService);
-
+  readonly waitingMode = signal(false);
   readonly gameMode = signal(false);
+  readonly gameTheme = signal('');
   readonly currentRoomId = signal<string | null>(null);
-  readonly currentHost = signal<string | null>(null);
+  readonly currentRole = signal<ParticipantRole | null>(null);
+  readonly isHost = computed(() => this.currentRole() === 'host');
+  readonly inRoom = computed(() => this.waitingMode() || this.gameMode());
+  readonly currentProfile = signal<PlayerProfile | null>(null);
+  readonly hasProfile = computed(() => this.currentProfile() !== null);
 
   readonly gridCreationOpen = signal(false);
-  readonly paletteOpen = signal(false);
-  readonly chatboxOpen = signal(false);
-  readonly galleryOpen = signal(false);
-  readonly helpGridCreationOpen = signal(false);
-  readonly inviteWindowOpen = signal(false);
+  readonly joinRoomOpen = signal(false);
+  readonly joinRoomError = signal<string | null>(null);
 
-  readonly selectedColor = signal('#000000');
-  readonly chosenColors = signal<(string | null)[]>(Array(10).fill(null));
-  readonly showPersonalGallery = signal(false);
+  readonly selectedColor = signal(DEFAULT_COLORS[0]);
+  readonly colors = signal<string[]>([...DEFAULT_COLORS]);
 
-  readonly isAnyModalOpen = computed(
-    () =>
-      this.gridCreationOpen() ||
-      this.paletteOpen() ||
-      this.chatboxOpen() ||
-      this.galleryOpen() ||
-      this.inviteWindowOpen()
-  );
-
-  constructor() {
-    effect(() => {
-      const user = this.auth.currentUser();
-      if (!user?.pseudo) {
-        this.chosenColors.set(Array(10).fill(null));
-        this.selectedColor.set('#000000');
-        return;
-      }
-
-      const saved = localStorage.getItem(`chosenColors_${user.pseudo}`);
-      if (!saved) {
-        this.chosenColors.set(Array(10).fill(null));
-        this.selectedColor.set('#000000');
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(saved) as (string | null)[];
-        const padded = [...parsed.slice(0, 10)];
-        while (padded.length < 10) padded.push(null);
-        this.chosenColors.set(padded);
-        this.selectedColor.set(padded[0] ?? '#000000');
-      } catch {
-        this.chosenColors.set(Array(10).fill(null));
-        this.selectedColor.set('#000000');
-      }
-    });
-
-    effect(() => {
-      const user = this.auth.currentUser();
-      if (!user?.pseudo) {
-        return;
-      }
-      localStorage.setItem(`chosenColors_${user.pseudo}`, JSON.stringify(this.chosenColors()));
-    });
-  }
-
-  newGame(): void {
-    this.gameMode.set(true);
-  }
-
-  joinGame(roomId: string, host: string): void {
+  joinWaitingRoom(roomId: string): void {
     this.currentRoomId.set(roomId);
-    this.currentHost.set(host);
+    this.waitingMode.set(true);
+    this.gameMode.set(false);
+  }
+
+  joinGame(roomId: string): void {
+    this.currentRoomId.set(roomId);
+    this.waitingMode.set(false);
     this.gameMode.set(true);
+  }
+
+  setRole(role: ParticipantRole): void {
+    this.currentRole.set(role);
+  }
+
+  setCurrentProfile(profile: PlayerProfile): void {
+    this.currentProfile.set(profile);
+  }
+
+  clearCurrentProfile(): void {
+    this.currentProfile.set(null);
+  }
+
+  exitWaitingRoom(): void {
+    this.currentRoomId.set(null);
+    this.currentRole.set(null);
+    this.waitingMode.set(false);
+    this.gameTheme.set('');
+    this.clearCurrentProfile();
   }
 
   exitGame(): void {
     this.currentRoomId.set(null);
-    this.currentHost.set(null);
+    this.currentRole.set(null);
+    this.waitingMode.set(false);
     this.gameMode.set(false);
-    this.chatboxOpen.set(false);
-    this.paletteOpen.set(false);
-    this.inviteWindowOpen.set(false);
+    this.gameTheme.set('');
+    this.clearCurrentProfile();
+    this.colors.set([...DEFAULT_COLORS]);
+    this.selectedColor.set(DEFAULT_COLORS[0]);
   }
 
   setSelectedColor(color: string): void {
     this.selectedColor.set(color);
   }
 
-  setChosenColor(index: number, color: string | null): void {
-    const next = [...this.chosenColors()];
-    next[index] = color;
-    this.chosenColors.set(next);
+  setColorsFromGrid(gridColors: string[]): void {
+    const merged = gridColors.includes(WHITE) ? [...gridColors] : [...gridColors, WHITE];
+    this.colors.set(merged);
+
+    if (!merged.includes(this.selectedColor())) {
+      this.setSelectedColor(merged[0]);
+    }
   }
 }

@@ -1,45 +1,60 @@
-import { GridPrivacy } from './entities';
-
-export interface AuthenticatedPayload {
-  pseudo: string;
-  gridID: string | null;
-  gridName?: string | null;
-  userImg?: string | null;
-  gold?: number;
-}
+import { ParticipantRole, PlayerProfile, RoomStatus, WaitingRoomPlayer } from './entities';
 
 export interface NewGridPayload {
-  width: number;
-  height: number;
   name: string;
-  type: GridPrivacy;
 }
 
 export interface NewGridResponse {
   id?: string;
   host?: string;
   name?: string;
+  role?: ParticipantRole;
   error?: string;
 }
 
-export interface ResumeGridResponse {
-  id?: string;
-  host?: string;
-  name?: string;
+export interface EnterWaitingRoomPayload {
+  roomId: string;
+}
+
+export interface WaitingRoomStatePayload {
+  roomId: string;
+  name: string;
+  status: RoomStatus;
+  role: ParticipantRole;
+  hostProfile: PlayerProfile | null;
+  players: WaitingRoomPlayer[];
+  isRegistered: boolean;
   error?: string;
 }
 
-export interface InvitePlayerResponse {
-  success?: string;
+export interface RegisterPlayerPayload {
+  roomId: string;
+  pseudo: string;
+  avatarColor: string;
+}
+
+export interface RegisterPlayerResponse extends WaitingRoomStatePayload {
   error?: string;
 }
 
-export interface BuyColorResponse {
-  success: boolean;
-  gold?: number;
-  message?: string;
+export interface WaitingRoomUpdatedPayload {
+  players: WaitingRoomPlayer[];
 }
 
-export interface PixelPlacedResponse {
-  gold: number;
+export interface StartGamePayload {
+  roomId: string;
+}
+
+export interface StartGameResponse {
+  roomId?: string;
+  status?: RoomStatus;
+  error?: string;
+}
+
+export interface GameStartedPayload {
+  roomId: string;
+}
+
+export interface WaitingRoomErrorPayload {
+  error: string;
 }

@@ -1,24 +1,14 @@
-# PixelTogether — Regles Cursor (Orchestration)
-
-Les regles et agents du projet sont definis dans `.cursor/rules/` :
-
-- `odin.mdc` (@odin) — Toujours actif et prioritaire si aucun agent n'est appele. **Mentor** (ne code pas) : pistes, indices, bonnes pratiques, orchestration ; code delegue a Alex/Steve/Picasso.
-- `alex.mdc` (@alex) — Actif sur `frontend/**/*`. Logique Angular 21 et gestion d'etat front-end.
-- `steve.mdc` (@steve) — Actif sur `backend/**/*`. API Node/Express, MongoDB et Socket.io.
-- `picasso.mdc` (@picasso) — Actif sur les fichiers front-end. Design UI Angular (templates/CSS) et Tailwind/DaisyUI.
-
-Suivi de la dette technique : gere exclusivement par `@odin` dans `code_review.md` (backlog actif) et `journal.md` (historique resolu).
-
-## Garde-fous globaux (safety layer)
-
-- Toute modification sur `frontend/**/*` doit etre deleguee a `@alex` (et `@picasso` uniquement pour les ajustements visuels).
-- Toute modification sur `backend/**/*` doit etre deleguee a `@steve`.
-- `@odin` n'edite pas le code front/back : il guide l'utilisateur (pre-apprentissage) et delegue l'implementation aux subagents.
-
-## Conventions Angular minimales (globales)
-
-- Le frontend cible est Angular 21.
-- Conventions composant obligatoires : `.ts`, `.html`, `.css`, `.spec.ts`.
-- Interdiction de templates/styles inline dans `@Component`.
-- Interdiction d'ajouter `standalone: true` (implicite Angular 20+).
-- Avant modification Angular significative : appeler MCP Angular CLI dans l'ordre `list_projects` puis `get_best_practices`.
+# PixelTogether — Regles Cursor
+
+Regles agents : `.cursor/rules/*.mdc` — definitions subagents : `.cursor/agents/*.md`
+
+## Cap produit
+
+Outil de **teambuilding B2B ephemere par session** : le manager configure une partie, les joueurs sont repartis en **groupes de 3-4** avec une **palette de couleurs exclusive par membre** (collaboration forcee), puis **vote** et export **ZIP** des grilles. Tout l'etat est **en memoire** ; rien ne persiste apres la session.
+
+Detail fonctionnel et planning : **`road_map.md`**.
+
+## Stack
+
+**Angular 21** + **Tailwind CSS 4** + **DaisyUI** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
+

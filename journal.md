@@ -1,15 +1,27 @@
 # 📓 Journal de bord — PixelTogether
 
-Historique des tâches, décisions et dette technique du projet (Angular 21 + Node/Express + Socket.io).
+**Rôle** : mémoire de ce qui est **fait** — résumés de phase, pas le détail ticket par ticket.
 
-- **Tâches réalisées depuis l'implémentation du workflow : 0**
+| Fichier | Rôle |
+|---------|------|
+| `road_map.md` | Vision + ce qu'on fera (actif + plus tard) |
+| `dette_technique.md` | Failles et soucis à traiter plus tard |
+| `journal.md` | Ce qu'on a **terminé** (résumés) |
+
+> **Convention** : entrées du **plus récent au plus ancien**. Une entrée = **une phase clôturée** (ou un jalon historique majeur). Pas de P1-01, P1-02… ici — le détail vit dans git / les PR. Quand une dette est résolue : retirée de `dette_technique.md` + **une ligne** ajoutée ici.
 
 ---
 
-## 2026-06-03 — 🔄 PIVOT PRODUIT MAJEUR : jeu communautaire → outil de teambuilding B2B
+## Entrées
 
-Le projet abandonne le modèle « jeu communautaire persistant » au profit d'un **outil de teambuilding B2B éphémère par session** (manager qui configure/lance, employés temporaires, groupes de 3-4, grille partagée à palette répartie, vote, export ZIP, puis fermeture). Détail produit & roadmap découpée → `code_review.md`.
+**Phase 2 — Waiting room** — Salle d'attente `/room/:id` entre landing et jeu : onboarding pseudo + couleur avatar (`AVATAR_COLORS`, placeholder Lucide `User`), cards joueurs temps réel, modales host (inviter avec code stream + URL, démarrer min. 2 joueurs). Serveur : `status` waiting/started, `registerPlayer`, `startGame`, verrou `joinRoom`. Navbar : profil avatar + pseudo ; chat par pseudo. Hors scope : F5/reconnexion, chat waiting room, grille d'attente.
 
-**Décisions d'architecture verrouillées** : zéro base de données (état 100 % en mémoire) ; pas de comptes persistants (identité temporaire) ; achat de sessions simulé hors MVP ; groupes auto 3-4 stricts ; palette répartie exclusivement par groupe ; 1 vote/participant (sa grille incluse). Stack conservée : Angular 21 + Node/Express + Socket.io ; **MongoDB retiré**.
+**Phase 1 — Base gameplay fonctionnelle** — Socle jouable : landing host, création de partie (code 6 car.), join par code, grille 75×75 collaborative, pixels temps réel, chat, palette, lobby. P1-06 (constantes socket) abandonné : strings littérales conservées.
 
-Tout l'héritage communautaire (économie, galerie publique, likes, comptes persistants, modération, gamification, lancement Facebook) est abandonné. La roadmap découpée et la dette encore pertinente vivent désormais dans `code_review.md`.
+**P1-05** — Refonte game page : thème en navbar, layout fixe (chat à droite, palette en bas), palette sans gomme avec blanc posable, zoom molette + déplacement clic droit, fit initial de la grille.
+
+**Démolition (DEMO-01 → 06)** — Héritage retiré (Mongo, auth, galerie, économie, gamification). Base remise à plat : lobby, pixels temps réel, `socket.id`.
+
+**Pivot produit** — Fin du jeu communautaire persistant → outil B2B éphémère par session (host, groupes, vote, export ZIP). Zéro BDD, état en mémoire.
+
+

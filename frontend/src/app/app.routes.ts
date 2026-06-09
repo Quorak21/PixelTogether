@@ -1,26 +1,28 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { WaitingRoomPageComponent } from './features/waiting-room/waiting-room-page/waiting-room-page';
 
 export const routes: Routes = [
   {
     path: '',
     loadChildren: () =>
-      import('./features/landing/landing.routes').then((m) => m.LANDING_ROUTES)
+      import('./features/host/host.routes').then((m) => m.HOST_ROUTES),
+  },
+  {
+    path: 'room/:roomId',
+    component: WaitingRoomPageComponent,
   },
   {
     path: 'lobby',
-    canActivate: [authGuard],
     loadChildren: () =>
-      import('./features/lobby/lobby.routes').then((m) => m.LOBBY_ROUTES)
+      import('./features/lobby/lobby.routes').then((m) => m.LOBBY_ROUTES),
   },
   {
     path: 'game/:roomId',
-    canActivate: [authGuard],
     loadChildren: () =>
-      import('./features/game/game.routes').then((m) => m.GAME_ROUTES)
+      import('./features/game/game.routes').then((m) => m.GAME_ROUTES),
   },
   {
     path: '**',
-    redirectTo: ''
-  }
+    redirectTo: '',
+  },
 ];

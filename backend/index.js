@@ -3,58 +3,80 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import 'dotenv/config';
-import jwt from 'jsonwebtoken';
 import { createCanvas } from 'canvas';
-import authRouter from './routes/auth.js';
-import sanitizeHtml from 'sanitize-html';
-import {
-  findUserById,
-  findUserByPseudo,
-  createGrid,
-  findGridById,
-  deleteGrid,
-  persistGrid,
-  setUserGridId,
-  clearUserGridId,
-  incrementUserGold,
-  addMyGrid,
-  updateMyGrid,
-  deleteMyGrid,
-  getUsersWithGalleryGrids,
-  likeMyGrid,
-} from './store/memoryStore.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
-  "http://localhost:4200",
+  'http://localhost:4200',
   process.env.FRONTEND_URL,
-  process.env.FRONTEND_URL2
+  process.env.FRONTEND_URL2,
 ].filter(Boolean);
 
 const corsOptions = {
   origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use('/api', authRouter);
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: corsOptions
-});
+const io = new Server(httpServer, { cors: corsOptions });
 
 const activeGrids = {};
-const activeUsers = {};
-const pixelCooldown = 200;
 const regColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
+const GRID_SIZE = 75;
+const ROOM_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ROOM_CODE_LENGTH = 6;
+const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
+const DEFAULT_COLORS = [
+  '#000000',
+  '#ff0000',
+  '#ff6600',
+  '#ffff00',
+  '#00ff00',
+  '#00ccff',
+  '#0000ff',
+  '#9900ff',
+  '#ff00cc',
+  '#ffffff',
+];
+
+const AVATAR_COLORS = [
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+];
+
+const PSEUDO_REGEX = /^[a-zA-Z0-9_ ']{3,20}$/;
+
+function generateRoomCode() {
+  let code;
+  do {
+    code = '';
+    for (let i = 0; i < ROOM_CODE_LENGTH; i += 1) {
+      code += ROOM_CODE_CHARS[Math.floor(Math.random() * ROOM_CODE_CHARS.length)];
+    }
+  } while (activeGrids[code]);
+  return code;
+}
+
+function normalizeRoomId(roomId) {
+  if (typeof roomId !== 'string') return null;
+  const normalized = roomId.trim().toUpperCase();
+  if (!ROOM_CODE_REGEX.test(normalized)) return null;
+  return normalized;
+}
+
 function generateGridImage(grid) {
-  const canvas = createCanvas(grid.width * 20, grid.height * 20);
+  const canvas = createCanvas(GRID_SIZE * 20, GRID_SIZE * 20);
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -69,468 +91,440 @@ function generateGridImage(grid) {
   return canvas.toDataURL('image/webp');
 }
 
-async function persistGridToMemory(roomId, grid) {
-  try {
-    const gridImage = generateGridImage(grid);
-    persistGrid(roomId, {
-      pixels: grid.pixels,
-      invitedUsers: grid.invitedUsers,
-      image: gridImage,
-      name: grid.name,
-      width: grid.width,
-      height: grid.height,
-      type: grid.type,
-      ownerID: grid.ownerID,
-    });
-    activeGrids[roomId].image = gridImage;
-  } catch (err) {
-    console.error('❌ Erreur persistGridToMemory:', err);
-  }
+function updateGridPreview(roomId) {
+  const grid = activeGrids[roomId];
+  if (!grid) return;
+  grid.image = generateGridImage(grid);
 }
 
-async function getGridsImagesFromDB() {
+function getGridsImages() {
   const images = {};
   for (const gridId in activeGrids) {
-    const active = activeGrids[gridId];
-    if (active?.image) {
-      images[gridId] = active.image;
-    } else {
-      const stored = findGridById(gridId);
-      if (stored?.image) {
-        images[gridId] = stored.image;
-      }
+    if (activeGrids[gridId]?.image) {
+      images[gridId] = activeGrids[gridId].image;
     }
   }
   return images;
 }
 
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) {
-    return next(new Error('Token manquant'));
+function syncPlayersList(grid) {
+  const ids = new Set([grid.host]);
+  grid.players.forEach((player) => ids.add(player.socketId));
+  grid.playersList = [...ids];
+}
+
+function isAvatarColorValid(color) {
+  return typeof color === 'string' && AVATAR_COLORS.includes(color.toLowerCase());
+}
+
+function getParticipantRole(grid, socketId) {
+  return socketId === grid.host ? 'host' : 'player';
+}
+
+function isRegistered(grid, socketId) {
+  if (socketId === grid.host) {
+    return Boolean(grid.hostProfile);
   }
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = findUserById(decoded.idUser);
-    if (!user) {
-      return next(new Error('Utilisateur introuvable'));
-    }
-    socket.userId = user.id;
-    socket.pseudo = user.pseudo;
-    socket.gold = user.gold;
-    next();
-  } catch (err) {
-    return next(new Error('Token invalide'));
+  return grid.players.some((player) => player.socketId === socketId);
+}
+
+function getParticipantPseudo(grid, socketId) {
+  if (socketId === grid.host && grid.hostProfile) {
+    return grid.hostProfile.pseudo;
   }
-});
+
+  const player = grid.players.find((entry) => entry.socketId === socketId);
+  return player?.pseudo ?? 'Joueur';
+}
+
+function toChatMessage(grid, entry) {
+  return {
+    socketId: entry.socketId,
+    pseudo: entry.pseudo ?? getParticipantPseudo(grid, entry.socketId),
+    message: entry.message,
+    senderId: entry.socketId,
+  };
+}
+
+function buildWaitingRoomState(grid, socketId) {
+  const role = getParticipantRole(grid, socketId);
+  return {
+    roomId: grid.id,
+    name: grid.name,
+    status: grid.status,
+    role,
+    hostProfile: grid.hostProfile,
+    players: grid.players.map(({ socketId: id, pseudo, avatarColor }) => ({
+      socketId: id,
+      pseudo,
+      avatarColor,
+      role: 'player',
+    })),
+    isRegistered: isRegistered(grid, socketId),
+  };
+}
+
+function toLobbyRoom(grid) {
+  return {
+    id: grid.id,
+    host: grid.host,
+    name: grid.name,
+    width: GRID_SIZE,
+    height: GRID_SIZE,
+    playersList: [...grid.playersList],
+  };
+}
+
+function removePlayerFromGrid(grid, socketId) {
+  if (socketId === grid.host) {
+    return false;
+  }
+
+  const before = grid.players.length;
+  grid.players = grid.players.filter((player) => player.socketId !== socketId);
+  syncPlayersList(grid);
+  return grid.players.length !== before;
+}
 
 io.on('connection', (socket) => {
-  const user = findUserById(socket.userId);
-  socket.emit('authenticated', { pseudo: socket.pseudo, gridID: user?.gridID ?? null, gold: user?.gold ?? 0 });
+  socket.emit('connected', { socketId: socket.id });
+
+  socket.on('getActiveGrids', () => {
+    const lobbyGrids = {};
+    for (const gridId in activeGrids) {
+      lobbyGrids[gridId] = toLobbyRoom(activeGrids[gridId]);
+    }
+    socket.emit('activeGrids', { activeGrids: lobbyGrids, images: getGridsImages() });
+  });
+
+  socket.on('newGrid', (data, callback) => {
+    const regexGridName = /^[a-zA-Z0-9_ ']{3,20}$/;
+    if (!data.name || typeof data.name !== 'string' || !regexGridName.test(data.name)) {
+      return callback({
+        error: "Le thème doit contenir entre 3 et 20 caractères (lettres, chiffres, espaces, apostrophe).",
+      });
+    }
+
+    const roomId = generateRoomCode();
+
+    activeGrids[roomId] = {
+      id: roomId,
+      host: socket.id,
+      name: data.name,
+      status: 'waiting',
+      hostProfile: null,
+      players: [],
+      playersList: [socket.id],
+      pixels: {},
+      image: null,
+      chatMessages: [],
+    };
+
+    socket.data.role = 'host';
+    socket.data.roomId = roomId;
+    socket.join(roomId);
+    const images = getGridsImages();
+    io.emit('createCanvas', {
+      id: roomId,
+      host: socket.id,
+      name: data.name,
+      width: GRID_SIZE,
+      height: GRID_SIZE,
+      playersList: [socket.id],
+      image: images,
+    });
+
+    callback({ id: roomId, host: socket.id, name: data.name, role: 'host' });
+  });
+
+  socket.on('enterWaitingRoom', (data, callback) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    if (!roomId) {
+      const error = 'Code de partie invalide.';
+      if (typeof callback === 'function') {
+        callback({ error });
+      }
+      socket.emit('waitingRoomError', { error });
+      return;
+    }
+
+    const grid = activeGrids[roomId];
+    if (!grid) {
+      const error = "La partie n'existe pas.";
+      if (typeof callback === 'function') {
+        callback({ error });
+      }
+      socket.emit('waitingRoomError', { error });
+      return;
+    }
+
+    if (grid.status === 'started') {
+      const error = 'La partie a déjà commencé.';
+      if (typeof callback === 'function') {
+        callback({ error });
+      }
+      socket.emit('waitingRoomError', { error });
+      return;
+    }
+
+    const role = getParticipantRole(grid, socket.id);
+    socket.data.role = role;
+    socket.data.roomId = roomId;
+    socket.join(roomId);
+
+    const state = buildWaitingRoomState(grid, socket.id);
+    socket.emit('waitingRoomState', state);
+    if (typeof callback === 'function') {
+      callback({ ...state });
+    }
+  });
+
+  socket.on('registerPlayer', (data, callback) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+
+    if (!grid) {
+      return callback({ error: "La partie n'existe pas." });
+    }
+
+    if (grid.status === 'started') {
+      return callback({ error: 'La partie a déjà commencé.' });
+    }
+
+    if (isRegistered(grid, socket.id)) {
+      return callback({ error: 'Vous êtes déjà enregistré.' });
+    }
+
+    const pseudo = typeof data?.pseudo === 'string' ? data.pseudo.trim() : '';
+    if (!PSEUDO_REGEX.test(pseudo)) {
+      return callback({
+        error: 'Le pseudo doit contenir entre 3 et 20 caractères (lettres, chiffres, espaces, apostrophe).',
+      });
+    }
+
+    const avatarColor = typeof data?.avatarColor === 'string' ? data.avatarColor.toLowerCase() : '';
+    if (!isAvatarColorValid(avatarColor)) {
+      return callback({ error: 'Couleur avatar invalide.' });
+    }
+
+    const role = getParticipantRole(grid, socket.id);
+
+    if (role === 'host') {
+      grid.hostProfile = { pseudo, avatarColor };
+    } else {
+      grid.players.push({
+        socketId: socket.id,
+        pseudo,
+        avatarColor,
+        role: 'player',
+      });
+    }
+
+    syncPlayersList(grid);
+    socket.data.role = role;
+    socket.data.roomId = roomId;
+
+    const state = buildWaitingRoomState(grid, socket.id);
+    socket.to(roomId).emit('waitingRoomUpdated', { players: state.players });
+    callback({ ...state });
+  });
+
+  socket.on('startGame', (data, callback) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+
+    if (!grid) {
+      return callback({ error: "La partie n'existe pas." });
+    }
+
+    if (socket.id !== grid.host) {
+      return callback({ error: 'Seul le manager peut démarrer la partie.' });
+    }
+
+    if (grid.status !== 'waiting') {
+      return callback({ error: 'La partie est déjà lancée.' });
+    }
+
+    if (!grid.hostProfile) {
+      return callback({ error: 'Le manager doit compléter son profil avant de démarrer.' });
+    }
+
+    if (grid.players.length < 2) {
+      return callback({ error: 'Au moins 2 joueurs sont requis pour démarrer.' });
+    }
+
+    grid.status = 'started';
+    io.to(roomId).emit('gameStarted', { roomId });
+    callback({ roomId, status: 'started' });
+  });
+
+  socket.on('leaveWaitingRoom', (data) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+    if (!grid || socket.id === grid.host) {
+      return;
+    }
+
+    const removed = removePlayerFromGrid(grid, socket.id);
+    socket.leave(roomId);
+    socket.data.roomId = undefined;
+
+    if (removed && grid.status === 'waiting') {
+      io.to(roomId).emit('waitingRoomUpdated', {
+        players: grid.players.map(({ socketId: id, pseudo, avatarColor }) => ({
+          socketId: id,
+          pseudo,
+          avatarColor,
+          role: 'player',
+        })),
+      });
+    }
+  });
+
+  socket.on('joinRoom', (data) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    if (!roomId) {
+      socket.emit('joinRoomError', { error: 'Code de partie invalide.' });
+      return;
+    }
+
+    const grid = activeGrids[roomId];
+    if (!grid) {
+      socket.emit('joinRoomError', { error: "La partie n'existe pas" });
+      return;
+    }
+
+    if (grid.status !== 'started') {
+      socket.emit('joinRoomError', { error: 'La partie n\'a pas encore démarré.' });
+      return;
+    }
+
+    const role = socket.id === grid.host ? 'host' : 'player';
+
+    socket.data.role = role;
+    socket.join(roomId);
+    socket.data.roomId = roomId;
+
+    if (!grid.playersList.includes(socket.id)) {
+      syncPlayersList(grid);
+      if (!grid.playersList.includes(socket.id)) {
+        grid.playersList.push(socket.id);
+      }
+      socket.to(roomId).emit('joinedRoom', { socketId: socket.id });
+    }
+
+    socket.emit('gridState', {
+      pixels: grid.pixels,
+      width: GRID_SIZE,
+      height: GRID_SIZE,
+      name: grid.name,
+      colors: DEFAULT_COLORS,
+      role,
+    });
+  });
 
   socket.on('sendMessage', (data) => {
-    if (!activeGrids[data.roomId]) return;
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+    if (!grid) return;
 
     const regexMessage = /^.{1,200}$/;
     if (!data.message || typeof data.message !== 'string' || !regexMessage.test(data.message)) {
       return;
     }
 
-    const cleanMessage = sanitizeHtml(data.message);
-
-    activeGrids[data.roomId].chatMessages.push({ pseudo: socket.pseudo, message: cleanMessage, senderId: socket.id });
-    io.to(data.roomId).emit('receiveMessage', { senderId: socket.id, pseudo: socket.pseudo, message: cleanMessage });
+    const message = data.message.trim();
+    const pseudo = getParticipantPseudo(grid, socket.id);
+    const entry = { socketId: socket.id, pseudo, message };
+    grid.chatMessages.push(entry);
+    io.to(roomId).emit('receiveMessage', toChatMessage(grid, entry));
   });
 
   socket.on('getChatMessages', (data) => {
-    if (!activeGrids[data.roomId]) return;
-    socket.emit('chatMessages', activeGrids[data.roomId].chatMessages);
-  });
-
-  socket.on('getActiveGrids', async () => {
-    const images = await getGridsImagesFromDB();
-    const filteredGrids = {};
-    for (const gridId in activeGrids) {
-      if (activeGrids[gridId].type !== 'private') {
-        filteredGrids[gridId] = activeGrids[gridId];
-      }
-    }
-    const currentUser = findUserById(socket.userId);
-    socket.emit('activeGrids', { activeGrids: filteredGrids, images, gold: currentUser?.gold ?? 0 });
-  });
-
-  socket.on('invitePlayer', async (data, callback) => {
-    if (!activeGrids[data.roomId]) return;
-    const grid = activeGrids[data.roomId];
-
-    const regexPseudo = /^[a-zA-Z0-9_]{3,20}$/;
-    if (!data.pseudo || typeof data.pseudo !== 'string' || !regexPseudo.test(data.pseudo)) {
-      return callback({ error: "Pseudo invalide." });
-    }
-
-    const invitedUser = findUserByPseudo(data.pseudo);
-    if (!invitedUser) {
-      return callback({ error: data.pseudo + " n'a pas été trouvé !" });
-    }
-
-    if (!grid.invitedUsers.includes(data.pseudo)) {
-      grid.invitedUsers.push(data.pseudo);
-      socket.emit('playerList', { roomId: data.roomId, invitedUsers: grid.invitedUsers });
-      callback({ success: data.pseudo + " a été invité !" });
-    } else {
-      callback({ error: data.pseudo + " est déjà invité !" });
-    }
-
-    if (grid) await persistGridToMemory(data.roomId, grid);
-  });
-
-  socket.on('newGrid', async (data, callback) => {
-    try {
-      const currentUser = findUserById(socket.userId);
-      if (currentUser?.gridID) {
-        return callback({ error: "Vous avez déjà une partie en cours ! Veuillez la reprendre." });
-      }
-
-      const allowedTypes = ['public', 'limited', 'private'];
-      if (!data.type || !allowedTypes.includes(data.type)) {
-        return callback({ error: "Type de grille invalide." });
-      }
-
-      if (!Number.isInteger(data.width) || !Number.isInteger(data.height) || data.width < 20 || data.width > 100 || data.height < 20 || data.height > 100) {
-        return callback({ error: "Les dimensions doivent être comprises entre 20 et 100." });
-      }
-
-      const regexGridName = /^[a-zA-Z0-9_ ]{3,20}$/;
-      if (!data.name || typeof data.name !== 'string' || !regexGridName.test(data.name)) {
-        return callback({ error: "Le nom doit contenir entre 3 et 20 caractères." });
-      }
-
-      const hostID = [socket.pseudo];
-
-      const newGrid = createGrid({
-        name: data.name,
-        width: data.width,
-        height: data.height,
-        ownerID: socket.userId,
-        type: data.type,
-        invitedUsers: hostID,
-      });
-
-      setUserGridId(socket.userId, newGrid.id);
-
-      activeGrids[newGrid.id] = {
-        id: newGrid.id,
-        host: socket.id,
-        pseudo: socket.pseudo,
-        name: data.name,
-        width: data.width,
-        height: data.height,
-        ownerID: socket.userId,
-        chatMessages: [],
-        playersList: [],
-        pixels: {},
-        isModified: false,
-        type: data.type,
-        invitedUsers: hostID,
-        image: null,
-      };
-
-      socket.join(newGrid.id);
-      const images = await getGridsImagesFromDB();
-
-      if (data.type !== 'private') {
-        io.emit('createCanvas', { width: data.width, height: data.height, name: data.name, id: newGrid.id, host: socket.id, image: images, type: data.type, pseudo: socket.pseudo });
-      }
-
-      callback({ id: newGrid.id, name: data.name, host: socket.id });
-    } catch (err) {
-      console.error('Erreur newGrid:', err);
-      callback({ error: 'Erreur lors de la création de la grille.' });
-    }
-  });
-
-  socket.on('resumeGrid', async (data, callback) => {
-    try {
-      const currentUser = findUserById(socket.userId);
-
-      if (!currentUser || !currentUser.gridID) {
-        return callback({ error: "Aucune partie trouvée." });
-      }
-
-      const gridIdStr = currentUser.gridID;
-
-      const storedGrid = findGridById(gridIdStr);
-      if (!storedGrid) {
-        return callback({ error: "Grille introuvable." });
-      }
-
-      const alreadyActive = !!activeGrids[gridIdStr];
-
-      activeGrids[gridIdStr] = {
-        id: gridIdStr,
-        host: socket.id,
-        pseudo: socket.pseudo,
-        name: storedGrid.name,
-        width: storedGrid.width,
-        height: storedGrid.height,
-        ownerID: storedGrid.ownerID,
-        chatMessages: activeGrids[gridIdStr]?.chatMessages || [],
-        playersList: activeGrids[gridIdStr]?.playersList || [],
-        pixels: alreadyActive ? activeGrids[gridIdStr].pixels : { ...storedGrid.pixels },
-        isModified: false,
-        type: storedGrid.type,
-        invitedUsers: alreadyActive ? activeGrids[gridIdStr].invitedUsers : [...(storedGrid.invitedUsers || [])],
-        image: storedGrid.image ?? null,
-      };
-
-      if (storedGrid.type !== 'private') {
-        if (!alreadyActive) {
-          const images = await getGridsImagesFromDB();
-          io.emit('createCanvas', { width: storedGrid.width, height: storedGrid.height, name: storedGrid.name, id: gridIdStr, host: socket.id, image: images, pseudo: socket.pseudo });
-        }
-      }
-
-      socket.join(gridIdStr);
-      callback({ id: gridIdStr, name: activeGrids[gridIdStr].name, host: activeGrids[gridIdStr].host });
-    } catch (err) {
-      console.error("Erreur resumeGrid:", err);
-      callback({ error: "Erreur lors de la reprise de la partie." });
-    }
-  });
-
-  socket.on('pixelPlaced', async (data, callback) => {
-    if (!activeGrids[data.roomId]) return;
-
-    const now = Date.now();
-    if (now - (activeUsers[socket.userId] || 0) > pixelCooldown) {
-      if (!Number.isInteger(data.x) || !Number.isInteger(data.y) || data.x < 0 || data.y < 0 || data.x >= activeGrids[data.roomId].width || data.y >= activeGrids[data.roomId].height || !regColor.test(data.color)) return;
-
-      if ((activeGrids[data.roomId].type === 'limited' || activeGrids[data.roomId].type === 'private') && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
-
-      const pixelSpot = `${data.x},${data.y}`;
-      const oldColor = activeGrids[data.roomId].pixels[pixelSpot];
-      const colorChanged = oldColor !== data.color;
-
-      activeGrids[data.roomId].pixels[pixelSpot] = data.color;
-      activeGrids[data.roomId].isModified = true;
-
-      io.to(data.roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
-      activeUsers[socket.userId] = now;
-
-      if (colorChanged) {
-        const updatedUser = incrementUserGold(socket.userId, 1);
-        socket.gold = updatedUser.gold;
-        callback({ gold: updatedUser.gold });
-      } else {
-        const currentUser = findUserById(socket.userId);
-        callback({ gold: currentUser.gold });
-      }
-    }
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+    if (!grid) return;
+    socket.emit(
+      'chatMessages',
+      grid.chatMessages.map((entry) => toChatMessage(grid, entry)),
+    );
   });
 
   socket.on('getPlayersList', (data) => {
-    if (!activeGrids[data.roomId]) return;
-    socket.emit('playersList', {
-      activePlayers: activeGrids[data.roomId].playersList,
-      invitedUsers: activeGrids[data.roomId].invitedUsers,
-      hostPseudo: activeGrids[data.roomId].pseudo
-    });
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+    if (!grid) return;
+    socket.emit('playersList', { activePlayers: grid.playersList, hostSocketId: grid.host });
   });
 
-  socket.on('joinRoom', (data) => {
-    if (!activeGrids[data.roomId]) return;
-    if (activeGrids[data.roomId].type === 'private' && !activeGrids[data.roomId].invitedUsers.includes(socket.pseudo)) return;
+  socket.on('pixelPlaced', (data) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+    if (!grid) return;
 
-    socket.join(data.roomId);
-    socket.data.roomId = data.roomId;
-
-    if (!activeGrids[data.roomId].playersList.includes(socket.pseudo)) {
-      activeGrids[data.roomId].playersList.push(socket.pseudo);
-      socket.to(data.roomId).emit('joinedRoom', { pseudo: socket.pseudo });
+    if (
+      !Number.isInteger(data.x) ||
+      !Number.isInteger(data.y) ||
+      data.x < 0 ||
+      data.y < 0 ||
+      data.x >= GRID_SIZE ||
+      data.y >= GRID_SIZE ||
+      !regColor.test(data.color)
+    ) {
+      return;
     }
 
-    const grid = activeGrids[data.roomId];
-    socket.emit('gridState', { pixels: grid.pixels, width: grid.width, height: grid.height, name: grid.name, type: grid.type });
+    const pixelSpot = `${data.x},${data.y}`;
+    grid.pixels[pixelSpot] = data.color;
+
+    io.to(roomId).emit('drawPixel', { x: data.x, y: data.y, color: data.color });
   });
 
   socket.on('exitGame', (data) => {
-    if (activeGrids[data.roomId]) {
-      if (socket.id === activeGrids[data.roomId].host) {
-        return;
-      }
-      activeGrids[data.roomId].playersList = activeGrids[data.roomId].playersList.filter(p => p !== socket.pseudo);
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
+    if (!grid || socket.id === grid.host) return;
 
-      io.in(data.roomId).emit('playersList', {
-        activePlayers: activeGrids[data.roomId].playersList,
-        invitedUsers: activeGrids[data.roomId].invitedUsers,
-        hostPseudo: activeGrids[data.roomId].pseudo
-      });
-      socket.to(data.roomId).emit('exitGame', { user: socket.pseudo });
-    }
-    socket.leave(data.roomId);
+    removePlayerFromGrid(grid, socket.id);
+    socket.to(roomId).emit('exitGame', { socketId: socket.id });
+    socket.leave(roomId);
   });
 
-  socket.on('closeRoom', async (data) => {
-    const grid = activeGrids[data.roomId];
+  socket.on('closeRoom', (data) => {
+    const roomId = normalizeRoomId(data?.roomId);
+    const grid = roomId ? activeGrids[roomId] : null;
     if (!grid || socket.id !== grid.host) return;
 
-    const images = await getGridsImagesFromDB();
-    io.emit('roomClosed', { roomId: data.roomId, image: images });
-    delete activeGrids[data.roomId];
-
-    await persistGridToMemory(data.roomId, grid);
-    socket.leave(data.roomId);
+    const images = getGridsImages();
+    io.emit('roomClosed', { roomId, image: images });
+    delete activeGrids[roomId];
+    socket.leave(roomId);
   });
 
-  socket.on('finishCanvas', async (data) => {
-    try {
-      clearUserGridId(socket.userId);
-
-      const grid = activeGrids[data.roomId];
-      if (!grid) return;
-
-      if (socket.id !== grid.host) {
-        return;
-      }
-
-      const gridImage = generateGridImage(grid);
-
-      addMyGrid(socket.userId, {
-        nom: grid.name,
-        image: gridImage,
-        onGallery: data.onGallery,
-        date: Date.now(),
-      });
-
-      delete activeGrids[data.roomId];
-      deleteGrid(data.roomId);
-
-      const images = await getGridsImagesFromDB();
-      io.emit('roomClosed', { roomId: data.roomId, image: images });
-    } catch (err) {
-      console.error('Erreur finishCanvas:', err);
-    }
-  });
-
-  socket.on('deleteCanvas', async (data) => {
-    const grid = activeGrids[data.roomId];
-    if (!grid) return;
-
-    if (socket.id !== grid.host) {
-      return;
-    }
-
-    try {
-      clearUserGridId(socket.userId);
-      delete activeGrids[data.roomId];
-      deleteGrid(data.roomId);
-
-      const images = await getGridsImagesFromDB();
-      io.emit('roomClosed', { roomId: data.roomId, image: images });
-    } catch (err) {
-      console.error('Erreur deleteCanvas:', err);
-    }
-  });
-
-  socket.on('askGallery', async (callback) => {
-    const users = getUsersWithGalleryGrids();
-
-    const allGrids = users.flatMap(u =>
-      u.myGrids.filter(g => g.onGallery === true).map(g => ({
-        id: g.id,
-        name: g.nom,
-        image: g.image,
-        likes: g.likedBy.length,
-        author: u.pseudo,
-        date: g.date,
-        liked: g.likedBy.includes(socket.userId),
-      }))
-    );
-
-    allGrids.sort((a, b) => b.date - a.date);
-    const finalGrids = allGrids.slice(0, 50);
-
-    callback({ grids: finalGrids });
-  });
-
-  socket.on('askMyGallery', async (callback) => {
-    const currentUser = findUserById(socket.userId);
-    if (!currentUser) return callback({ grids: [] });
-
-    const myGrids = currentUser.myGrids.map(g => ({
-      name: g.nom,
-      image: g.image,
-      author: currentUser.pseudo,
-      onGallery: g.onGallery,
-      id: g.id,
-      date: g.date,
-      likes: g.likedBy.length,
-      liked: g.likedBy.includes(socket.userId),
-    })).sort((a, b) => b.date - a.date);
-
-    callback({ grids: myGrids });
-  });
-
-  socket.on('updateGridOnGallery', async (data) => {
-    updateMyGrid(socket.userId, data.gridId, { onGallery: data.newValue });
-  });
-
-  socket.on('deleteGrid', async ({ gridId }) => {
-    deleteMyGrid(socket.userId, gridId);
-  });
-
-  socket.on('getColors', async () => {
-    const currentUser = findUserById(socket.userId);
-    socket.emit('colors', { colors: currentUser?.colors ?? [] });
-  });
-
-  socket.on('buyColor', async (data, callback) => {
-    const currentUser = findUserById(socket.userId);
-    if (!currentUser) {
-      callback({ success: false, message: "Utilisateur introuvable" });
-      return;
-    }
-    if (!regColor.test(data.color)) {
-      callback({ success: false, message: "Couleur invalide" });
-      return;
-    }
-    if (currentUser.colors.includes(data.color)) {
-      callback({ success: false, message: "Vous avez déjà cette couleur" });
-      return;
-    }
-    if (currentUser.gold >= 100) {
-      currentUser.gold -= 100;
-      currentUser.colors.push(data.color);
-      socket.gold = currentUser.gold;
-      callback({ success: true, gold: currentUser.gold });
-    } else {
-      callback({ success: false, message: "Pas assez d'or" });
-    }
-  });
-
-  socket.on('likeGrid', async ({ gridId }, callback) => {
-    const grid = likeMyGrid(gridId, socket.userId);
-    if (!grid) return;
-    callback({ success: true, likes: grid.likedBy.length });
-  });
-
-  socket.on('disconnect', async () => {
+  socket.on('disconnect', () => {
     for (const roomId in activeGrids) {
-      if (activeGrids[roomId].host === socket.id) {
-        const grid = activeGrids[roomId];
-        const images = await getGridsImagesFromDB();
+      const grid = activeGrids[roomId];
+
+      if (grid.host === socket.id) {
+        const images = getGridsImages();
         io.emit('roomClosed', { roomId, image: images });
         delete activeGrids[roomId];
-        await persistGridToMemory(roomId, grid);
-        delete activeUsers[socket.userId];
-      } else if (activeGrids[roomId].playersList.includes(socket.pseudo)) {
-        activeGrids[roomId].playersList = activeGrids[roomId].playersList.filter(p => p !== socket.pseudo);
-        io.in(roomId).emit('playersList', {
-          activePlayers: activeGrids[roomId].playersList,
-          invitedUsers: activeGrids[roomId].invitedUsers,
-          hostPseudo: activeGrids[roomId].pseudo
-        });
-        socket.to(roomId).emit('exitGame', { user: socket.pseudo });
+      } else if (grid.playersList.includes(socket.id) || grid.players.some((p) => p.socketId === socket.id)) {
+        const wasWaiting = grid.status === 'waiting';
+        const removed = removePlayerFromGrid(grid, socket.id);
+
+        if (grid.status === 'started') {
+          socket.to(roomId).emit('exitGame', { socketId: socket.id });
+        } else if (wasWaiting && removed) {
+          io.to(roomId).emit('waitingRoomUpdated', {
+            players: grid.players.map(({ socketId: id, pseudo, avatarColor }) => ({
+              socketId: id,
+              pseudo,
+              avatarColor,
+              role: 'player',
+            })),
+          });
+        }
       }
     }
   });

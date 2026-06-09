@@ -1,32 +1,24 @@
-export type GridPrivacy = 'public' | 'limited' | 'private';
+export type ParticipantRole = 'host' | 'player';
 
-export interface UserSession {
+export type RoomStatus = 'waiting' | 'started';
+
+export interface PlayerProfile {
   pseudo: string;
-  gridID: string | null;
-  gridName?: string | null;
-  userImg?: string | null;
+  avatarColor: string;
+}
+
+export interface WaitingRoomPlayer extends PlayerProfile {
+  socketId: string;
+  role: 'player';
 }
 
 export interface LobbyRoom {
   id: string;
   host: string;
-  pseudo: string;
   name: string;
   width: number;
   height: number;
   playersList: string[];
-  type: GridPrivacy;
-}
-
-export interface GalleryGrid {
-  id: string;
-  name: string;
-  image: string;
-  likes: number;
-  author: string;
-  date: number;
-  liked: boolean;
-  onGallery?: boolean;
 }
 
 export interface GridStatePayload {
@@ -34,11 +26,11 @@ export interface GridStatePayload {
   width: number;
   height: number;
   name: string;
-  type: GridPrivacy;
+  colors: string[];
+  role: ParticipantRole;
 }
 
 export interface ActiveGridsPayload {
   activeGrids: Record<string, LobbyRoom>;
   images: Record<string, string>;
-  gold: number;
 }

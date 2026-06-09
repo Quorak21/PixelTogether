@@ -1,90 +1,50 @@
-<div
-  class="fixed bottom-6 right-6 z-[100] flex flex-col bg-base-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden border border-base-200"
-  [class.w-64]="isMinimized()"
-  [class.w-80]="!isMinimized()"
-  [class.h-auto]="isMinimized()"
-  [class.h-[26rem]]="!isMinimized()"
-  cdkDrag
-  cdkDragBoundary="body"
->
-  <div class="bg-neutral text-neutral-content p-3 flex justify-between items-center select-none group cursor-move" cdkDragHandle>
-    <div class="flex items-center gap-2">
-      <span>💬</span>
-      <span class="font-bold text-sm tracking-wide">Chat</span>
-    </div>
-    <div class="flex items-center gap-1">
-      @if (!isMinimized()) {
-        <button type="button" (click)="toggleUserPanel()" class="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg">👤</button>
-      }
-      <button type="button" (click)="isMinimized.set(!isMinimized())" class="p-1.5 hover:bg-accent hover:text-accent-content rounded-lg">
-        {{ isMinimized() ? '▢' : '−' }}
-      </button>
-      <button type="button" (click)="close.emit()" class="p-1.5 hover:bg-error hover:text-error-content rounded-lg">✕</button>
-    </div>
+<div class="flex flex-col h-full min-h-0 bg-base-100">
+  <div class="flex items-center gap-2 shrink-0 p-3 bg-neutral text-neutral-content select-none">
+    <span>💬</span>
+    <span class="font-bold text-sm tracking-wide">Chat</span>
   </div>
 
-  @if (!isMinimized()) {
-    <div class="flex-1 overflow-y-scroll p-4 space-y-3 bg-base-200/30">
-      @if (userPanelOpen()) {
-        <h1 class="text-center font-bold text-lg underline">Liste des joueurs</h1>
-        <ul class="flex flex-col gap-2">
-          @for (player of playersList(); track player) {
-            <li class="flex items-center gap-3 bg-base-100 px-4 py-2 rounded-lg shadow-sm border border-base-200">
-              <span class="text-sm font-bold">{{ player }}</span>
-              @if (player === hostPseudo()) {
-                <span class="text-xs text-gray-400 ml-auto" title="Hote de la partie">👑</span>
-              }
-            </li>
-          }
-        </ul>
-      } @else if (chatMessages().length === 0) {
-        <div class="flex flex-col items-center justify-center h-full text-base-content/40 italic text-sm">
-          <span class="text-3xl mb-3 opacity-20">💬</span>
-          <p>Aucun message pour le moment.</p>
-        </div>
-      } @else {
-        @for (msg of chatMessages(); track $index) {
-          @if (msg.type === 'info') {
-            <div class="flex justify-center my-1">
-              <span class="text-xs bg-base-300 text-base-content/70 px-3 py-1 rounded-full italic shadow-sm">
-                <span class="font-bold">{{ msg.pseudo }}</span> {{ msg.message }}
-              </span>
-            </div>
-          } @else {
-            <div class="flex items-start gap-1 text-sm min-w-0">
-              @if (msg.senderId === ui.currentHost()) {
-                <span class="flex items-center gap-1 font-bold text-red-500 mr-2">👑 {{ msg.pseudo }}:</span>
-              } @else {
-                <span class="font-bold text-secondary mr-2">{{ msg.pseudo }}:</span>
-              }
-              <span class="text-base-content/90 break-all min-w-0">{{ msg.message }}</span>
-            </div>
-          }
-        }
-      }
-      <div #messagesEnd></div>
-    </div>
-
-    @if (!userPanelOpen()) {
-      <div class="p-3 bg-base-100 border-t border-base-200 flex flex-col justify-center">
-        <form (ngSubmit)="sendMessage()" class="flex gap-2 relative items-center">
-          <input
-            type="text"
-            [(ngModel)]="inputValue"
-            name="chatInput"
-            class="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
-            placeholder="Ecrire un message..."
-            maxlength="200"
-          />
-          <button
-            type="submit"
-            class="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
-            [disabled]="!inputValue.trim()"
-          >
-            ➤
-          </button>
-        </form>
+  <div class="flex-1 min-h-0 overflow-y-auto p-4 bg-base-200/30">
+    @if (chatMessages().length === 0) {
+      <div class="flex flex-col items-center justify-center h-full text-sm italic text-base-content/40">
+        <span class="text-3xl mb-3 opacity-20">💬</span>
+        <p>Aucun message pour le moment.</p>
       </div>
+    } @else {
+      @for (msg of chatMessages(); track $index) {
+        <div class="flex items-start gap-1 text-sm min-w-0">
+          @if (isHostMessage(msg)) {
+            <span class="flex items-center gap-1 font-bold text-red-500 mr-2 shrink-0">👑 {{ msg.pseudo }}:</span>
+          } @else {
+            <span class="font-bold text-secondary mr-2 shrink-0">{{ msg.pseudo }}:</span>
+          }
+          <span class="text-base-content/90 break-all min-w-0">{{ msg.message }}</span>
+        </div>
+      }
     }
-  }
+    <div #messagesEnd></div>
+  </div>
+
+  <div class="shrink-0 p-3 border-t border-base-200 bg-base-100">
+    <form (ngSubmit)="sendMessage()" class="relative flex gap-2 items-center" autocomplete="off">
+      <input
+        type="text"
+        [(ngModel)]="inputValue"
+        name="chatInput"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        class="input input-sm input-bordered flex-1 rounded-full pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner bg-base-200/50"
+        placeholder="Écrire un message..."
+        maxlength="200"
+      />
+      <button
+        type="submit"
+        class="btn btn-sm btn-primary btn-circle absolute right-0.5 shadow-md flex items-right justify-center min-h-[1.75rem] h-7 w-7"
+        [disabled]="!inputValue.trim()"
+      >
+        ➤
+      </button>
+    </form>
+  </div>
 </div>

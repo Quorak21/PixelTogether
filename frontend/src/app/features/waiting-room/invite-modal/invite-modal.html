@@ -1,0 +1,48 @@
+@if (open()) {
+  <dialog class="modal modal-open">
+    <div class="modal-box max-w-lg">
+      <h2 class="text-xl font-bold mb-2">Inviter des joueurs</h2>
+      <p class="text-sm text-base-content/70 mb-4">
+        Affiche le code en stream ou partage le lien pour rejoindre la salle d'attente.
+      </p>
+
+      <div class="flex flex-col items-center gap-2 py-4 px-3 rounded-2xl bg-base-200 border border-base-300 mb-6">
+        <span class="text-xs font-medium uppercase tracking-widest text-base-content/60">Code de la partie</span>
+        <p class="text-4xl md:text-5xl font-bold font-mono tracking-[0.35em] text-primary select-all">
+          {{ roomCode() }}
+        </p>
+        <button type="button" class="btn btn-ghost btn-xs mt-1" (click)="copyCode()">
+          @if (copiedCode()) {
+            Code copié !
+          } @else {
+            Copier le code
+          }
+        </button>
+      </div>
+
+      <p class="text-sm text-base-content/70 mb-2">Lien direct</p>
+      <div class="flex gap-2">
+        <input
+          type="text"
+          class="input input-bordered flex-1 font-mono text-sm"
+          [value]="roomUrl()"
+          readonly
+        />
+        <button type="button" class="btn btn-primary shrink-0" (click)="copyUrl()">
+          @if (copiedUrl()) {
+            Copié !
+          } @else {
+            Copier
+          }
+        </button>
+      </div>
+
+      <div class="modal-action">
+        <button type="button" class="btn" (click)="close()">Fermer</button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button type="button" (click)="close()">close</button>
+    </form>
+  </dialog>
+}
