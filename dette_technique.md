@@ -27,7 +27,7 @@
 
 ## MOYEN
 
-- **BACK-03** — **Decouper le god file `index.js`** : extraire la logique par domaine (event/lobby, groupes, jeu/grid, chat, vote, export) au fil de la reconstruction. Ideal a faire en construisant le nouveau code plutot qu'apres.
+- **TEST-01** — **Process de tests** : aucun pipeline aujourd'hui (specs supprimees, pas de scripts `test`). A definir puis implementer : scripts npm back (`node:test` sur logique pure : shuffle, validation socket) et front (Vitest/Angular), regles agents alignees, premiere couverture utile, integration CI — pas de fichiers orphelins sans process.
 - **PERF-03** — **Export image correct** : `toDataURL('image/webp')` avec node-canvas retombe en PNG silencieusement. Pour le ZIP souvenir (FLOW-03), encoder explicitement (PNG propre ou WebP via `sharp`).
 - **ARCH-02** — **Limiter le god service d'UI** : `UiStateService` est injecte partout. Separer les responsabilites au fil du nouveau code (eviter le couplage autour de la grille).
 - **ARCH-03** — **Routing sur-dimensionne** : 3 fichiers `*.routes.ts` (host, lobby, game) pour 1 page chacun → triple indirection + lazy-load inutile sur host/lobby (~7–9 KB). Simplifier : routes plates dans `app.routes.ts` pour `/` et `/lobby`, lazy-load **uniquement** sur `game/:roomId`. A faire de preference en phase 2 quand `host/` et `player/` auront plusieurs routes.
@@ -37,7 +37,6 @@
 ## INFO / POLISH
 
 - **DOC-01** — **Documentation** : README racine decrivant le nouveau produit + `.env.example` (PORT, FRONTEND_URL…).
-- **TEST-01** — **Tests** : aucune couverture aujourd'hui. A planifier progressivement sur la nouvelle logique (repartition groupes, allocation couleurs, vote).
 - **UX-02** — **Chat** : compteur de caracteres + gestion des mots trop longs (aligner limites front/back).
 - **UX-03** — **Feedback create/join** : spinner ou état « Chargement… » pendant ack socket + navigation (éviter l'impression de bug).
 
@@ -50,4 +49,4 @@
 | Critique | 4 |
 | Eleve | 5 |
 | Moyen | 4 |
-| Info / Polish | 5 |
+| Info / Polish | 4 |

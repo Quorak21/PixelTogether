@@ -1,0 +1,81 @@
+@if (visible() && ui.groupTransition(); as transition) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="card bg-base-100 shadow-2xl w-full max-w-2xl border border-base-300">
+      <div class="card-body gap-6">
+        <div class="text-center">
+          <p class="text-sm uppercase tracking-widest text-base-content/50 font-semibold">Thème</p>
+          <h2 class="text-3xl font-black text-primary">{{ transition.theme }}</h2>
+          <p class="text-base-content/60 mt-2">Préparez-vous — {{ secondsLeft() }}s</p>
+        </div>
+
+        @if (transition.role === 'player') {
+          <div>
+            <h3 class="text-lg font-bold text-center mb-4">Vos couleurs</h3>
+            <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+              @for (color of transition.myColors; track color) {
+                <span
+                  class="w-5 h-5 rounded-sm border border-base-300 shrink-0"
+                  [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
+                  [style.backgroundColor]="color"
+                  [title]="color"
+                ></span>
+              }
+            </div>
+
+            <h3 class="text-lg font-bold text-center mb-4">Votre équipe</h3>
+            <div class="flex flex-wrap justify-center gap-6">
+              @for (mate of transition.teammates; track mate.socketId) {
+                <div class="flex flex-col items-center gap-2 min-w-[5rem]">
+                  <app-avatar-placeholder [color]="mate.avatarColor" size="lg" />
+                  <span class="font-semibold text-base text-center">{{ mate.pseudo }}</span>
+                  <div class="flex flex-wrap justify-center gap-1 max-w-[6rem]">
+                    @for (color of mate.colors; track color) {
+                      <span
+                        class="w-5 h-5 rounded-sm border border-base-300 shrink-0"
+                        [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
+                        [style.backgroundColor]="color"
+                        [title]="color"
+                      ></span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <p class="text-center text-lg font-bold text-base-content/70 mt-4">
+              {{ transition.groupLabel }}
+            </p>
+          </div>
+        } @else {
+          <div class="space-y-4 max-h-[50vh] overflow-y-auto">
+            <h3 class="text-lg font-bold text-center">Répartition des groupes</h3>
+            @for (group of transition.groups; track group.groupCode) {
+              <div class="rounded-2xl border border-base-300 bg-base-200/50 p-4">
+                <p class="font-bold text-primary text-lg mb-3">
+                  {{ group.groupLabel }}
+                </p>
+                <div class="space-y-3">
+                  @for (player of group.players; track player.socketId) {
+                    <div class="flex flex-wrap items-center gap-3">
+                      <app-avatar-placeholder [color]="player.avatarColor" size="md" />
+                      <span class="font-medium min-w-[4rem]">{{ player.pseudo }}</span>
+                      <div class="flex flex-wrap gap-1">
+                        @for (color of player.colors; track color) {
+                          <span
+                            class="w-5 h-5 rounded-sm border border-base-300 shrink-0"
+                            [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
+                            [style.backgroundColor]="color"
+                            [title]="color"
+                          ></span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

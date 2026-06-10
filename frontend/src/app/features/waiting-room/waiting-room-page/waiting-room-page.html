@@ -1,90 +1,70 @@
-<div
-  class="h-full flex flex-col p-4 md:p-8 bg-linear-to-b from-base-200 to-base-100"
-  [class.blur-sm]="showOnboarding()"
-  [class.pointer-events-none]="showOnboarding()"
-  [class.select-none]="showOnboarding()"
->
+<div class="h-full flex flex-col p-4 md:p-8 bg-linear-to-b from-base-200 to-base-100" [class.blur-sm]="showOnboarding()"
+  [class.pointer-events-none]="showOnboarding()" [class.select-none]="showOnboarding()">
   @if (isLoading()) {
-    <div class="flex flex-1 items-center justify-center">
-      <span class="loading loading-spinner loading-lg text-primary"></span>
-    </div>
+  <div class="flex flex-1 items-center justify-center">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+  </div>
   } @else if (pageError()) {
-    <div class="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-      <p class="text-lg text-error">{{ pageError() }}</p>
-      <button type="button" class="btn btn-primary" (click)="goHome()">
-        Retour à l'accueil
-      </button>
-    </div>
+  <div class="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+    <p class="text-lg text-error">{{ pageError() }}</p>
+    <button type="button" class="btn btn-primary" (click)="goHome()">
+      Retour à l'accueil
+    </button>
+  </div>
   } @else {
-    <header class="flex items-start justify-between gap-4 mb-8">
-      <div>
+  <header class="flex items-start justify-between gap-4 mb-8">
+    <div>
+      @if (ui.isHost()) {
+      <button type="button" class="btn btn-outline btn-sm mb-4" (click)="openInvite()">
+        Inviter
+      </button>
+      }
+    </div>
+
+    <div class="flex-1 text-center">
+      @if (partyName()) {
+      <h1 class="text-3xl md:text-4xl font-black text-primary mb-4">{{ partyName() }}</h1>
+      }
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold">En attente du début de la partie…</h2>
+          <p class="text-base-content/70 mt-1">
+            {{ playerCount() }} joueur{{ playerCount() > 1 ? 's' : '' }} déjà prêt{{ playerCount() > 1 ? 's' : '' }} !
+          </p>
+        </div>
+
         @if (ui.isHost()) {
-          <button type="button" class="btn btn-outline btn-sm mb-4" (click)="openInvite()">
-            Inviter
-          </button>
+        <button type="button" class="btn btn-success btn-lg shrink-0" [disabled]="!canStart()"
+          (click)="openStartConfirm()">
+          Démarrer
+        </button>
         }
       </div>
+    </div>
 
-      <div class="flex-1 text-center">
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
-          <div>
-            <h1 class="text-2xl md:text-3xl font-bold">En attente du début de la partie…</h1>
-            <p class="text-base-content/70 mt-1">
-              {{ playerCount() }} joueur{{ playerCount() > 1 ? 's' : '' }} déjà prêt{{ playerCount() > 1 ? 's' : '' }} !
-            </p>
-          </div>
+    <div class="w-20 hidden sm:block" aria-hidden="true"></div>
+  </header>
 
-          @if (ui.isHost()) {
-            <button
-              type="button"
-              class="btn btn-success btn-lg shrink-0"
-              [disabled]="!canStart()"
-              (click)="openStartConfirm()"
-            >
-              Démarrer
-            </button>
-          }
-        </div>
-      </div>
-
-      <div class="w-20 hidden sm:block" aria-hidden="true"></div>
-    </header>
-
-    <section class="flex-1 overflow-auto">
-      @if (players().length === 0) {
-        <p class="text-center text-base-content/60 mt-12">
-          En attente des premiers joueurs…
-        </p>
-      } @else {
-        <div
-          class="grid gap-4 max-w-4xl mx-auto pb-8 grid-cols-[repeat(auto-fill,minmax(9rem,1fr))]"
-        >
-          @for (player of players(); track player.socketId) {
-            <app-player-card [player]="player" />
-          }
-        </div>
+  <section class="flex-1 overflow-auto">
+    @if (players().length === 0) {
+    <p class="text-center text-base-content/60 mt-12">
+      En attente des premiers joueurs…
+    </p>
+    } @else {
+    <div class="grid gap-4 max-w-4xl mx-auto pb-8 grid-cols-[repeat(auto-fill,minmax(9rem,1fr))]">
+      @for (player of players(); track player.socketId) {
+      <app-player-card [player]="player" />
       }
-    </section>
+    </div>
+    }
+  </section>
   }
 </div>
 
-<app-onboarding-modal
-  [open]="showOnboarding()"
-  [error]="onboardingError()"
-  (submitProfile)="handleRegister($event)"
-/>
+<app-onboarding-modal [open]="showOnboarding()" [isHost]="ui.isHost()" [error]="onboardingError()"
+  (submitProfile)="handleRegister($event)" />
 
-<app-invite-modal
-  [open]="inviteOpen()"
-  [roomCode]="roomId()"
-  [roomUrl]="roomUrl()"
-  (closed)="closeInvite()"
-/>
+<app-invite-modal [open]="inviteOpen()" [roomCode]="roomId()" [roomUrl]="roomUrl()" (closed)="closeInvite()" />
 
-<app-start-confirm-modal
-  [open]="startConfirmOpen()"
-  [error]="startError()"
-  [isSubmitting]="isStarting()"
-  (confirmed)="confirmStart()"
-  (closed)="closeStartConfirm()"
-/>
+<app-start-confirm-modal [open]="startConfirmOpen()" [error]="startError()" [isSubmitting]="isStarting()"
+  (confirmed)="confirmStart()" (closed)="closeStartConfirm()" />

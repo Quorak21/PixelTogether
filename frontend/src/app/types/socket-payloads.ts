@@ -1,7 +1,19 @@
-import { ParticipantRole, PlayerProfile, RoomStatus, WaitingRoomPlayer } from './entities';
+import {
+  EventLobbyState,
+  GroupTransitionHostPayload,
+  GroupTransitionPlayerPayload,
+  ParticipantRole,
+  PlayerProfile,
+  RoomStatus,
+  SessionEndedPayload,
+  WaitingRoomPlayer,
+} from './entities';
+
+export type { SessionEndedPayload };
 
 export interface NewGridPayload {
-  name: string;
+  partyName: string;
+  theme: string;
 }
 
 export interface NewGridResponse {
@@ -18,7 +30,12 @@ export interface EnterWaitingRoomPayload {
 
 export interface WaitingRoomStatePayload {
   roomId: string;
+  eventId?: string;
+  partyName: string;
+  theme: string;
   name: string;
+  sessionCount: number;
+  currentSession: number;
   status: RoomStatus;
   role: ParticipantRole;
   hostProfile: PlayerProfile | null;
@@ -46,15 +63,43 @@ export interface StartGamePayload {
 }
 
 export interface StartGameResponse {
+  eventId?: string;
   roomId?: string;
   status?: RoomStatus;
   error?: string;
 }
 
-export interface GameStartedPayload {
-  roomId: string;
-}
+export type GameStartedPayload = GroupTransitionPlayerPayload | GroupTransitionHostPayload;
 
 export interface WaitingRoomErrorPayload {
   error: string;
+}
+
+export interface GetEventLobbyPayload {
+  eventId: string;
+}
+
+export interface EventLobbyStatePayload extends EventLobbyState {
+  error?: string;
+}
+
+export interface GroupPreviewUpdatedPayload {
+  eventId: string;
+  groupCode: string;
+  image: string;
+}
+
+export interface JoinGroupPayload {
+  eventId: string;
+  groupCode: string;
+}
+
+export interface EndSessionPayload {
+  eventId: string;
+}
+
+export interface EndSessionResponse {
+  ok?: boolean;
+  eventId?: string;
+  error?: string;
 }

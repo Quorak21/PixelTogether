@@ -16,14 +16,33 @@
 
       <form [formGroup]="form" (ngSubmit)="createNewGrid()" class="space-y-5" autocomplete="off">
         <div class="form-control w-full">
+          <label class="label pb-1" for="party-name">
+            <span class="label-text font-semibold text-base-content/80">Nom de la partie</span>
+          </label>
+          <input
+            id="party-name"
+            type="text"
+            formControlName="partyName"
+            placeholder="Team building Q2…"
+            maxlength="30"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="input input-bordered focus:border-primary w-full bg-base-200/50"
+            required
+          />
+        </div>
+
+        <div class="form-control w-full">
           <label class="label pb-1" for="grid-theme">
             <span class="label-text font-semibold text-base-content/80">Thème</span>
           </label>
           <input
             id="grid-theme"
             type="text"
-            formControlName="name"
+            formControlName="theme"
             placeholder="Paysage, portrait, abstrait…"
+            maxlength="30"
             autocomplete="off"
             autocapitalize="off"
             spellcheck="false"

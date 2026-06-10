@@ -1,14 +1,37 @@
-# PixelTogether — Regles Cursor
-
-Regles agents : `.cursor/rules/*.mdc` — definitions subagents : `.cursor/agents/*.md`
-
-## Cap produit
-
-Outil de **teambuilding B2B ephemere par session** : le manager configure une partie, les joueurs sont repartis en **groupes de 3-4** avec une **palette de couleurs exclusive par membre** (collaboration forcee), puis **vote** et export **ZIP** des grilles. Tout l'etat est **en memoire** ; rien ne persiste apres la session.
-
-Detail fonctionnel et planning : **`road_map.md`**.
-
-## Stack
-
-**Angular 21** + **Tailwind CSS 4** + **DaisyUI** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
-
+# PixelTogether — Regles Cursor
+
+
+
+Regles agents : `.cursor/rules/*.mdc` — definitions subagents : `.cursor/agents/*.md`
+
+
+
+## Cap produit
+
+
+
+Outil de **teambuilding B2B ephemere par session** : le manager configure une partie, les joueurs sont repartis en **groupes de 3-4** avec une **palette de couleurs exclusive par membre** (collaboration forcee), puis **vote** et export **ZIP** des grilles. Tout l'etat est **en memoire** ; rien ne persiste apres la session.
+
+
+
+Detail fonctionnel et planning : **`road_map.md`**.
+
+
+
+## Stack
+
+
+
+**Angular 21** + **Tailwind CSS 4** + **DaisyUI** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
+
+
+
+## Conventions dev
+
+
+
+- **Styles** : classes Tailwind/DaisyUI dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind/DaisyUI.
+
+- **Tests** : hors scope pour l'instant (dette **TEST-01** dans `dette_technique.md`). Ne pas ajouter de `*.spec.ts`, `*.test.js` ni scripts `test` tant que le process n'est pas défini.
+
+

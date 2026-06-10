@@ -9,7 +9,6 @@ const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
   selector: 'app-join-room-modal',
   imports: [ReactiveFormsModule],
   templateUrl: './join-room-modal.html',
-  styleUrl: './join-room-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class JoinRoomModalComponent {

@@ -1,25 +1,32 @@
-<div class="flex w-full bg-base-100 h-full overflow-hidden">
-  <div
-    class="landing-panel flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-hidden w-full"
-  >
-    <div class="landing-center flex flex-1 flex-col items-center justify-center gap-4">
-      <button
-        type="button"
-        (click)="openCreateModal()"
-        class="btn btn-primary btn-lg landing-cta shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        Créer une nouvelle partie
-      </button>
-      <button
-        type="button"
-        (click)="openJoinModal()"
-        class="btn btn-outline btn-lg landing-cta shadow-md hover:shadow-lg transition-all duration-300"
-      >
-        Rejoindre une partie
-      </button>
-    </div>
-  </div>
-</div>
-
-<app-grid-creation-modal />
-<app-join-room-modal />
+<div class="flex w-full bg-base-100 h-full overflow-hidden">
+
+  <div
+    class="flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-hidden w-full before:content-[''] before:absolute before:inset-0 before:opacity-[0.06] before:pointer-events-none before:bg-[radial-gradient(circle_at_2px_2px,currentColor_1px,transparent_0)] before:bg-[length:16px_16px]"
+  >
+
+    <div class="relative z-[1] flex flex-1 flex-col items-center justify-center gap-4">
+
+      <button
+        type="button"
+        (click)="openCreateModal()"
+        class="btn btn-primary btn-lg min-w-[min(100%,20rem)] shadow-lg hover:shadow-xl transition-all duration-300"
+      >
+        Créer une nouvelle partie
+      </button>
+
+      <button
+        type="button"
+        (click)="openJoinModal()"
+        class="btn btn-outline btn-lg min-w-[min(100%,20rem)] shadow-md hover:shadow-lg transition-all duration-300"
+      >
+        Rejoindre une partie
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<app-grid-creation-modal />
+<app-join-room-modal />

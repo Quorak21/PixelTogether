@@ -17,7 +17,7 @@ export const routes: Routes = [
       import('./features/lobby/lobby.routes').then((m) => m.LOBBY_ROUTES),
   },
   {
-    path: 'game/:roomId',
+    path: 'game/:eventId/:groupCode',
     loadChildren: () =>
       import('./features/game/game.routes').then((m) => m.GAME_ROUTES),
   },

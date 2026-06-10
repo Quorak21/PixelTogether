@@ -22,7 +22,8 @@ export class GridCreationModalComponent {
   readonly isSubmitting = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
+    partyName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+    theme: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
   });
 
   async createNewGrid(): Promise<void> {
@@ -34,7 +35,8 @@ export class GridCreationModalComponent {
     this.error.set('');
 
     const payload: NewGridPayload = {
-      name: this.form.controls.name.value,
+      partyName: this.form.controls.partyName.value,
+      theme: this.form.controls.theme.value,
     };
 
     const response = await this.socket.emitWithAck<NewGridPayload, NewGridResponse>('newGrid', payload);
@@ -48,7 +50,7 @@ export class GridCreationModalComponent {
     this.ui.gridCreationOpen.set(false);
     this.ui.setRole('host');
     this.ui.joinWaitingRoom(response.id);
-    this.router.navigateByUrl(`/room/${response.id}`);
+    void this.router.navigateByUrl(`/room/${response.id}`);
     this.isSubmitting.set(false);
   }
 }

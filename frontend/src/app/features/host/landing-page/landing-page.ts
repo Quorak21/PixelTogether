@@ -7,7 +7,6 @@ import { JoinRoomModalComponent } from '../join-room-modal/join-room-modal';
   selector: 'app-landing-page',
   imports: [GridCreationModalComponent, JoinRoomModalComponent],
   templateUrl: './landing-page.html',
-  styleUrl: './landing-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingPageComponent {

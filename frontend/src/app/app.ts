@@ -7,7 +7,7 @@ import { FooterComponent } from './shared/footer/footer';
   selector: 'app-root',
   imports: [RouterOutlet, NavbarComponent, FooterComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css',
+  host: { class: 'block h-dvh' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {}

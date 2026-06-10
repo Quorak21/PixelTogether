@@ -10,7 +10,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
-import { WaitingRoomPlayer } from '../../../types/entities';
+import { SessionEndedPayload, WaitingRoomPlayer } from '../../../types/entities';
 import {
   EnterWaitingRoomPayload,
   GameStartedPayload,
@@ -48,6 +48,7 @@ export class WaitingRoomPageComponent {
   private readonly onboardingModal = viewChild(OnboardingModalComponent);
 
   readonly roomId = signal(this.route.snapshot.paramMap.get('roomId')?.toUpperCase() ?? '');
+  readonly partyName = signal('');
   readonly players = signal<WaitingRoomPlayer[]>([]);
   readonly isRegistered = signal(false);
   readonly isLoading = signal(true);
@@ -173,7 +174,9 @@ export class WaitingRoomPageComponent {
 
   private applyState(state: WaitingRoomStatePayload): void {
     this.ui.setRole(state.role);
-    this.ui.gameTheme.set(state.name);
+    this.partyName.set(state.partyName);
+    this.ui.partyName.set(state.partyName);
+    this.ui.gameTheme.set(state.theme ?? state.name);
     this.players.set(state.players);
     this.isRegistered.set(state.isRegistered);
     this.onboardingOpen.set(!state.isRegistered);
@@ -206,11 +209,46 @@ export class WaitingRoomPageComponent {
     };
 
     const onGameStarted = (payload: GameStartedPayload) => {
-      if (payload.roomId !== this.roomId()) {
+      if (payload.eventId !== this.roomId()) {
         return;
       }
-      this.ui.joinGame(payload.roomId);
-      void this.router.navigateByUrl(`/game/${payload.roomId}`);
+
+      this.ui.setGroupTransition(payload);
+      this.ui.partyName.set(payload.partyName);
+      this.ui.gameTheme.set(payload.theme);
+      if (payload.role === 'player') {
+        this.ui.groupLabel.set(payload.groupLabel);
+      }
+
+      if (payload.role === 'host') {
+        this.ui.setRole('host');
+        this.ui.exitWaitingRoom();
+        void this.router.navigateByUrl(`/lobby/${payload.eventId}`);
+        return;
+      }
+
+      this.ui.setRole('player');
+      this.ui.setColorsFromTransition(payload.myColors);
+      this.ui.joinGame(payload.eventId, payload.groupCode);
+      void this.router.navigateByUrl(`/game/${payload.eventId}/${payload.groupCode}`);
+    };
+
+    const onSessionEnded = (payload: SessionEndedPayload) => {
+      if (payload.eventId !== this.roomId()) {
+        return;
+      }
+      this.partyName.set(payload.partyName);
+      this.players.set(
+        payload.players.map((p) => ({ ...p, role: 'player' as const })),
+      );
+      this.isLoading.set(false);
+      this.pageError.set(null);
+      this.ui.joinWaitingRoom(payload.eventId);
+      this.ui.partyName.set(payload.partyName);
+      this.ui.gameTheme.set(payload.theme);
+      if (this.ui.isHost()) {
+        this.ui.setRole('host');
+      }
     };
 
     const onWaitingRoomError = (payload: WaitingRoomErrorPayload) => {
@@ -222,8 +260,9 @@ export class WaitingRoomPageComponent {
       this.ui.exitWaitingRoom();
     };
 
-    const onRoomClosed = (payload: { roomId: string }) => {
-      if (payload.roomId !== this.roomId()) {
+    const onRoomClosed = (payload: { roomId?: string; eventId?: string }) => {
+      const closedId = payload.eventId ?? payload.roomId;
+      if (closedId !== this.roomId()) {
         return;
       }
       this.ui.exitWaitingRoom();
@@ -232,12 +271,14 @@ export class WaitingRoomPageComponent {
 
     this.socket.on<WaitingRoomUpdatedPayload>('waitingRoomUpdated', onUpdated);
     this.socket.on<GameStartedPayload>('gameStarted', onGameStarted);
+    this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
     this.socket.on<WaitingRoomErrorPayload>('waitingRoomError', onWaitingRoomError);
     this.socket.on<{ roomId: string }>('roomClosed', onRoomClosed);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('waitingRoomUpdated', onUpdated as (...args: unknown[]) => void);
       this.socket.off('gameStarted', onGameStarted as (...args: unknown[]) => void);
+      this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
       this.socket.off('waitingRoomError', onWaitingRoomError as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
     });

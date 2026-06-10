@@ -13,6 +13,7 @@ export class OnboardingModalComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly open = input.required<boolean>();
+  readonly isHost = input(false);
   readonly error = input<string>('');
 
   readonly submitProfile = output<{ pseudo: string; avatarColor: string }>();
@@ -22,7 +23,7 @@ export class OnboardingModalComponent {
   readonly isSubmitting = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    pseudo: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
+    pseudo: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
   });
 
   selectColor(color: string): void {

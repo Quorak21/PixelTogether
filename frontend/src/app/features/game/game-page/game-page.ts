@@ -4,10 +4,16 @@ import { UiStateService } from '../../../core/services/ui-state.service';
 import { CanvasComponent } from '../canvas/canvas';
 import { ColorPaletteComponent } from '../color-palette/color-palette';
 import { ChatboxComponent } from '../chatbox/chatbox';
+import { GroupTransitionModalComponent } from '../group-transition-modal/group-transition-modal';
 
 @Component({
   selector: 'app-game-page',
-  imports: [CanvasComponent, ColorPaletteComponent, ChatboxComponent],
+  imports: [
+    CanvasComponent,
+    ColorPaletteComponent,
+    ChatboxComponent,
+    GroupTransitionModalComponent,
+  ],
   templateUrl: './game-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -16,15 +22,32 @@ export class GamePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  readonly roomId = signal(this.route.snapshot.paramMap.get('roomId')?.toUpperCase() ?? '');
+  readonly eventId = signal(this.route.snapshot.paramMap.get('eventId')?.toUpperCase() ?? '');
+  readonly groupCode = signal(this.route.snapshot.paramMap.get('groupCode') ?? '');
+  readonly transitionActive = signal(Boolean(this.ui.groupTransition()));
 
   constructor() {
-    if (!this.roomId()) {
-      this.router.navigateByUrl('/lobby');
+    const eventId = this.eventId();
+    const groupCode = this.groupCode();
+
+    if (!eventId || !groupCode) {
+      void this.router.navigateByUrl('/');
       return;
     }
 
-    this.ui.currentRoomId.set(this.roomId());
-    this.ui.gameMode.set(true);
+    this.ui.currentEventId.set(eventId);
+    this.ui.currentGroupCode.set(groupCode);
+    this.ui.joinGame(eventId, groupCode);
+  }
+
+  onTransitionDismissed(): void {
+    this.transitionActive.set(false);
+  }
+
+  returnToLobby(): void {
+    const eventId = this.eventId();
+    if (eventId) {
+      void this.router.navigateByUrl(`/lobby/${eventId}`);
+    }
   }
 }

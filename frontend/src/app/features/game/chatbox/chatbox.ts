@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SocketService } from '../../../core/services/socket.service';
+import { UiStateService } from '../../../core/services/ui-state.service';
 
 interface ChatMessage {
   senderId?: string;
@@ -26,10 +27,12 @@ interface ChatMessage {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatboxComponent implements AfterViewInit {
+  readonly ui = inject(UiStateService);
   private readonly socket = inject(SocketService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly roomId = input.required<string>();
+  readonly eventId = input.required<string>();
+  readonly groupCode = input.required<string>();
   readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
   readonly chatMessages = signal<ChatMessage[]>([]);
@@ -59,9 +62,9 @@ export class ChatboxComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const roomId = this.roomId();
-    this.socket.emit('getChatMessages', { roomId });
-    this.socket.emit('getPlayersList', { roomId });
+    const payload = { eventId: this.eventId(), groupCode: this.groupCode() };
+    this.socket.emit('getChatMessages', payload);
+    this.socket.emit('getPlayersList', payload);
   }
 
   isHostMessage(msg: ChatMessage): boolean {
@@ -78,7 +81,8 @@ export class ChatboxComponent implements AfterViewInit {
       return;
     }
     this.socket.emit('sendMessage', {
-      roomId: this.roomId(),
+      eventId: this.eventId(),
+      groupCode: this.groupCode(),
       message: this.inputValue,
     });
     this.inputValue = '';

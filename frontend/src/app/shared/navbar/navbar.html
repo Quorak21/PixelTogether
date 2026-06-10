@@ -7,8 +7,10 @@
     >
       Pixel Together
     </button>
-    @if (ui.inRoom() && ui.gameTheme()) {
-      <span class="text-lg font-bold uppercase truncate text-base-content">{{ ui.gameTheme() }}</span>
+    @if (ui.gameMode() && ui.partyName()) {
+      <span class="text-lg font-bold truncate text-base-content">{{ ui.partyName() }}</span>
+    } @else if (ui.waitingMode() && ui.partyName()) {
+      <span class="text-lg font-bold truncate text-base-content">{{ ui.partyName() }}</span>
     }
   </div>
 

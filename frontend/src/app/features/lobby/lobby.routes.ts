@@ -4,6 +4,10 @@ import { LobbyPageComponent } from './lobby-page/lobby-page';
 export const LOBBY_ROUTES: Routes = [
   {
     path: '',
-    component: LobbyPageComponent
-  }
+    component: LobbyPageComponent,
+  },
+  {
+    path: ':eventId',
+    component: LobbyPageComponent,
+  },
 ];

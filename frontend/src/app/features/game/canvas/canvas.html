@@ -12,7 +12,9 @@
     #canvasEl
     id="canvas"
     (pointerup)="handleDraw($event)"
-    class="shrink-0 cursor-crosshair bg-white shadow-2xl"
+    class="shrink-0 bg-white shadow-2xl"
+    [class.cursor-crosshair]="!ui.isHost()"
+    [class.cursor-grab]="ui.isHost()"
     [style.transition]="isDragging() ? 'none' : 'transform 0.1s ease-in-out'"
     [style.transform]="'translate(' + position().x + 'px, ' + position().y + 'px) scale(' + scale() + ')'"
   ></canvas>

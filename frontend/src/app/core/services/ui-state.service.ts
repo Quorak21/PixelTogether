@@ -1,26 +1,17 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { ParticipantRole, PlayerProfile } from '../../types/entities';
-
-const WHITE = '#ffffff';
-const DEFAULT_COLORS = [
-  '#000000',
-  '#ff0000',
-  '#ff6600',
-  '#ffff00',
-  '#00ff00',
-  '#00ccff',
-  '#0000ff',
-  '#9900ff',
-  '#ff00cc',
-  WHITE,
-];
+import { GroupTransitionPayload, ParticipantRole, PlayerProfile } from '../../types/entities';
 
 @Injectable({ providedIn: 'root' })
 export class UiStateService {
   readonly waitingMode = signal(false);
   readonly gameMode = signal(false);
   readonly gameTheme = signal('');
+  readonly partyName = signal('');
+  readonly groupLabel = signal('');
   readonly currentRoomId = signal<string | null>(null);
+  readonly currentEventId = signal<string | null>(null);
+  readonly currentGroupCode = signal<string | null>(null);
+  readonly groupTransition = signal<GroupTransitionPayload | null>(null);
   readonly currentRole = signal<ParticipantRole | null>(null);
   readonly isHost = computed(() => this.currentRole() === 'host');
   readonly inRoom = computed(() => this.waitingMode() || this.gameMode());
@@ -31,19 +22,31 @@ export class UiStateService {
   readonly joinRoomOpen = signal(false);
   readonly joinRoomError = signal<string | null>(null);
 
-  readonly selectedColor = signal(DEFAULT_COLORS[0]);
-  readonly colors = signal<string[]>([...DEFAULT_COLORS]);
+  readonly selectedColor = signal('#000000');
+  readonly colors = signal<string[]>([]);
 
-  joinWaitingRoom(roomId: string): void {
-    this.currentRoomId.set(roomId);
+  joinWaitingRoom(eventId: string): void {
+    this.currentEventId.set(eventId);
+    this.currentRoomId.set(eventId);
+    this.currentGroupCode.set(null);
     this.waitingMode.set(true);
     this.gameMode.set(false);
   }
 
-  joinGame(roomId: string): void {
-    this.currentRoomId.set(roomId);
+  joinGame(eventId: string, groupCode?: string): void {
+    this.currentEventId.set(eventId);
+    this.currentRoomId.set(groupCode ? `${eventId}/${groupCode}` : eventId);
+    this.currentGroupCode.set(groupCode ?? null);
     this.waitingMode.set(false);
     this.gameMode.set(true);
+  }
+
+  setGroupTransition(payload: GroupTransitionPayload | null): void {
+    this.groupTransition.set(payload);
+  }
+
+  clearGroupTransition(): void {
+    this.groupTransition.set(null);
   }
 
   setRole(role: ParticipantRole): void {
@@ -60,21 +63,31 @@ export class UiStateService {
 
   exitWaitingRoom(): void {
     this.currentRoomId.set(null);
+    this.currentEventId.set(null);
+    this.currentGroupCode.set(null);
     this.currentRole.set(null);
     this.waitingMode.set(false);
     this.gameTheme.set('');
+    this.partyName.set('');
+    this.groupLabel.set('');
+    this.clearGroupTransition();
     this.clearCurrentProfile();
   }
 
   exitGame(): void {
     this.currentRoomId.set(null);
+    this.currentEventId.set(null);
+    this.currentGroupCode.set(null);
     this.currentRole.set(null);
     this.waitingMode.set(false);
     this.gameMode.set(false);
     this.gameTheme.set('');
+    this.partyName.set('');
+    this.groupLabel.set('');
+    this.clearGroupTransition();
     this.clearCurrentProfile();
-    this.colors.set([...DEFAULT_COLORS]);
-    this.selectedColor.set(DEFAULT_COLORS[0]);
+    this.colors.set([]);
+    this.selectedColor.set('#000000');
   }
 
   setSelectedColor(color: string): void {
@@ -82,11 +95,18 @@ export class UiStateService {
   }
 
   setColorsFromGrid(gridColors: string[]): void {
-    const merged = gridColors.includes(WHITE) ? [...gridColors] : [...gridColors, WHITE];
-    this.colors.set(merged);
+    this.colors.set([...gridColors]);
 
-    if (!merged.includes(this.selectedColor())) {
-      this.setSelectedColor(merged[0]);
+    if (gridColors.length && !gridColors.includes(this.selectedColor())) {
+      this.setSelectedColor(gridColors[0]);
     }
+  }
+
+  setColorsFromTransition(myColors: string[]): void {
+    if (!myColors.length) {
+      return;
+    }
+    this.colors.set([...myColors]);
+    this.setSelectedColor(myColors[0]);
   }
 }

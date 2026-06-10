@@ -12,7 +12,7 @@ import {
 import { Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
-import { GridStatePayload } from '../../../types/entities';
+import { GridStatePayload, SessionEndedPayload } from '../../../types/entities';
 
 @Component({
   selector: 'app-canvas-board',
@@ -21,11 +21,12 @@ import { GridStatePayload } from '../../../types/entities';
 })
 export class CanvasComponent implements AfterViewInit {
   private readonly socket = inject(SocketService);
-  private readonly ui = inject(UiStateService);
+  readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly roomId = input.required<string>();
+  readonly eventId = input.required<string>();
+  readonly groupCode = input.required<string>();
   readonly viewportEl = viewChild.required<ElementRef<HTMLDivElement>>('viewport');
   readonly canvasEl = viewChild.required<ElementRef<HTMLCanvasElement>>('canvasEl');
 
@@ -39,13 +40,16 @@ export class CanvasComponent implements AfterViewInit {
   private pointerDownPos = { x: 0, y: 0 };
 
   ngAfterViewInit(): void {
-    this.socket.emit('joinRoom', { roomId: this.roomId() });
+    this.socket.emit('joinGroup', {
+      eventId: this.eventId(),
+      groupCode: this.groupCode(),
+    });
 
     const onJoinRoomError = (data: { error: string }) => {
-      const roomId = this.roomId();
-      if (data.error.includes('pas encore démarré') && roomId) {
-        this.ui.joinWaitingRoom(roomId);
-        void this.router.navigateByUrl(`/room/${roomId}`);
+      const eventId = this.eventId();
+      if (data.error.includes('pas encore démarré') && eventId) {
+        this.ui.joinWaitingRoom(eventId);
+        void this.router.navigateByUrl(`/room/${eventId}`);
         return;
       }
 
@@ -56,32 +60,45 @@ export class CanvasComponent implements AfterViewInit {
     };
     const onGridState = (data: GridStatePayload) => {
       this.ui.setRole(data.role);
-      this.ui.gameTheme.set(data.name);
+      this.ui.gameTheme.set(data.theme ?? data.name);
+      this.ui.partyName.set(data.partyName);
+      this.ui.groupLabel.set(data.groupLabel);
       this.renderGrid(data);
     };
     const onDrawPixel = (data: { x: number; y: number; color: string }) => this.drawSinglePixel(data);
-    const onRoomClosed = (data: { roomId: string }) => {
-      if (data.roomId === this.roomId()) {
+    const onRoomClosed = (data: { eventId?: string; roomId?: string }) => {
+      const closedId = data.eventId ?? data.roomId;
+      if (closedId === this.eventId()) {
         this.ui.exitGame();
-        this.router.navigateByUrl('/lobby');
+        void this.router.navigateByUrl('/');
       }
+    };
+    const onSessionEnded = (payload: SessionEndedPayload) => {
+      if (payload.eventId !== this.eventId()) {
+        return;
+      }
+      this.ui.exitGame();
+      this.ui.joinWaitingRoom(payload.eventId);
+      void this.router.navigateByUrl(`/room/${payload.eventId}`);
     };
 
     this.socket.on<{ error: string }>('joinRoomError', onJoinRoomError);
     this.socket.on<GridStatePayload>('gridState', onGridState);
     this.socket.on<{ x: number; y: number; color: string }>('drawPixel', onDrawPixel);
-    this.socket.on<{ roomId: string }>('roomClosed', onRoomClosed);
+    this.socket.on<{ eventId?: string; roomId?: string }>('roomClosed', onRoomClosed);
+    this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('joinRoomError', onJoinRoomError as (...args: unknown[]) => void);
       this.socket.off('gridState', onGridState as (...args: unknown[]) => void);
       this.socket.off('drawPixel', onDrawPixel as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
+      this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
     });
   }
 
   handleDraw(event: PointerEvent): void {
-    if (this.hasMoved || event.button !== 0) {
+    if (this.ui.isHost() || this.hasMoved || event.button !== 0) {
       this.hasMoved = false;
       return;
     }
@@ -93,11 +110,17 @@ export class CanvasComponent implements AfterViewInit {
     const x = Math.floor(relX * (canvas.width / this.pixelSize));
     const y = Math.floor(relY * (canvas.height / this.pixelSize));
 
+    const color = this.ui.selectedColor();
+    if (!this.ui.colors().includes(color)) {
+      return;
+    }
+
     this.socket.emit('pixelPlaced', {
       x,
       y,
-      color: this.ui.selectedColor(),
-      roomId: this.roomId(),
+      color,
+      eventId: this.eventId(),
+      groupCode: this.groupCode(),
     });
 
     this.hasMoved = false;
