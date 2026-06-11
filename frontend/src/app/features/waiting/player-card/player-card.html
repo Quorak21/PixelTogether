@@ -1,6 +1,4 @@
-<div class="rounded-box bg-base-100 shadow-md border border-base-200 min-w-32">
-  <div class="flex flex-col items-center text-center p-4 gap-3">
-    <app-avatar-placeholder [color]="player().avatarColor" size="lg" />
-    <p class="font-semibold text-base-content truncate w-full">{{ player().pseudo }}</p>
-  </div>
+<div class="flex flex-col items-center gap-2 text-center">
+  <app-avatar-placeholder [color]="player().avatarColor" size="md" />
+  <p class="w-full truncate text-sm font-medium text-white/90">{{ player().pseudo }}</p>
 </div>

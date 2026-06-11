@@ -13,6 +13,8 @@
 
 ## Entrées
 
+**WR-UI-01** — Refonte waiting room glass dark : panneau central (titre dégradé, grille joueurs, statut, CTA manager, stats), tous les modes WR harmonisés, modales dark glass ; navbar WR épurée (logo seul, pas avatar/pseudo ni nom de partie).
+
 **UI-01** — Styling Tailwind seul : palette Nord via `@theme`, classes composant migrées en utilitaires.
 
 **MVP team building** — Cycle complet livré : waiting room → sessions multi-thèmes → gameplay groupes → vote inter-sessions → podium → fin de partie. État 100 % en mémoire. Dettes et idées post-MVP → `backlog.md`.

@@ -16,6 +16,7 @@ import {
   SessionEndedPayload,
   VoteCandidate,
   VoteStateFields,
+  PlayerProfile,
   WaitingRoomPlayer,
   WrMode,
 } from '../../../types/entities';
@@ -39,6 +40,7 @@ import {
 import { OnboardingModalComponent } from '../onboarding-modal/onboarding-modal';
 import { InviteModalComponent } from '../invite-modal/invite-modal';
 import { StartConfirmModalComponent } from '../start-confirm-modal/start-confirm-modal';
+import { LucideLayers, LucidePlus, LucideUsers } from '@lucide/angular';
 import { PlayerCardComponent } from '../player-card/player-card';
 
 @Component({
@@ -48,6 +50,9 @@ import { PlayerCardComponent } from '../player-card/player-card';
     InviteModalComponent,
     StartConfirmModalComponent,
     PlayerCardComponent,
+    LucidePlus,
+    LucideUsers,
+    LucideLayers,
   ],
   templateUrl: './waiting-room-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,6 +74,7 @@ export class WaitingRoomPageComponent {
   readonly currentSession = signal(1);
   readonly partyStarted = signal(false);
   readonly players = signal<WaitingRoomPlayer[]>([]);
+  readonly managerProfile = signal<PlayerProfile | null>(null);
   readonly isRegistered = signal(false);
   readonly isLoading = signal(true);
   readonly pageError = signal<string | null>(null);
@@ -139,6 +145,16 @@ export class WaitingRoomPageComponent {
           ? 'En attente de la session suivante…'
           : 'En attente du début de la partie…';
     }
+  });
+  readonly partySubtitle = computed(() => {
+    if (this.wrMode() !== 'players' || this.partyStarted()) {
+      return '';
+    }
+    const pseudo = this.managerProfile()?.pseudo;
+    if (pseudo) {
+      return `${pseudo} vous a préparé un super thème !`;
+    }
+    return 'Votre manager vous a préparé un super thème !';
   });
   readonly waitingSubtitle = computed(() => {
     if (this.wrMode() === 'players') {
@@ -361,6 +377,7 @@ export class WaitingRoomPageComponent {
     this.ui.gameTheme.set(state.theme ?? state.name);
     this.ui.setSessionMeta(state.sessionCount, state.currentSession, Boolean(state.partyStarted));
     this.players.set(state.players);
+    this.managerProfile.set(state.managerProfile);
     this.isRegistered.set(state.isRegistered);
     this.onboardingOpen.set(!state.isRegistered);
     this.applyVoteState(state);

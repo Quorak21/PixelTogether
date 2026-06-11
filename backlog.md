@@ -64,6 +64,7 @@ Idées et évolutions — pas de priorité imposée, tri libre. Quand une idée 
 - Manager : choix de musique (pistes prédéfinies)
 - Documentation sur landing page pour expliquer le principe + readme github pour le portfolio // a terminer
 - Waiting room : encart qui explique rapidement le déroulement
+- Waiting room : pool de sous-titres marrants sous le titre (ex. « {pseudo} vous a préparé un super thème ! ») — tirage aléatoire à chaque entrée en salle d'attente
 - SEO
 - Kick un joueur de la waiting room
 - Rendre invisible la création de nouvelle game (éviter les trolls — à définir)
