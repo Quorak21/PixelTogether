@@ -1,5 +1,13 @@
 import { beginSession } from '../../services/session/sessionLifecycle.js';
+import { scheduleSessionEnd } from '../../services/session/sessionTimer.js';
+import {
+  handleCastVote,
+  handleCloseVote,
+  handleEndParty,
+  handleShowResults,
+} from '../../services/vote/voteLifecycle.js';
 
+// entrée WR, inscription, startGame, vote — tout ce qui se passe hors canvas
 export function registerWaitingRoomHandlers(socket, deps) {
   const { io, store, constants, participants, payloads, lifecycle } = deps;
   const { activeEvents, normalizeEventId } = store;
@@ -30,6 +38,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return;
     }
 
+    // enterWaitingRoom bloqué si session en cours — les joueurs restent en jeu
     if (event.status === 'started') {
       const error = 'La partie a déjà commencé.';
       if (typeof callback === 'function') callback({ error });
@@ -55,7 +64,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: "La partie n'existe pas." });
     }
 
-    if (event.status === 'started') {
+    if (event.status === 'started' || event.partyStarted) {
       return callback({ error: 'La partie a déjà commencé.' });
     }
 
@@ -77,8 +86,8 @@ export function registerWaitingRoomHandlers(socket, deps) {
 
     const role = getParticipantRole(event, socket.id);
 
-    if (role === 'host') {
-      event.hostProfile = { pseudo, avatarColor };
+    if (role === 'manager') {
+      event.managerProfile = { pseudo, avatarColor };
     } else {
       event.players.push({
         socketId: socket.id,
@@ -104,7 +113,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: "La partie n'existe pas." });
     }
 
-    if (socket.id !== event.host) {
+    if (socket.id !== event.manager) {
       return callback({ error: 'Seul le manager peut démarrer la partie.' });
     }
 
@@ -112,24 +121,48 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: 'La partie est déjà lancée.' });
     }
 
-    if (!event.hostProfile) {
+    if (event.activeVote?.status === 'open') { // vote ouvert = session suivante bloquée
+      return callback({ error: 'Clôturez le vote avant de démarrer la session.' });
+    }
+
+    if (!event.managerProfile) {
       return callback({ error: 'Le manager doit compléter son profil avant de démarrer.' });
     }
 
-    if (event.players.length < 2) {
+    if (!event.partyStarted && event.players.length < 2) {
       return callback({ error: 'Au moins 2 joueurs sont requis pour démarrer.' });
     }
 
+    event.activeVote = null;
+    event.partyStarted = true;
+    event.name = event.themes[event.currentSession - 1];
     event.status = 'started';
     beginSession(event, deps);
+    scheduleSessionEnd(event, io);
     emitGameStarted(io, event);
     callback({ eventId, status: 'started' });
+  });
+
+  socket.on('castVote', (data, callback) => {
+    handleCastVote(socket, data, callback, deps);
+  });
+
+  socket.on('closeVote', (data, callback) => {
+    handleCloseVote(socket, data, callback, deps);
+  });
+
+  socket.on('showResults', (data, callback) => {
+    handleShowResults(socket, data, callback, deps);
+  });
+
+  socket.on('endParty', (data, callback) => {
+    handleEndParty(socket, data, callback, deps);
   });
 
   socket.on('leaveWaitingRoom', (data) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
-    if (!event || socket.id === event.host) {
+    if (!event || socket.id === event.manager) {
       return;
     }
 

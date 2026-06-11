@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { CanvasComponent } from '../canvas/canvas';
 import { ColorPaletteComponent } from '../color-palette/color-palette';
-import { ChatboxComponent } from '../chatbox/chatbox';
+import { ChatboxComponent } from '../../../shared/chatbox/chatbox';
 import { GroupTransitionModalComponent } from '../group-transition-modal/group-transition-modal';
 
 @Component({
@@ -17,6 +17,7 @@ import { GroupTransitionModalComponent } from '../group-transition-modal/group-t
   templateUrl: './game-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+// shell jeu : canvas + chat + palette (palette masquée manager côté template)
 export class GamePageComponent {
   readonly ui = inject(UiStateService);
   private readonly route = inject(ActivatedRoute);

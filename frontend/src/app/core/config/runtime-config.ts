@@ -1,5 +1,6 @@
 import { environment } from '../../../environments/environment';
 
+// __PT_API_URL__ permet d'override l'URL socket en prod sans rebuild
 export function getApiUrl(): string {
   const fromWindow = (globalThis as { __PT_API_URL__?: string }).__PT_API_URL__;
 

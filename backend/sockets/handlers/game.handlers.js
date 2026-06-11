@@ -1,3 +1,4 @@
+// rejoint la room socket du groupe et renvoie gridState (pixels + couleurs assignées)
 function handleJoinGroup(socket, data, deps) {
   const { store, constants, payloads } = deps;
   const { activeEvents, normalizeEventId, normalizeGroupCode, groupRoomName, getGroup } = store;
@@ -29,15 +30,15 @@ function handleJoinGroup(socket, data, deps) {
     return;
   }
 
-  const isHost = socket.id === event.host;
+  const isManager = socket.id === event.manager;
   const isMember = group.players.some((p) => p.socketId === socket.id);
 
-  if (!isHost && !isMember) {
+  if (!isManager && !isMember) {
     socket.emit('joinRoomError', { error: "Vous n'appartenez pas à ce groupe." });
     return;
   }
 
-  const role = isHost ? 'host' : 'player';
+  const role = isManager ? 'manager' : 'player';
   const roomName = groupRoomName(eventId, groupCode);
   const member = group.players.find((p) => p.socketId === socket.id);
   const playerColors = member?.assignedColors ?? [];
@@ -58,9 +59,10 @@ function handleJoinGroup(socket, data, deps) {
     width: GRID_SIZE,
     height: GRID_SIZE,
     name: event.name,
-    colors: isHost ? [] : playerColors,
+    colors: isManager ? [] : playerColors, // manager spectateur, pas de palette
     role,
     teammates: group.players.map(toGroupPlayer),
+    sessionEndsAt: event.sessionEndsAt ?? null,
   });
 }
 
@@ -80,7 +82,7 @@ export function registerGameHandlers(socket, deps) {
 
   socket.on('joinGroup', (data) => handleJoinGroup(socket, data, deps));
 
-  socket.on('joinRoom', (data) => {
+  socket.on('joinRoom', (data) => { // raccourci joueur : auto-resolve son groupe assigné
     const eventId = normalizeEventId(data?.roomId);
     const event = eventId ? activeEvents[eventId] : null;
 
@@ -94,7 +96,7 @@ export function registerGameHandlers(socket, deps) {
       return;
     }
 
-    if (socket.id === event.host) {
+    if (socket.id === event.manager) {
       socket.emit('joinRoomError', {
         error: 'Utilisez le lobby pour rejoindre une sous-partie.',
       });
@@ -152,13 +154,13 @@ export function registerGameHandlers(socket, deps) {
     if (!event || !group) return;
 
     const activePlayers = group.players.map((p) => p.socketId);
-    if (event.host) {
-      activePlayers.push(event.host);
+    if (event.manager) {
+      activePlayers.push(event.manager);
     }
 
     socket.emit('playersList', {
       activePlayers: [...new Set(activePlayers)],
-      hostSocketId: event.host,
+      managerSocketId: event.manager,
     });
   });
 
@@ -170,7 +172,7 @@ export function registerGameHandlers(socket, deps) {
 
     if (!event || !group) return;
 
-    if (socket.id === event.host) {
+    if (socket.id === event.manager) {
       return;
     }
 
@@ -196,12 +198,12 @@ export function registerGameHandlers(socket, deps) {
       return;
     }
 
-    const pixelSpot = `${data.x},${data.y}`;
+    const pixelSpot = `${data.x},${data.y}`; // clé string, pas de tableau 2D
     group.pixels[pixelSpot] = color;
 
     const roomName = groupRoomName(eventId, groupCode);
     io.to(roomName).emit('drawPixel', { x: data.x, y: data.y, color, eventId, groupCode });
-    updateGroupPreview(eventId, groupCode);
+    updateGroupPreview(eventId, groupCode); // preview pour lobby manager + vote
     io.to(eventId).emit('groupPreviewUpdated', {
       eventId,
       groupCode,
@@ -214,7 +216,7 @@ export function registerGameHandlers(socket, deps) {
     const groupCode = normalizeGroupCode(data?.groupCode);
     const event = eventId ? activeEvents[eventId] : null;
 
-    if (!event || socket.id === event.host) return;
+    if (!event || socket.id === event.manager) return;
 
     const roomName = groupCode ? groupRoomName(eventId, groupCode) : null;
     if (roomName) {

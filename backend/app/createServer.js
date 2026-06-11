@@ -10,6 +10,7 @@ import * as preview from '../services/grid/preview.js';
 import * as lifecycle from '../services/event/lifecycle.js';
 import { registerSocketHandlers } from '../sockets/register.js';
 
+// pas de routes REST — Express sert juste de shell HTTP + CORS pour Socket.io
 export function createServer() {
   const allowedOrigins = [
     'http://localhost:4200',
@@ -29,6 +30,7 @@ export function createServer() {
   const httpServer = createHttpServer(app);
   const io = new Server(httpServer, { cors: corsOptions });
 
+  // sac partagé injecté dans tous les handlers (évite les imports circulaires)
   const deps = {
     io,
     store,

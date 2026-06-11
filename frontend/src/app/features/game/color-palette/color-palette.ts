@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { UiStateService } from '../../../core/services/ui-state.service';
 
+// affiche ui.colors() — le back refuse tout pixel hors assignedColors
 @Component({
   selector: 'app-color-palette',
   templateUrl: './color-palette.html',

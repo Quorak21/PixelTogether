@@ -3,7 +3,7 @@
 >
   <figure
     class="aspect-square w-full bg-base-200 relative overflow-hidden cursor-pointer flex items-center justify-center group-hover:bg-primary/5 transition-colors"
-    (click)="hostMode() ? joinGroup.emit() : join.emit()"
+    (click)="joinGroup.emit()"
   >
     @if (image()) {
       <img [src]="image()" alt="Aperçu grille" class="object-contain z-45 w-[90%] h-[90%]" />
@@ -13,46 +13,27 @@
   </figure>
 
   <div class="card-body p-6 flex flex-col justify-between">
-    @if (hostMode() && group(); as g) {
-      <div>
-        <h2 class="card-title text-xl font-bold text-primary mb-3">
-          {{ g.label }}
-        </h2>
-        <div class="flex flex-wrap gap-4">
-          @for (player of g.players; track player.socketId) {
-            <div class="flex flex-col items-center gap-2 min-w-[4.5rem]">
-              <app-avatar-placeholder [color]="player.avatarColor" size="lg" />
-              <span class="font-semibold text-sm text-center leading-tight">{{ player.pseudo }}</span>
-            </div>
-          }
-        </div>
+    <div>
+      <h2 class="card-title text-xl font-bold text-primary mb-3">
+        {{ group().label }}
+      </h2>
+      <div class="flex flex-wrap gap-4">
+        @for (player of group().players; track player.socketId) {
+          <div class="flex flex-col items-center gap-2 min-w-[4.5rem]">
+            <app-avatar-placeholder [color]="player.avatarColor" size="lg" />
+            <span class="font-semibold text-sm text-center leading-tight">{{ player.pseudo }}</span>
+          </div>
+        }
       </div>
-      <div class="card-actions justify-end mt-6">
-        <button
-          type="button"
-          (click)="joinGroup.emit()"
-          class="btn btn-outline btn-primary w-full shadow-sm"
-        >
-          Observer
-        </button>
-      </div>
-    } @else if (room(); as r) {
-      <div>
-        <h2
-          class="card-title text-xl font-bold justify-between text-base-content truncate mb-2"
-          [title]="r.name"
-        >
-          <span>{{ r.name }}</span>
-        </h2>
-        <div class="text-sm text-base-content/60 font-medium">
-          👥 {{ r.playersList.length || 0 }} joueur{{ r.playersList.length > 1 ? 's' : '' }}
-        </div>
-      </div>
-      <div class="card-actions justify-end mt-6">
-        <button type="button" (click)="join.emit()" class="btn btn-outline btn-primary w-full shadow-sm">
-          Rejoindre
-        </button>
-      </div>
-    }
+    </div>
+    <div class="card-actions justify-end mt-6">
+      <button
+        type="button"
+        (click)="joinGroup.emit()"
+        class="btn btn-outline btn-primary w-full shadow-sm"
+      >
+        Observer
+      </button>
+    </div>
   </div>
 </div>

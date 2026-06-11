@@ -13,7 +13,7 @@
     } @else {
       @for (msg of chatMessages(); track $index) {
         <div class="flex items-start gap-1 text-sm min-w-0">
-          @if (isHostMessage(msg)) {
+          @if (isManagerMessage(msg)) {
             <span class="flex items-center gap-1 font-bold text-red-500 mr-2 shrink-0">👑 {{ msg.pseudo }}:</span>
           } @else {
             <span class="font-bold text-secondary mr-2 shrink-0">{{ msg.pseudo }}:</span>

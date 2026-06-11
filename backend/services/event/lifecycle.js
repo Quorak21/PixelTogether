@@ -1,13 +1,16 @@
 import { activeEvents, getEvent, getSortedGroups } from '../../store/eventStore.js';
 import { toGroupPlayer } from './payloads.js';
 import { getEventGroupImages } from '../grid/preview.js';
+import { clearSessionTimer } from '../session/sessionTimer.js';
 
+// push gameStarted : joueurs → leur groupe, manager → résumé de tous les groupes
 export function emitGameStarted(io, event) {
   const theme = event.name;
   const sessionInfo = {
     partyName: event.partyName,
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
+    sessionEndsAt: event.sessionEndsAt ?? null,
   };
 
   for (const { groupCode, group } of getSortedGroups(event)) {
@@ -34,20 +37,23 @@ export function emitGameStarted(io, event) {
     players: group.players.map(toGroupPlayer),
   }));
 
-  io.to(event.host).emit('gameStarted', {
+  io.to(event.manager).emit('gameStarted', {
     eventId: event.id,
     theme,
-    role: 'host',
+    role: 'manager',
     groups: groupsSummary,
     ...sessionInfo,
   });
 }
 
+// teardown complet : timer, roomClosed global, delete activeEvents
 export function closeEvent(io, eventId) {
   const event = getEvent(eventId);
   if (!event) return;
 
+  clearSessionTimer(event);
+
   const images = getEventGroupImages(event);
-  io.emit('roomClosed', { roomId: eventId, eventId, image: images });
+  io.emit('roomClosed', { roomId: eventId, eventId, image: images }); // broadcast global, pas scoped à la room
   delete activeEvents[eventId];
 }

@@ -19,6 +19,7 @@ export class JoinRoomModalComponent {
   readonly error = signal('');
 
   constructor() {
+    // récupère erreurs join renvoyées par le canvas (ex. partie introuvable)
     effect(() => {
       const externalError = this.ui.joinRoomError();
       if (this.ui.joinRoomOpen() && externalError) {
@@ -40,6 +41,7 @@ export class JoinRoomModalComponent {
     this.ui.joinRoomOpen.set(false);
   }
 
+  // pas de socket ici — enterWaitingRoom est appelé par waiting-room-page au mount
   joinRoom(): void {
     if (this.form.invalid) {
       return;

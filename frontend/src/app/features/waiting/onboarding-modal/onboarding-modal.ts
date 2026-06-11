@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AVATAR_COLORS } from '../../../core/constants/avatar-colors';
 import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/avatar-placeholder';
 
+// pseudo + couleur avatar → emit vers waiting-room-page qui appelle registerPlayer
 @Component({
   selector: 'app-onboarding-modal',
   imports: [ReactiveFormsModule, AvatarPlaceholderComponent],
@@ -13,7 +14,7 @@ export class OnboardingModalComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly open = input.required<boolean>();
-  readonly isHost = input(false);
+  readonly isManager = input(false);
   readonly error = input<string>('');
 
   readonly submitProfile = output<{ pseudo: string; avatarColor: string }>();
@@ -42,6 +43,7 @@ export class OnboardingModalComponent {
     });
   }
 
+  // appelé par le parent si l'ack socket échoue (évite bouton bloqué)
   resetSubmitting(): void {
     this.isSubmitting.set(false);
   }

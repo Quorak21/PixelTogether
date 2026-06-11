@@ -10,8 +10,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SocketService } from '../../../core/services/socket.service';
-import { UiStateService } from '../../../core/services/ui-state.service';
+import { SocketService } from '../../core/services/socket.service';
+import { UiStateService } from '../../core/services/ui-state.service';
 
 interface ChatMessage {
   senderId?: string;
@@ -26,6 +26,7 @@ interface ChatMessage {
   templateUrl: './chatbox.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+// chat scope groupe — monté uniquement sur game-page, pas de badge non-lus (cf backlog FRONT-05)
 export class ChatboxComponent implements AfterViewInit {
   readonly ui = inject(UiStateService);
   private readonly socket = inject(SocketService);
@@ -36,7 +37,7 @@ export class ChatboxComponent implements AfterViewInit {
   readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
   readonly chatMessages = signal<ChatMessage[]>([]);
-  readonly hostSocketId = signal<string | null>(null);
+  readonly managerSocketId = signal<string | null>(null);
   inputValue = '';
 
   constructor() {
@@ -46,13 +47,13 @@ export class ChatboxComponent implements AfterViewInit {
         ...prev,
         { ...data, pseudo: data.pseudo ?? 'Joueur' },
       ]);
-    const onPlayersList = (data: { activePlayers: string[]; hostSocketId: string }) => {
-      this.hostSocketId.set(data.hostSocketId ?? null);
+    const onPlayersList = (data: { activePlayers: string[]; managerSocketId: string }) => {
+      this.managerSocketId.set(data.managerSocketId ?? null);
     };
 
     this.socket.on<ChatMessage[]>('chatMessages', onChatMessages);
     this.socket.on<ChatMessage>('receiveMessage', onReceiveMessage);
-    this.socket.on<{ activePlayers: string[]; hostSocketId: string }>('playersList', onPlayersList);
+    this.socket.on<{ activePlayers: string[]; managerSocketId: string }>('playersList', onPlayersList);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('chatMessages', onChatMessages as (...args: unknown[]) => void);
@@ -67,13 +68,14 @@ export class ChatboxComponent implements AfterViewInit {
     this.socket.emit('getPlayersList', payload);
   }
 
-  isHostMessage(msg: ChatMessage): boolean {
-    const hostId = this.hostSocketId();
-    if (!hostId) {
+  // manager peut spectater le groupe sans être dans group.players
+  isManagerMessage(msg: ChatMessage): boolean {
+    const managerId = this.managerSocketId();
+    if (!managerId) {
       return false;
     }
     const authorId = msg.senderId ?? msg.socketId;
-    return authorId === hostId;
+    return authorId === managerId;
   }
 
   sendMessage(): void {

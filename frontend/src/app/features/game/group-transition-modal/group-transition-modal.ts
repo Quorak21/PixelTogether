@@ -8,10 +8,10 @@ import {
   signal,
 } from '@angular/core';
 import { UiStateService } from '../../../core/services/ui-state.service';
+import { GROUP_TRANSITION_MS, GROUP_TRANSITION_SECONDS } from '../../../core/config/session-config';
 import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/avatar-placeholder';
 
-const TRANSITION_MS = 5000;
-
+// overlay 5s post-gameStarted — synchro avec SESSION_TRANSITION_SECONDS back
 @Component({
   selector: 'app-group-transition-modal',
   imports: [AvatarPlaceholderComponent],
@@ -22,12 +22,11 @@ export class GroupTransitionModalComponent {
   readonly ui = inject(UiStateService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** When true, auto-reads payload from UiStateService */
-  readonly useGlobalState = input(true);
+  readonly useGlobalState = input(true); // lit groupTransition depuis UiStateService si true
   readonly dismissed = output<void>();
 
   readonly visible = signal(true);
-  readonly secondsLeft = signal(5);
+  readonly secondsLeft = signal(GROUP_TRANSITION_SECONDS);
 
   constructor() {
     const interval = window.setInterval(() => {
@@ -36,7 +35,7 @@ export class GroupTransitionModalComponent {
 
     const timeout = window.setTimeout(() => {
       this.close();
-    }, TRANSITION_MS);
+    }, GROUP_TRANSITION_MS);
 
     this.destroyRef.onDestroy(() => {
       window.clearInterval(interval);

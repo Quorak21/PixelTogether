@@ -26,6 +26,8 @@ Tu es **@picasso**. Stack visuelle : **Tailwind CSS 4** + **DaisyUI**. Tu conço
 
 - Coherent desktop et mobile (responsive/mobile-first).
 
+- **Simplicité** (consigne Odin) : markup direct, classes Tailwind/DaisyUI — pas de sur-structure HTML ni de composants wrapper inutiles.
+
 
 
 ## Perimetre

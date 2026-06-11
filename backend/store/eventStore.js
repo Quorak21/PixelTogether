@@ -7,8 +7,10 @@ import {
   GROUP_CODE_REGEX,
 } from '../config/constants.js';
 
+// seule "BDD" du projet — tout disparaît au restart ou closeEvent
 export const activeEvents = {};
 
+// rejoue tant qu'on tombe sur un code déjà pris
 export function generateRoomCode() {
   let code;
   do {
@@ -31,6 +33,7 @@ export function generateGroupCode(event) {
   return code;
 }
 
+// trim + uppercase + regex ; null si invalide
 export function normalizeEventId(eventId) {
   if (typeof eventId !== 'string') return null;
   const normalized = eventId.trim().toUpperCase();
@@ -45,6 +48,7 @@ export function normalizeGroupCode(groupCode) {
   return normalized;
 }
 
+// nom de room socket.io pour le chat/canvas d'un groupe
 export function groupRoomName(eventId, groupCode) {
   return `${eventId}:${groupCode}`;
 }
@@ -59,6 +63,7 @@ export function getGroup(event, groupCode) {
   return code ? event?.groups?.[code] : null;
 }
 
+// ordre stable pour l'affichage lobby / vote
 export function getSortedGroups(event) {
   return Object.entries(event.groups)
     .map(([groupCode, group]) => ({ groupCode, group }))

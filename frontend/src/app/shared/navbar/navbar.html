@@ -7,10 +7,18 @@
     >
       Pixel Together
     </button>
-    @if (ui.gameMode() && ui.partyName()) {
-      <span class="text-lg font-bold truncate text-base-content">{{ ui.partyName() }}</span>
-    } @else if (ui.waitingMode() && ui.partyName()) {
-      <span class="text-lg font-bold truncate text-base-content">{{ ui.partyName() }}</span>
+    @if (ui.partyName() && (ui.gameMode() || ui.waitingMode() || sessionTimerLabel())) {
+      <div class="flex flex-col min-w-0">
+        <span class="text-lg font-bold truncate text-base-content">{{ ui.partyName() }}</span>
+        @if (ui.sessionCount() > 1 || ui.partyStarted()) {
+          <span class="text-xs text-base-content/60 truncate">
+            {{ ui.sessionLabel() }}@if (ui.gameTheme()) { — {{ ui.gameTheme() }} }
+          </span>
+        }
+      </div>
+    }
+    @if (sessionTimerLabel(); as timer) {
+      <span class="badge badge-lg badge-neutral font-mono tabular-nums shrink-0">{{ timer }}</span>
     }
   </div>
 

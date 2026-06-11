@@ -1,96 +1,46 @@
-@if (isHostMode() && transitionActive() && ui.groupTransition()) {
+@if (transitionActive() && ui.groupTransition()) {
   <app-group-transition-modal (dismissed)="onTransitionDismissed()" />
 }
 
 <div
   class="flex w-full bg-base-100 h-full overflow-hidden"
-  [class.pointer-events-none]="isHostMode() && transitionActive() && ui.groupTransition()"
-  [class.blur-sm]="isHostMode() && transitionActive() && ui.groupTransition()"
+  [class.pointer-events-none]="transitionActive() && ui.groupTransition()"
+  [class.blur-sm]="transitionActive() && ui.groupTransition()"
 >
   <div class="flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-y-auto w-full">
     <div class="w-full max-w-7xl mx-auto flex flex-col h-full">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          @if (isHostMode()) {
-            <h1 class="text-4xl md:text-5xl font-black text-base-content tracking-tight">
-              {{ hostPartyName() || 'Supervision' }}
-            </h1>
-            <p class="text-base-content/60 mt-2 text-lg font-medium">
-              {{ hostTheme() }} — {{ hostSessionLabel() }}
-            </p>
-          } @else {
-            <h1 class="text-4xl md:text-5xl font-black text-base-content tracking-tight">Lobby</h1>
-            <p class="text-base-content/60 mt-2 text-lg font-medium">
-              Rejoignez une partie en cours ou créez la vôtre.
-            </p>
-          }
+          <h1 class="text-4xl md:text-5xl font-black text-base-content tracking-tight">
+            {{ managerPartyName() || 'Supervision' }}
+          </h1>
+          <p class="text-base-content/60 mt-2 text-lg font-medium">
+            {{ managerTheme() }} — {{ managerSessionLabel() }}
+          </p>
         </div>
-        <div class="flex items-center gap-3 shrink-0">
-          @if (isHostMode() && hostGroups().length > 0) {
-            <button
-              type="button"
-              class="btn btn-outline btn-error"
-              [disabled]="isEndingSession()"
-              (click)="openEndSessionConfirm()"
-            >
-              Arrêter la session
-            </button>
-          }
+        @if (managerGroups().length > 0) {
           <button
             type="button"
-            (click)="refreshRooms()"
-            class="btn btn-circle bg-base-100 border-none shadow-sm hover:bg-base-300 hover:rotate-180 transition-all duration-500"
+            class="btn btn-outline btn-error shrink-0"
+            [disabled]="isEndingSession()"
+            (click)="openEndSessionConfirm()"
           >
-            ↻
+            {{ endSessionButtonLabel() }}
           </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
-        @if (!isHostMode()) {
-          <div
-            (click)="openCreateModal()"
-            class="card bg-primary text-primary-content shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border-none group relative overflow-hidden flex flex-col"
-          >
-            <figure class="aspect-square w-full relative flex items-center justify-center bg-black/10 overflow-hidden">
-              <div
-                class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_2px_2px,_currentColor_1px,_transparent_0)] bg-[length:16px_16px]"
-              ></div>
-              <span class="text-6xl z-10">+</span>
-            </figure>
-            <div class="card-body items-center p-6 flex flex-col z-10">
-              <h2 class="card-title text-2xl font-bold tracking-tight mb-2">Nouvelle partie</h2>
-              <div class="card-actions justify-center mt-3">
-                <button type="button" class="btn bg-base-100 text-primary hover:bg-white border-none w-full shadow-sm">
-                  Créer
-                </button>
-              </div>
-            </div>
-          </div>
-
-          @for (room of rooms(); track room.id) {
-            <app-room-card [room]="room" [image]="images()[room.id]" (join)="joinRoom(room)" />
-          }
-        } @else {
-          @for (group of hostGroups(); track group.groupCode) {
-            <app-room-card
-              [group]="group"
-              [image]="group.image ?? ''"
-              [hostMode]="true"
-              (joinGroup)="joinGroup(group)"
-            />
-          }
         }
       </div>
 
-      @if (!isHostMode() && rooms().length === 0) {
-        <div class="flex-1 flex flex-col items-center justify-center text-base-content/40 italic pb-20">
-          <span class="text-6xl mb-6 opacity-20">▦</span>
-          <p class="text-lg">Aucune partie en cours.</p>
-        </div>
-      }
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
+        @for (group of managerGroups(); track group.groupCode) {
+          <app-room-card
+            [group]="group"
+            [image]="group.image ?? ''"
+            (joinGroup)="joinGroup(group)"
+          />
+        }
+      </div>
 
-      @if (isHostMode() && hostGroups().length === 0) {
+      @if (managerGroups().length === 0) {
         <div class="flex-1 flex flex-col items-center justify-center text-base-content/40 italic pb-20">
           <span class="text-6xl mb-6 opacity-20">▦</span>
           <p class="text-lg">Aucune sous-partie active.</p>
@@ -100,18 +50,20 @@
   </div>
 </div>
 
-@if (!isHostMode()) {
-  <app-grid-creation-modal />
-}
-
 @if (endSessionConfirmOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
     <div class="card bg-base-100 shadow-2xl w-full max-w-md border border-base-300">
       <div class="card-body gap-4">
-        <h2 class="card-title text-lg">Arrêter la session ?</h2>
-        <p class="text-base-content/70">
-          Tous les joueurs retourneront en salle d'attente. Les grilles en cours seront effacées.
-        </p>
+        <h2 class="card-title text-lg">{{ endSessionButtonLabel() }} ?</h2>
+        @if (isLastSession()) {
+          <p class="text-base-content/70">
+            La partie sera fermée pour tous les joueurs.
+          </p>
+        } @else {
+          <p class="text-base-content/70">
+            La session en cours s'arrêtera. Tout le monde retournera en salle d'attente.
+          </p>
+        }
         @if (endSessionError()) {
           <p class="text-error text-sm">{{ endSessionError() }}</p>
         }

@@ -48,6 +48,40 @@ Ton : direct, pro, sans détour.
 
 
 
+## Philosophie — petit projet perso, pas une usine à gaz
+
+
+
+PixelTogether est un **projet perso** : le **MVP team building est livré**, on itère dessus. Le code doit rester **propre et lisible**, pas **enterprise-grade**.
+
+
+
+**Viser :**
+
+- La solution **la plus simple** qui fait le job — petit diff, peu de fichiers nouveaux.
+- Réutiliser ce qui existe déjà (handlers, services, patterns du repo).
+- Plans courts : 3–5 étapes max, pas d'architecture sur le papier.
+- Prioriser `backlog.md` → **Tâches en cours** (par gravité) ; idées et polish → **Futur features**.
+
+
+
+**Éviter sans demande explicite :**
+
+- Couches d'abstraction « au cas où » (repository, factory, adapters génériques…).
+- Refactors larges hors périmètre de la demande.
+- Conventions pro lourdes (micro-services, event sourcing, DI excessive, dossiers par type partout).
+- Sur-ingénierie tests / CI / patterns « textbook ».
+
+
+
+**Propre ≠ complexe** : nommage clair, pas de duplication évidente, handlers lisibles — suffisant ici.
+
+
+
+Lors de la délégation, **rappeler cette consigne** à @alex / @steve / @picasso.
+
+
+
 ## Garde-fous
 
 
@@ -82,7 +116,7 @@ Indique **quel agent invoquer** et **quoi lui demander** quand l'implémentation
 
 
 
-## Suivi projet (`road_map.md`, `dette_technique.md` & `journal.md`)
+## Suivi projet (`backlog.md` & `journal.md`)
 
 
 
@@ -90,11 +124,13 @@ Seul **Odin** modifie ces fichiers. Les autres agents n'y touchent pas.
 
 
 
-- Lire `road_map.md` et `dette_technique.md` avant une grosse session.
+- Lire `backlog.md` avant une grosse session (section **Tâches en cours** en priorité).
 
-- Créer des tickets après accord utilisateur.
+- Créer des tickets (section Tâches en cours) ou idées (section Futur features) après accord utilisateur.
 
-- Après résolution dette : mettre à jour `dette_technique.md` + entrée dans `journal.md` : `- **ID** — Titre : description concise (1 ligne)`.
+- Tâche résolue : retirer de `backlog.md` + une ligne dans `journal.md` : `- **ID** — Titre : description concise (1 ligne)`.
+
+- Feature future qui démarre : déplacer de **Futur features** vers **Tâches en cours** avec un `ID`.
 
 
 

@@ -1,6 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { GroupTransitionPayload, ParticipantRole, PlayerProfile } from '../../types/entities';
 
+// état client cross-route (navbar, transitions) — pas de NgRx, signals suffisent
 @Injectable({ providedIn: 'root' })
 export class UiStateService {
   readonly waitingMode = signal(false);
@@ -12,19 +13,27 @@ export class UiStateService {
   readonly currentEventId = signal<string | null>(null);
   readonly currentGroupCode = signal<string | null>(null);
   readonly groupTransition = signal<GroupTransitionPayload | null>(null);
+  readonly sessionEndsAt = signal<number | null>(null);
+  readonly sessionCount = signal(1);
+  readonly currentSession = signal(1);
+  readonly partyStarted = signal(false);
+  readonly sessionLabel = computed(
+    () => `Session ${this.currentSession()}/${this.sessionCount()}`,
+  );
   readonly currentRole = signal<ParticipantRole | null>(null);
-  readonly isHost = computed(() => this.currentRole() === 'host');
+  readonly isManager = computed(() => this.currentRole() === 'manager');
   readonly inRoom = computed(() => this.waitingMode() || this.gameMode());
   readonly currentProfile = signal<PlayerProfile | null>(null);
   readonly hasProfile = computed(() => this.currentProfile() !== null);
 
-  readonly gridCreationOpen = signal(false);
+  readonly partyCreationOpen = signal(false);
   readonly joinRoomOpen = signal(false);
   readonly joinRoomError = signal<string | null>(null);
 
   readonly selectedColor = signal('#000000');
   readonly colors = signal<string[]>([]);
 
+  // bascule en mode WR, reset le groupCode
   joinWaitingRoom(eventId: string): void {
     this.currentEventId.set(eventId);
     this.currentRoomId.set(eventId);
@@ -49,6 +58,32 @@ export class UiStateService {
     this.groupTransition.set(null);
   }
 
+  setSessionEndsAt(timestamp: number | null | undefined): void {
+    this.sessionEndsAt.set(timestamp ?? null);
+  }
+
+  clearSessionEndsAt(): void {
+    this.sessionEndsAt.set(null);
+  }
+
+  setSessionMeta(
+    sessionCount: number,
+    currentSession: number,
+    partyStarted?: boolean,
+  ): void {
+    this.sessionCount.set(sessionCount);
+    this.currentSession.set(currentSession);
+    if (partyStarted !== undefined) {
+      this.partyStarted.set(partyStarted);
+    }
+  }
+
+  clearSessionMeta(): void {
+    this.sessionCount.set(1);
+    this.currentSession.set(1);
+    this.partyStarted.set(false);
+  }
+
   setRole(role: ParticipantRole): void {
     this.currentRole.set(role);
   }
@@ -71,6 +106,8 @@ export class UiStateService {
     this.partyName.set('');
     this.groupLabel.set('');
     this.clearGroupTransition();
+    this.clearSessionEndsAt();
+    this.clearSessionMeta();
     this.clearCurrentProfile();
   }
 
@@ -85,6 +122,8 @@ export class UiStateService {
     this.partyName.set('');
     this.groupLabel.set('');
     this.clearGroupTransition();
+    this.clearSessionEndsAt();
+    this.clearSessionMeta();
     this.clearCurrentProfile();
     this.colors.set([]);
     this.selectedColor.set('#000000');
@@ -94,6 +133,7 @@ export class UiStateService {
     this.selectedColor.set(color);
   }
 
+  // palette reçue du serveur (joinGroup) — garde selectedColor si encore valide
   setColorsFromGrid(gridColors: string[]): void {
     this.colors.set([...gridColors]);
 
@@ -102,6 +142,7 @@ export class UiStateService {
     }
   }
 
+  // palette depuis gameStarted, avant que le canvas ait rejoint le groupe
   setColorsFromTransition(myColors: string[]): void {
     if (!myColors.length) {
       return;

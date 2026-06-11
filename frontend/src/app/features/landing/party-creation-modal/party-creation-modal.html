@@ -1,0 +1,118 @@
+@if (ui.partyCreationOpen()) {
+<div class="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-base-100 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-sm relative border border-base-300 max-h-[90vh] overflow-y-auto">
+    <button type="button" (click)="ui.partyCreationOpen.set(false)"
+      class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/60 hover:text-base-content"
+      aria-label="Fermer">
+      ✕
+    </button>
+
+    <h2 class="text-xl font-bold text-base-content mb-6 pr-8">Nouvelle partie</h2>
+
+    <form [formGroup]="form" (ngSubmit)="createParty()" class="space-y-5" autocomplete="off">
+      <div class="form-control w-full">
+        <label class="label pb-1" for="party-name">
+          <span class="label-text font-semibold text-base-content/80">Nom de la partie</span>
+        </label>
+        <input
+          id="party-name"
+          type="text"
+          autofocus
+          formControlName="partyName"
+          placeholder="Team building Q2…"
+          maxlength="30"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          class="input input-bordered focus:border-primary w-full bg-base-200/50"
+          [class.input-error]="isInvalid('partyName')"
+          required
+        />
+      </div>
+
+      <div class="form-control w-full">
+        <label class="label pb-1" for="session-count">
+          <span class="label-text font-semibold text-base-content/80">Nombre de sessions</span>
+        </label>
+        <input
+          id="session-count"
+          type="number"
+          formControlName="sessionCount"
+          [min]="sessionCountMin"
+          [max]="sessionCountMax"
+          step="1"
+          class="input input-bordered focus:border-primary w-full bg-base-200/50"
+          [class.input-error]="isInvalid('sessionCount')"
+          required
+        />
+        <label class="label pt-1">
+          <span class="label-text-alt text-base-content/60">Max {{ sessionCountMax }} sessions</span>
+        </label>
+      </div>
+
+      <div class="form-control w-full">
+        <label class="label pb-1" for="session-duration">
+          <span class="label-text font-semibold text-base-content/80">Durée d'une session</span>
+        </label>
+        <input
+          id="session-duration"
+          type="number"
+          formControlName="sessionDurationMinutes"
+          [min]="sessionDurationMin"
+          [max]="sessionDurationMax"
+          step="1"
+          class="input input-bordered focus:border-primary w-full bg-base-200/50"
+          [class.input-error]="isInvalid('sessionDurationMinutes')"
+          required
+        />
+        <label class="label pt-1">
+          <span class="label-text-alt text-base-content/60">{{ sessionDurationMin }}–{{ sessionDurationMax }} minutes</span>
+        </label>
+      </div>
+
+      <div class="space-y-3" formArrayName="themes">
+        <p class="text-sm font-semibold text-base-content/80">Thème par session</p>
+        @for (themeControl of themes.controls; track $index) {
+        <div class="form-control w-full">
+          <label class="label pb-1" [for]="'party-theme-' + $index">
+            <span class="label-text text-base-content/70">Session {{ $index + 1 }}</span>
+          </label>
+          <input
+            [id]="'party-theme-' + $index"
+            type="text"
+            [formControlName]="$index"
+            placeholder="Paysage, portrait, abstrait…"
+            maxlength="30"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="input input-bordered focus:border-primary w-full bg-base-200/50"
+            [class.input-error]="isThemeInvalid($index)"
+            required
+          />
+        </div>
+        }
+      </div>
+
+      <p
+        class="text-sm text-center font-medium"
+        [class.text-error]="totalDurationExceeded()"
+        [class.text-base-content/70]="!totalDurationExceeded()"
+      >
+        Durée totale : {{ totalDurationMinutes() }} min
+        @if (totalDurationExceeded()) {
+          <span class="block text-error text-xs mt-1">Maximum {{ maxPartyDurationMinutes }} minutes</span>
+        }
+      </p>
+
+      <button type="submit" [disabled]="!canSubmit()" class="btn btn-primary w-full">
+        Créer la partie
+      </button>
+
+      @if (error()) {
+      <p class="text-sm text-center text-error">{{ error() }}</p>
+      }
+    </form>
+  </div>
+</div>
+}

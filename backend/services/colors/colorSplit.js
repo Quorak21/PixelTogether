@@ -1,6 +1,7 @@
 import { GAME_PALETTE_16 } from '../../config/constants.js';
 import { shuffleArray } from '../shuffle/groupShuffle.js';
 
+// découpe la palette en parts égales (+1 couleur pour les premiers si reste)
 export function splitPalette(pool, playerCount) {
   if (playerCount < 1) {
     return [];
@@ -21,6 +22,7 @@ export function splitPalette(pool, playerCount) {
   return slices;
 }
 
+// chaque joueur du groupe a un sous-ensemble disjoint de GAME_PALETTE_16
 export function assignPalettesToGroup(group) {
   const orderedPlayers = shuffleArray(group.players);
   const slices = splitPalette(GAME_PALETTE_16, orderedPlayers.length);

@@ -1,23 +1,24 @@
-import { AVATAR_COLORS } from '../../config/constants.js';
+import { AVATAR_COLOR_REGEX } from '../../config/constants.js';
 
 export function isAvatarColorValid(color) {
-  return typeof color === 'string' && AVATAR_COLORS.includes(color.toLowerCase());
+  return typeof color === 'string' && AVATAR_COLOR_REGEX.test(color);
 }
 
 export function getParticipantRole(event, socketId) {
-  return socketId === event.host ? 'host' : 'player';
+  return socketId === event.manager ? 'manager' : 'player';
 }
 
 export function isRegistered(event, socketId) {
-  if (socketId === event.host) {
-    return Boolean(event.hostProfile);
+  if (socketId === event.manager) {
+    return Boolean(event.managerProfile);
   }
   return event.players.some((player) => player.socketId === socketId);
 }
 
+// group optionnel : pseudo depuis la copie joueur dans le groupe (post-shuffle)
 export function getParticipantPseudo(event, socketId, group = null) {
-  if (socketId === event.host && event.hostProfile) {
-    return event.hostProfile.pseudo;
+  if (socketId === event.manager && event.managerProfile) {
+    return event.managerProfile.pseudo;
   }
 
   if (group) {
@@ -30,7 +31,7 @@ export function getParticipantPseudo(event, socketId, group = null) {
 }
 
 export function removePlayerFromEvent(event, socketId) {
-  if (socketId === event.host) {
+  if (socketId === event.manager) {
     return false;
   }
 
@@ -39,6 +40,7 @@ export function removePlayerFromEvent(event, socketId) {
   return event.players.length !== before;
 }
 
+// lookup O(n) dans groups — ok vu le nb de groupes par session
 export function findPlayerGroup(event, socketId) {
   for (const groupCode in event.groups) {
     const group = event.groups[groupCode];

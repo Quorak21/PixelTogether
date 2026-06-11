@@ -19,6 +19,7 @@ import { GridStatePayload, SessionEndedPayload } from '../../../types/entities';
   templateUrl: './canvas.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+// canvas 75×75 : joinGroup au mount, draw local optimiste via drawPixel broadcast
 export class CanvasComponent implements AfterViewInit {
   private readonly socket = inject(SocketService);
   readonly ui = inject(UiStateService);
@@ -63,6 +64,7 @@ export class CanvasComponent implements AfterViewInit {
       this.ui.gameTheme.set(data.theme ?? data.name);
       this.ui.partyName.set(data.partyName);
       this.ui.groupLabel.set(data.groupLabel);
+      this.ui.setSessionEndsAt(data.sessionEndsAt);
       this.renderGrid(data);
     };
     const onDrawPixel = (data: { x: number; y: number; color: string }) => this.drawSinglePixel(data);
@@ -77,6 +79,14 @@ export class CanvasComponent implements AfterViewInit {
       if (payload.eventId !== this.eventId()) {
         return;
       }
+      this.ui.clearSessionEndsAt();
+      this.ui.partyName.set(payload.partyName);
+      this.ui.gameTheme.set(payload.theme);
+      this.ui.setSessionMeta(
+        payload.sessionCount,
+        payload.currentSession,
+        payload.partyStarted ?? true,
+      );
       this.ui.exitGame();
       this.ui.joinWaitingRoom(payload.eventId);
       void this.router.navigateByUrl(`/room/${payload.eventId}`);
@@ -98,7 +108,7 @@ export class CanvasComponent implements AfterViewInit {
   }
 
   handleDraw(event: PointerEvent): void {
-    if (this.ui.isHost() || this.hasMoved || event.button !== 0) {
+    if (this.ui.isManager() || this.hasMoved || event.button !== 0) { // hasMoved évite draw au relâchement après pan
       this.hasMoved = false;
       return;
     }
@@ -179,6 +189,7 @@ export class CanvasComponent implements AfterViewInit {
     this.isDragging.set(false);
   }
 
+  // trace la grille complète + pixels existants (appelé une fois au gridState)
   private renderGrid(data: GridStatePayload): void {
     const canvas = this.canvasEl().nativeElement;
     const ctx = canvas.getContext('2d');
@@ -236,6 +247,7 @@ export class CanvasComponent implements AfterViewInit {
     });
   }
 
+  // incrémental — broadcast drawPixel des autres joueurs (et le sien via le serveur)
   private drawSinglePixel(data: { x: number; y: number; color: string }): void {
     const canvas = this.canvasEl().nativeElement;
     const ctx = canvas.getContext('2d');

@@ -1,7 +1,16 @@
 import { splitIntoGroups } from '../shuffle/groupShuffle.js';
 import { assignPalettesToGroup } from '../colors/colorSplit.js';
-import { toPublicPlayer } from '../event/payloads.js';
+import { buildSessionEndedPayload } from '../event/payloads.js';
+import { snapshotSessionForVote } from '../vote/voteLifecycle.js';
 
+export function clearSessionTimer(event) {
+  if (event._sessionTimer) {
+    clearTimeout(event._sessionTimer);
+    event._sessionTimer = null;
+  }
+}
+
+// reshuffle joueurs, assigne palettes, génère previews — appelé à chaque startGame
 export function beginSession(event, deps) {
   const { store, preview } = deps;
   const { generateGroupCode } = store;
@@ -30,27 +39,43 @@ export function beginSession(event, deps) {
   return event.groups;
 }
 
+// vide les groupes sans toucher aux joueurs ni à l'archive vote
 export function dissolveSessionGroups(event) {
   event.groups = {};
   event.status = 'waiting';
 }
 
+// payload personnalisé par socket (myVote, wrMode, etc.)
 export function emitSessionEnded(io, event) {
-  const payload = {
-    eventId: event.id,
-    partyName: event.partyName,
-    theme: event.name,
-    players: event.players.map(toPublicPlayer),
-    status: 'waiting',
-  };
+  const recipients = [event.manager, ...event.players.map((p) => p.socketId)];
+  const seen = new Set(); // manager peut aussi être dans players[] en théorie
 
-  io.to(event.host).emit('sessionEnded', payload);
-  for (const player of event.players) {
-    io.to(player.socketId).emit('sessionEnded', payload);
+  for (const socketId of recipients) {
+    if (seen.has(socketId)) continue;
+    seen.add(socketId);
+    io.to(socketId).emit('sessionEnded', buildSessionEndedPayload(event, socketId));
   }
-  io.to(event.id).emit('sessionEnded', payload);
 }
 
+// fin auto (timer) ou manuelle (endSession) — archive, vote, bump session si pas la dernière
+export function finishCurrentSession(io, event) {
+  clearSessionTimer(event);
+
+  snapshotSessionForVote(event);
+
+  const isLastSession = event.currentSession >= event.sessionCount;
+
+  dissolveSessionGroups(event);
+
+  if (!isLastSession) {
+    event.currentSession += 1;
+    event.name = event.themes[event.currentSession - 1]; // thème de la prochaine session
+  }
+
+  emitSessionEnded(io, event);
+}
+
+// arrêt anticipé depuis le lobby manager (équivalent au timer)
 export function handleEndSession(socket, data, callback, deps) {
   const { io, store } = deps;
   const { activeEvents, normalizeEventId } = store;
@@ -63,7 +88,7 @@ export function handleEndSession(socket, data, callback, deps) {
     return;
   }
 
-  if (socket.id !== event.host) {
+  if (socket.id !== event.manager) {
     if (typeof callback === 'function') callback({ error: 'Seul le manager peut arrêter la session.' });
     return;
   }
@@ -73,7 +98,6 @@ export function handleEndSession(socket, data, callback, deps) {
     return;
   }
 
-  dissolveSessionGroups(event);
-  emitSessionEnded(io, event);
+  finishCurrentSession(io, event);
   if (typeof callback === 'function') callback({ ok: true, eventId: event.id });
 }

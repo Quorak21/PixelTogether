@@ -1,7 +1,4 @@
-/**
-Fonction pour calculer les tailles de groupes équilibrées : min 2, max 4
-1. On définit les groupes 2, on melange 3, on coupe et on renvoie les groupes finaux
- */
+// tailles de groupes équilibrées (min 2, max 4) — réduit numGroups si besoin
 export function computeGroupSizes(playerCount) {
   if (playerCount < 2) {
     return [];
@@ -40,6 +37,7 @@ export function shuffleArray(items) {
   return [...items].sort(() => Math.random() - 0.5);
 }
 
+// shuffle puis découpe selon computeGroupSizes
 export function splitIntoGroups(players) {
   const sizes = computeGroupSizes(players.length);
   const shuffled = shuffleArray(players);

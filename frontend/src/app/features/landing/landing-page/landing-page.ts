@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { UiStateService } from '../../../core/services/ui-state.service';
-import { GridCreationModalComponent } from '../grid-creation-modal/grid-creation-modal';
+import { PartyCreationModalComponent } from '../party-creation-modal/party-creation-modal';
 import { JoinRoomModalComponent } from '../join-room-modal/join-room-modal';
 
+// entrée app : ouvre les modales via signals UiStateService (pas de socket ici)
 @Component({
   selector: 'app-landing-page',
-  imports: [GridCreationModalComponent, JoinRoomModalComponent],
+  imports: [PartyCreationModalComponent, JoinRoomModalComponent],
   templateUrl: './landing-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -13,7 +14,7 @@ export class LandingPageComponent {
   readonly ui = inject(UiStateService);
 
   openCreateModal(): void {
-    this.ui.gridCreationOpen.set(true);
+    this.ui.partyCreationOpen.set(true);
   }
 
   openJoinModal(): void {

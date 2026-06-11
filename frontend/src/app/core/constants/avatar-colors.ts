@@ -1,3 +1,4 @@
+// liste fermée côté front — le back valide via AVATAR_COLOR_REGEX (#rrggbb)
 export const AVATAR_COLORS = [
   '#ef4444',
   '#f97316',

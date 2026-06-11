@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 
+// partage URL/code — pas de socket, juste clipboard
 @Component({
   selector: 'app-invite-modal',
   templateUrl: './invite-modal.html',

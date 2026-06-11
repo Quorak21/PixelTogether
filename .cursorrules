@@ -14,7 +14,7 @@ Outil de **teambuilding B2B ephemere par session** : le manager configure une pa
 
 
 
-Detail fonctionnel et planning : **`road_map.md`**.
+Suivi projet : **`backlog.md`** (taches en cours + futur features), **`journal.md`** (termine).
 
 
 
@@ -32,6 +32,6 @@ Detail fonctionnel et planning : **`road_map.md`**.
 
 - **Styles** : classes Tailwind/DaisyUI dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind/DaisyUI.
 
-- **Tests** : hors scope pour l'instant (dette **TEST-01** dans `dette_technique.md`). Ne pas ajouter de `*.spec.ts`, `*.test.js` ni scripts `test` tant que le process n'est pas défini.
+- **Tests** : hors scope pour l'instant (ticket **TEST-01** dans `backlog.md`). Ne pas ajouter de `*.spec.ts`, `*.test.js` ni scripts `test` tant que le process n'est pas defini.
 
 
