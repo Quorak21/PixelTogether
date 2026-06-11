@@ -13,7 +13,7 @@
         <span class="text-sm font-semibold text-base-content/80">
           Mode spectateur — {{ ui.groupLabel() || 'Groupe' }}
         </span>
-        <button type="button" class="btn btn-sm btn-outline btn-primary" (click)="returnToLobby()">
+        <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none border border-primary text-primary hover:bg-primary/10 rounded-field min-h-8 px-3 text-sm" (click)="returnToLobby()">
           Retour au lobby
         </button>
       </div>

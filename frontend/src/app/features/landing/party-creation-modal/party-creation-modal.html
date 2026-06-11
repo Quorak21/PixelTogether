@@ -2,7 +2,7 @@
 <div class="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
   <div class="bg-base-100 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-sm relative border border-base-300 max-h-[90vh] overflow-y-auto">
     <button type="button" (click)="ui.partyCreationOpen.set(false)"
-      class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/60 hover:text-base-content"
+      class="inline-flex items-center justify-center font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-base-200 rounded-full aspect-square p-0 min-h-8 h-8 w-8 text-sm absolute right-3 top-3 text-base-content/60 hover:text-base-content"
       aria-label="Fermer">
       ✕
     </button>
@@ -10,9 +10,9 @@
     <h2 class="text-xl font-bold text-base-content mb-6 pr-8">Nouvelle partie</h2>
 
     <form [formGroup]="form" (ngSubmit)="createParty()" class="space-y-5" autocomplete="off">
-      <div class="form-control w-full">
-        <label class="label pb-1" for="party-name">
-          <span class="label-text font-semibold text-base-content/80">Nom de la partie</span>
+      <div class="flex flex-col gap-1 w-full">
+        <label class="pb-1" for="party-name">
+          <span class="font-semibold text-base-content/80">Nom de la partie</span>
         </label>
         <input
           id="party-name"
@@ -24,15 +24,15 @@
           autocomplete="off"
           autocapitalize="off"
           spellcheck="false"
-          class="input input-bordered focus:border-primary w-full bg-base-200/50"
-          [class.input-error]="isInvalid('partyName')"
+          class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          [class.border-error]="isInvalid('partyName')"
           required
         />
       </div>
 
-      <div class="form-control w-full">
-        <label class="label pb-1" for="session-count">
-          <span class="label-text font-semibold text-base-content/80">Nombre de sessions</span>
+      <div class="flex flex-col gap-1 w-full">
+        <label class="pb-1" for="session-count">
+          <span class="font-semibold text-base-content/80">Nombre de sessions</span>
         </label>
         <input
           id="session-count"
@@ -41,18 +41,16 @@
           [min]="sessionCountMin"
           [max]="sessionCountMax"
           step="1"
-          class="input input-bordered focus:border-primary w-full bg-base-200/50"
-          [class.input-error]="isInvalid('sessionCount')"
+          class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          [class.border-error]="isInvalid('sessionCount')"
           required
         />
-        <label class="label pt-1">
-          <span class="label-text-alt text-base-content/60">Max {{ sessionCountMax }} sessions</span>
-        </label>
+        <span class="pt-1 text-sm text-base-content/60">Max {{ sessionCountMax }} sessions</span>
       </div>
 
-      <div class="form-control w-full">
-        <label class="label pb-1" for="session-duration">
-          <span class="label-text font-semibold text-base-content/80">Durée d'une session</span>
+      <div class="flex flex-col gap-1 w-full">
+        <label class="pb-1" for="session-duration">
+          <span class="font-semibold text-base-content/80">Durée d'une session</span>
         </label>
         <input
           id="session-duration"
@@ -61,21 +59,19 @@
           [min]="sessionDurationMin"
           [max]="sessionDurationMax"
           step="1"
-          class="input input-bordered focus:border-primary w-full bg-base-200/50"
-          [class.input-error]="isInvalid('sessionDurationMinutes')"
+          class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          [class.border-error]="isInvalid('sessionDurationMinutes')"
           required
         />
-        <label class="label pt-1">
-          <span class="label-text-alt text-base-content/60">{{ sessionDurationMin }}–{{ sessionDurationMax }} minutes</span>
-        </label>
+        <span class="pt-1 text-sm text-base-content/60">{{ sessionDurationMin }}–{{ sessionDurationMax }} minutes</span>
       </div>
 
       <div class="space-y-3" formArrayName="themes">
         <p class="text-sm font-semibold text-base-content/80">Thème par session</p>
         @for (themeControl of themes.controls; track $index) {
-        <div class="form-control w-full">
-          <label class="label pb-1" [for]="'party-theme-' + $index">
-            <span class="label-text text-base-content/70">Session {{ $index + 1 }}</span>
+        <div class="flex flex-col gap-1 w-full">
+          <label class="pb-1" [for]="'party-theme-' + $index">
+            <span class="text-base-content/70">Session {{ $index + 1 }}</span>
           </label>
           <input
             [id]="'party-theme-' + $index"
@@ -86,8 +82,8 @@
             autocomplete="off"
             autocapitalize="off"
             spellcheck="false"
-            class="input input-bordered focus:border-primary w-full bg-base-200/50"
-            [class.input-error]="isThemeInvalid($index)"
+            class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            [class.border-error]="isThemeInvalid($index)"
             required
           />
         </div>
@@ -105,7 +101,7 @@
         }
       </p>
 
-      <button type="submit" [disabled]="!canSubmit()" class="btn btn-primary w-full">
+      <button type="submit" [disabled]="!canSubmit()" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-content hover:bg-primary/90 rounded-field min-h-10 px-4 w-full">
         Créer la partie
       </button>
 

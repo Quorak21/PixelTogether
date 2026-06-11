@@ -1,7 +1,7 @@
 <div
-  class="card bg-base-100 shadow-sm border border-base-300 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] group flex flex-col"
+  class="rounded-box bg-base-100 shadow-sm border border-base-300 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] group flex flex-col"
 >
-  <figure
+  <div
     class="aspect-square w-full bg-base-200 relative overflow-hidden cursor-pointer flex items-center justify-center group-hover:bg-primary/5 transition-colors"
     (click)="joinGroup.emit()"
   >
@@ -10,11 +10,11 @@
     } @else {
       <span class="text-5xl opacity-30">▦</span>
     }
-  </figure>
+  </div>
 
-  <div class="card-body p-6 flex flex-col justify-between">
+  <div class="flex flex-col p-6 justify-between">
     <div>
-      <h2 class="card-title text-xl font-bold text-primary mb-3">
+      <h2 class="text-xl font-bold text-primary mb-3">
         {{ group().label }}
       </h2>
       <div class="flex flex-wrap gap-4">
@@ -26,11 +26,11 @@
         }
       </div>
     </div>
-    <div class="card-actions justify-end mt-6">
+    <div class="flex justify-end mt-6">
       <button
         type="button"
         (click)="joinGroup.emit()"
-        class="btn btn-outline btn-primary w-full shadow-sm"
+        class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none border border-primary text-primary hover:bg-primary/10 rounded-field min-h-10 px-4 w-full shadow-sm"
       >
         Observer
       </button>

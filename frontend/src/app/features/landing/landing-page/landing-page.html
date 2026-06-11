@@ -1,32 +1,273 @@
-<div class="flex w-full bg-base-100 h-full overflow-hidden">
+<div class="relative flex h-full min-h-full w-full flex-col overflow-y-auto bg-landing-bg
+         before:pointer-events-none before:absolute before:inset-0 before:z-0 before:opacity-[0.035]
+         before:bg-[image:repeating-linear-gradient(#fff_0_1px,transparent_1px_100%),repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_100%)]
+         before:bg-[length:20px_20px] before:content-['']">
 
-  <div
-    class="flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-hidden w-full before:content-[''] before:absolute before:inset-0 before:opacity-[0.06] before:pointer-events-none before:bg-[radial-gradient(circle_at_2px_2px,currentColor_1px,transparent_0)] before:bg-[length:16px_16px]"
-  >
+  <div class="pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden="true">
+    <div
+      class="absolute -left-40 -top-40 h-[520px] w-[520px] animate-mesh-pulse rounded-full bg-brand-violet blur-[120px]">
+    </div>
+    <div
+      class="absolute -bottom-32 -right-20 h-[440px] w-[440px] animate-mesh-pulse rounded-full bg-brand-coral blur-[120px]">
+    </div>
+  </div>
 
-    <div class="relative z-[1] flex flex-1 flex-col items-center justify-center gap-4">
+  <div class="relative z-[2] flex flex-1 flex-col items-center justify-center gap-12 px-4 py-12 md:gap-14 md:py-16">
 
-      <button
-        type="button"
-        (click)="openCreateModal()"
-        class="btn btn-primary btn-lg min-w-[min(100%,20rem)] shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        Créer une nouvelle partie
+    <!-- Section Hero -->
+    <div class="flex flex-col items-center gap-6 text-center">
+      <!-- Pill Badge Élégant -->
+      <div
+        class="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-xs font-semibold text-slate-200 backdrop-blur-md shadow-[0_0_15px_rgba(99,102,241,0.07)]">
+        <span
+          class="flex h-2 w-2 shrink-0 rounded-full bg-brand-coral animate-pill-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
+        <span class="tracking-wide">👾 Collaboration forcée • Créativité décuplée</span>
+      </div>
+
+      <!-- Titre pixel-art haut de gamme -->
+      <h1
+        class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-5xl font-black leading-tight tracking-tighter text-transparent md:text-8xl pb-3 md:pb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
+        Pixel Together
+      </h1>
+
+      <!-- Description épurée -->
+      <p class="max-w-xl text-base leading-relaxed text-landing-muted md:text-lg">
+        Partagez vos ressources pour créer les plus belles œuvres que votre équipe ait jamais connues&nbsp;!
+      </p>
+    </div>
+
+    <!-- Salles et Actions en Grid (Modernisation Glassmorphism Épuré) -->
+    <div class="grid w-full max-w-3xl grid-cols-1 gap-6 md:grid-cols-2">
+
+      <!-- Carte Créer Session -->
+      <div
+        class="group flex flex-col items-center gap-6 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)]">
+        <div
+          class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-violet/20 shadow-[0_0_15px_rgba(99,102,241,0.15)] text-brand-violet transition-all duration-300 group-hover:scale-110">
+          <svg lucideCrown class="h-7 w-7 text-brand-violet" aria-hidden="true"></svg>
+        </div>
+
+        <h2 class="text-lg font-bold text-white">Nouvelle session</h2>
+
+        <button type="button" (click)="openCreateModal()"
+          class="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)]">
+          Créer une session pour votre équipe
+        </button>
+      </div>
+
+      <!-- Carte Rejoindre Partie -->
+      <div
+        class="group relative flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-slate-900/40 p-8 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-coral/30 hover:shadow-[0_0_50px_-12px_rgba(244,63,94,0.15)]">
+        <svg lucideUsers
+          class="absolute right-6 top-6 h-6 w-6 text-landing-muted transition-colors duration-300 group-hover:text-brand-coral/60"
+          aria-hidden="true"></svg>
+
+        <div class="flex flex-col gap-1 pr-8">
+          <h2 class="text-lg font-bold text-white">Rejoindre une partie</h2>
+          <p class="text-sm text-landing-muted">Entrez le code fourni par votre manager</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="mt-auto flex flex-col gap-3 w-full" autocomplete="off">
+          <div class="relative w-full">
+            <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"
+              autocapitalize="characters" spellcheck="false"
+              class="w-full text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3.5 uppercase tracking-[0.2em] text-lg font-black text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20" />
+          </div>
+
+          @if (error()) {
+          <p class="text-sm text-red-400">{{ error() }}</p>
+          }
+
+          <button type="submit"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-brand-violet bg-transparent px-6 py-3.5 font-semibold text-brand-violet transition-all duration-200 hover:bg-brand-violet/10 hover:scale-[1.01] active:scale-[0.99]">
+            Rejoindre
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Liens vers les informations et documentation -->
+    <div class="flex flex-col sm:flex-row items-center gap-6 md:gap-8 mt-4">
+      <button type="button" (click)="openInfoModal('why')"
+        class="inline-flex items-center gap-3 text-sm text-landing-muted transition-all duration-200 hover:text-white hover:scale-[1.02] group">
+        <span
+          class="h-2.5 w-2.5 shrink-0 animate-pill-pulse rounded-full bg-brand-violet shadow-[0_0_8px_rgba(99,102,241,0.6)] group-hover:shadow-[0_0_12px_rgba(99,102,241,0.8)]"
+          aria-hidden="true"></span>
+        Pourquoi utiliser Pixel Together ?
       </button>
 
-      <button
-        type="button"
-        (click)="openJoinModal()"
-        class="btn btn-outline btn-lg min-w-[min(100%,20rem)] shadow-md hover:shadow-lg transition-all duration-300"
-      >
-        Rejoindre une partie
+      <button type="button" (click)="openInfoModal('docs')"
+        class="inline-flex items-center gap-3 text-sm text-landing-muted transition-all duration-200 hover:text-white hover:scale-[1.02] group">
+        <span
+          class="h-2.5 w-2.5 shrink-0 animate-pill-pulse rounded-full bg-brand-coral shadow-[0_0_8px_rgba(244,63,94,0.5)] [animation-delay:0.6s] group-hover:shadow-[0_0_12px_rgba(244,63,94,0.7)]"
+          aria-hidden="true"></span>
+        Documentation
       </button>
-
     </div>
 
   </div>
 
 </div>
 
+<!-- Modales Glassmorphism d'informations -->
+@if (infoModal(); as modal) {
+
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md transition-opacity duration-300"
+  (click)="closeInfoModal()">
+
+  <div
+    class="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-slate-950/95 p-8 shadow-2xl backdrop-blur-xl md:p-10 transition-all transform scale-100 duration-300"
+    role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+
+    <button type="button" (click)="closeInfoModal()"
+      class="absolute right-6 top-6 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-landing-muted transition-all hover:bg-white/10 hover:text-white hover:rotate-90"
+      aria-label="Fermer">
+      ✕
+    </button>
+
+    @switch (modal) {
+
+    @case ('why') {
+
+    <div class="flex flex-col gap-1.5 pr-10 mb-8">
+      <h2 class="font-display text-2xl font-black text-white md:text-3xl tracking-tight">
+        Pourquoi utiliser Pixel Together ?
+      </h2>
+      <p class="text-sm text-landing-muted md:text-base">
+        Une expérience de team building collaborative et créative pour votre équipe.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 text-sm leading-relaxed text-landing-muted md:text-base">
+
+      <div
+        class="flex gap-4 items-start rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 backdrop-blur-md transition-all hover:bg-white/[0.02] hover:border-white/[0.08]">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-violet to-[#5558E8] text-white font-bold text-lg shadow-lg shadow-brand-violet/20">
+          🤝
+        </div>
+        <div>
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Collaboration forcée, créativité décuplée</h3>
+          <p class="text-xs md:text-sm text-slate-300">
+            Les membres sont mélangés à chaque manche et reçoivent une palette de couleurs unique et également mélangée.
+            L'équipe doit s'organiser et partager ses ressources pour composer l'œuvre finale selon le thème que vous
+            lui avez donné.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="flex gap-4 items-start rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 backdrop-blur-md transition-all hover:bg-white/[0.02] hover:border-white/[0.08]">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-lg shadow-lg shadow-teal-500/20">
+          ⚡
+        </div>
+        <div>
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Sessions éphémères, zéro friction</h3>
+          <p class="text-xs md:text-sm text-slate-300">
+            Pas de compte, pas de configuration lourde. Le manager lance une session en quelques clics, partage un
+            code, et l'équipe est prête à créer. Rien n'est enregistré, cette expérience reste VOTRE expérience.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="flex gap-4 items-start rounded-xl border border-white/[0.04] bg-white/[0.01] p-5 backdrop-blur-md transition-all hover:bg-white/[0.02] hover:border-white/[0.08]">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-coral to-rose-600 text-white font-bold text-lg shadow-lg shadow-brand-coral/20">
+          🏆
+        </div>
+        <div>
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Votes & classement des collaborateurs</h3>
+          <p class="text-xs md:text-sm text-slate-300">
+            À chaque fin de manche, tout le monde vote pour sa création préférée. À la fin, découvrez le classement du
+            collaborateur qui a participé aux œuvres les plus plébiscitées. Le manager peut récupérer toutes les grilles
+            créées pour avoir un souvenir éternel du travail d'équipe de la team.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    }
+
+    @case ('docs') {
+
+    <div class="flex flex-col gap-1.5 pr-10 mb-8">
+      <div
+        class="inline-flex self-start items-center gap-1.5 rounded-full bg-brand-coral/10 border border-brand-coral/20 px-2.5 py-0.5 text-[10px] font-bold text-brand-coral uppercase tracking-wider">
+        Guide Pratique
+      </div>
+      <h2 class="font-display text-2xl font-black text-white md:text-3xl tracking-tight">Documentation</h2>
+      <p class="text-sm text-landing-muted md:text-base">
+        Mode d'emploi pour lancer et animer une session Pixel Together.
+      </p>
+    </div>
+
+    <div
+      class="relative flex flex-col gap-6 pl-2 before:absolute before:left-[21px] before:top-2 before:bottom-2 before:w-[2px] before:bg-white/[0.06] text-sm leading-relaxed text-landing-muted md:text-base">
+
+      <div class="relative flex gap-4 items-start group">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-violet to-[#5558E8] text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
+          01
+        </div>
+        <div class="pt-1.5">
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Créer une session</h3>
+          <p class="text-xs md:text-sm text-slate-300">Le manager configure la partie (nom, thème, durée) et obtient un
+            code à partager à l'équipe.</p>
+        </div>
+      </div>
+
+      <div class="relative flex gap-4 items-start group">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
+          02
+        </div>
+        <div class="pt-1.5">
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Inviter l'équipe</h3>
+          <p class="text-xs md:text-sm text-slate-300">Les participants rejoignent via le code depuis la page d'accueil,
+            puis choisissent leur pseudo.</p>
+        </div>
+      </div>
+
+      <div class="relative flex gap-4 items-start group">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
+          03
+        </div>
+        <div class="pt-1.5">
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Collaborer</h3>
+          <p class="text-xs md:text-sm text-slate-300">À chaque session, les équipes sont mélangées et reçoivent des
+            palettes de couleurs exclusives également redistribuées pour dessiner sur la grille partagée.</p>
+        </div>
+      </div>
+
+      <div class="relative flex gap-4 items-start group">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-coral to-rose-600 text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
+          04
+        </div>
+        <div class="pt-1.5">
+          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Voter & podium</h3>
+          <p class="text-xs md:text-sm text-slate-300">À chaque fin de manche, votez pour la meilleure création de
+            session. À la fin, découvrez le classement des collaborateurs les plus plébiscités, et le manager peut
+            récupérer les grilles.</p>
+        </div>
+      </div>
+
+    </div>
+
+    }
+
+    }
+
+  </div>
+
+</div>
+
+}
+
 <app-party-creation-modal />
-<app-join-room-modal />

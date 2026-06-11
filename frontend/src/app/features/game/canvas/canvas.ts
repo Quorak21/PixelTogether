@@ -56,7 +56,6 @@ export class CanvasComponent implements AfterViewInit {
 
       this.ui.exitGame();
       this.ui.joinRoomError.set(data.error);
-      this.ui.joinRoomOpen.set(true);
       void this.router.navigateByUrl('/');
     };
     const onGridState = (data: GridStatePayload) => {

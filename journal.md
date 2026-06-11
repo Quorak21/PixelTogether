@@ -13,6 +13,8 @@
 
 ## Entrées
 
+**UI-01** — Styling Tailwind seul : palette Nord via `@theme`, classes composant migrées en utilitaires.
+
 **MVP team building** — Cycle complet livré : waiting room → sessions multi-thèmes → gameplay groupes → vote inter-sessions → podium → fin de partie. État 100 % en mémoire. Dettes et idées post-MVP → `backlog.md`.
 
 **Phase 6 — Vote inter-sessions** — Après chaque session : retour WR, vote sur les grilles de la session précédente (modifiable, 1 voix par participant). Clôture → gagnant affiché → session suivante ou, au dernier vote, podium top 3 joueurs / top 3 œuvres puis `endParty` (purge). État : `sessionArchive`, `activeVote`, `playerVoteTotals`, `showingResults`. Socket : `castVote`, `closeVote`, `showResults`, `endParty`, `voteStateUpdated`. Hors scope : export ZIP, polish podium (→ idées futures).

@@ -1,365 +1,199 @@
 <div class="h-full flex flex-col p-4 md:p-8 bg-linear-to-b from-base-200 to-base-100" [class.blur-sm]="showOnboarding()"
-
   [class.pointer-events-none]="showOnboarding()" [class.select-none]="showOnboarding()">
 
   @if (isLoading()) {
-
   <div class="flex flex-1 items-center justify-center">
-
-    <span class="loading loading-spinner loading-lg text-primary"></span>
-
+    <span class="inline-block size-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
   </div>
-
   } @else if (pageError()) {
-
   <div class="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-
     <p class="text-lg text-error">{{ pageError() }}</p>
-
-    <button type="button" class="btn btn-primary" (click)="goHome()">
-
+    <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-content hover:bg-primary/90 rounded-field min-h-10 px-4" (click)="goHome()">
       Retour à l'accueil
-
     </button>
-
   </div>
-
   } @else {
-
   <header class="flex items-start justify-between gap-4 mb-8">
-
     <div>
-
       @if (ui.isManager() && wrMode() === 'players') {
-
-      <button type="button" class="btn btn-outline btn-sm mb-4" (click)="openInvite()">
-
+      <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none border border-primary text-primary hover:bg-primary/10 rounded-field min-h-8 px-3 text-sm mb-4" (click)="openInvite()">
         Inviter
-
       </button>
-
       }
-
     </div>
 
-
-
     <div class="flex-1 text-center">
-
       @if (partyName()) {
-
       <h1 class="text-3xl md:text-4xl font-black text-primary mb-2">{{ partyName() }}</h1>
-
       }
-
       <p class="text-base-content/70 text-lg mb-4">
-
         {{ sessionLabel() }}@if (gameTheme()) { — {{ gameTheme() }} }
-
       </p>
-
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
-
         <div>
-
           <h2 class="text-xl md:text-2xl font-bold">{{ waitingTitle() }}</h2>
-
           @if (waitingSubtitle()) {
-
           <p class="text-base-content/70 mt-1">{{ waitingSubtitle() }}</p>
-
           }
-
         </div>
-
-
 
         @if (managerShowsInitialStart()) {
-
         <div class="flex flex-col items-center gap-2 shrink-0">
-
           <button
-
             type="button"
-
-            class="btn btn-success btn-lg"
-
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-success text-success-content hover:opacity-90 rounded-field min-h-12 px-6 text-lg"
             [disabled]="!canStart() || isStarting()"
-
             (click)="handleStartClick()"
-
           >
-
             @if (isStarting() && !partyStarted()) {
-
-              <span class="loading loading-spinner loading-sm"></span>
-
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             } @else {
-
               {{ startButtonLabel() }}
-
             }
-
           </button>
-
           @if (startError() && !partyStarted()) {
-
             <p class="text-error text-sm max-w-xs">{{ startError() }}</p>
-
           }
-
         </div>
-
         }
-
-
 
         @if (managerShowsCloseVote()) {
-
         <div class="flex flex-col items-center gap-2 shrink-0">
-
           <button
-
             type="button"
-
-            class="btn btn-warning btn-lg"
-
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-warning text-warning-content hover:opacity-90 rounded-field min-h-12 px-6 text-lg"
             [disabled]="isClosingVote()"
-
             (click)="handleCloseVote()"
-
           >
-
             @if (isClosingVote()) {
-
-              <span class="loading loading-spinner loading-sm"></span>
-
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             } @else {
-
               Clôturer le vote
-
             }
-
           </button>
-
           @if (voteError()) {
-
             <p class="text-error text-sm max-w-xs">{{ voteError() }}</p>
-
           }
-
         </div>
-
         }
-
-
 
         @if (managerShowsStart()) {
-
         <div class="flex flex-col items-center gap-2 shrink-0">
-
           <button
-
             type="button"
-
-            class="btn btn-success btn-lg"
-
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-success text-success-content hover:opacity-90 rounded-field min-h-12 px-6 text-lg"
             [disabled]="isStarting()"
-
             (click)="handleStartClick()"
-
           >
-
             @if (isStarting()) {
-
-              <span class="loading loading-spinner loading-sm"></span>
-
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             } @else {
-
               {{ startButtonLabel() }}
-
             }
-
           </button>
-
           @if (startError()) {
-
             <p class="text-error text-sm max-w-xs">{{ startError() }}</p>
-
           }
-
         </div>
-
         }
 
-
-
         @if (managerShowsResults()) {
-
         <div class="flex flex-col items-center gap-2 shrink-0">
-
           <button
             type="button"
-            class="btn btn-primary btn-lg"
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-content hover:bg-primary/90 rounded-field min-h-12 px-6 text-lg"
             [disabled]="isShowingResults()"
             (click)="handleShowResults()"
           >
             @if (isShowingResults()) {
-              <span class="loading loading-spinner loading-sm"></span>
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             } @else {
               Afficher les résultats
             }
           </button>
-
           @if (partyError()) {
             <p class="text-error text-sm max-w-xs">{{ partyError() }}</p>
           }
-
         </div>
-
         }
 
         @if (managerShowsEndParty()) {
-
         <div class="flex flex-col items-center gap-2 shrink-0">
-
           <button
             type="button"
-            class="btn btn-error btn-lg"
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-error text-error-content hover:opacity-90 rounded-field min-h-12 px-6 text-lg"
             [disabled]="isEndingParty()"
             (click)="handleEndParty()"
           >
             @if (isEndingParty()) {
-              <span class="loading loading-spinner loading-sm"></span>
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             } @else {
               Terminer la partie
             }
           </button>
-
           @if (partyError()) {
             <p class="text-error text-sm max-w-xs">{{ partyError() }}</p>
           }
-
         </div>
-
         }
-
       </div>
-
     </div>
 
-
-
     <div class="w-20 hidden sm:block" aria-hidden="true"></div>
-
   </header>
 
-
-
   <section class="flex-1 overflow-auto">
-
     @if (wrMode() === 'players') {
-
       @if (players().length === 0) {
-
       <p class="text-center text-base-content/60 mt-12">
-
         En attente des premiers joueurs…
-
       </p>
-
       } @else {
-
       <div class="grid gap-4 max-w-4xl mx-auto pb-8 grid-cols-[repeat(auto-fill,minmax(9rem,1fr))]">
-
         @for (player of players(); track player.socketId) {
-
         <app-player-card [player]="player" />
-
         }
-
       </div>
-
       }
-
     }
-
-
 
     @if (wrMode() === 'voting') {
-
       @if (voteCandidates().length === 0) {
-
       <p class="text-center text-base-content/60 mt-12">Aucune œuvre à voter pour l'instant…</p>
-
       } @else {
-
       <div class="grid gap-6 max-w-5xl mx-auto pb-8 sm:grid-cols-2 lg:grid-cols-3">
-
         @for (candidate of voteCandidates(); track candidate.groupCode) {
-
         <button
-
           type="button"
-
-          class="card bg-base-100 shadow-md border-2 transition-all hover:shadow-xl hover:scale-[1.02] text-left overflow-hidden"
-
+          class="rounded-box bg-base-100 shadow-md border-2 transition-all hover:shadow-xl hover:scale-[1.02] text-left overflow-hidden"
           [class.border-amber-400]="myVote() === candidate.groupCode"
-
           [class.ring-4]="myVote() === candidate.groupCode"
-
           [class.ring-amber-400]="myVote() === candidate.groupCode"
-
           [class.border-base-300]="myVote() !== candidate.groupCode"
-
           (click)="handleVote(candidate.groupCode)"
-
         >
-
-          <figure class="aspect-square w-full bg-base-200 flex items-center justify-center">
-
+          <div class="aspect-square w-full bg-base-200 flex items-center justify-center">
             @if (candidate.image) {
-
             <img [src]="candidate.image" [alt]="candidate.label" class="object-contain w-[90%] h-[90%]" />
-
             } @else {
-
             <span class="text-5xl opacity-30">▦</span>
-
             }
-
-          </figure>
-
-          <div class="card-body p-4 gap-1">
-
-            <h3 class="font-bold text-primary">{{ candidate.label }}</h3>
-
-            <p class="text-sm text-base-content/60">{{ candidate.voteCount }} vote{{ candidate.voteCount > 1 ? 's' : '' }}</p>
-
           </div>
-
+          <div class="flex flex-col p-4 gap-1">
+            <h3 class="font-bold text-primary">{{ candidate.label }}</h3>
+            <p class="text-sm text-base-content/60">{{ candidate.voteCount }} vote{{ candidate.voteCount > 1 ? 's' : '' }}</p>
+          </div>
         </button>
-
         }
-
       </div>
-
       @if (voteError()) {
-
       <p class="text-error text-center text-sm">{{ voteError() }}</p>
-
       }
-
       }
-
     }
 
-
-
     @if (wrMode() === 'podium') {
-
       <div class="grid gap-8 max-w-4xl mx-auto pb-8 md:grid-cols-2">
-
         <div>
           <h3 class="font-bold text-lg mb-4">Top joueurs</h3>
           @if (topPlayers().length === 0) {
@@ -398,93 +232,49 @@
             </ol>
           }
         </div>
-
       </div>
-
     }
 
     @if (wrMode() === 'voteResult') {
-
       <div class="flex flex-col items-center justify-center gap-6 py-8 max-w-2xl mx-auto">
-
         @if (winnerCandidate(); as winner) {
-
-        <div class="card bg-base-100 shadow-xl border-2 border-amber-400 w-full">
-
-          <figure class="aspect-square w-full bg-base-200 flex items-center justify-center p-4">
-
+        <div class="rounded-box bg-base-100 shadow-xl border-2 border-amber-400 w-full">
+          <div class="aspect-square w-full bg-base-200 flex items-center justify-center p-4">
             @if (winner.image ?? winnerImage()) {
-
             <img
-
               [src]="winner.image ?? winnerImage()"
-
               [alt]="winner.label"
-
               class="object-contain w-full h-full max-h-[min(60vh,28rem)]"
-
             />
-
             } @else {
-
             <span class="text-6xl opacity-30">▦</span>
-
             }
-
-          </figure>
-
-          <div class="card-body items-center text-center">
-
-            <h3 class="text-2xl font-black text-primary">{{ winner.label }}</h3>
-
-            <p class="text-base-content/70">{{ winner.voteCount }} vote{{ winner.voteCount > 1 ? 's' : '' }}</p>
-
           </div>
-
+          <div class="flex flex-col items-center text-center p-6 gap-1">
+            <h3 class="text-2xl font-black text-primary">{{ winner.label }}</h3>
+            <p class="text-base-content/70">{{ winner.voteCount }} vote{{ winner.voteCount > 1 ? 's' : '' }}</p>
+          </div>
         </div>
-
         } @else {
-
         <p class="text-base-content/60">Résultat du vote en cours de chargement…</p>
-
         }
-
       </div>
-
     }
-
   </section>
-
   }
-
 </div>
 
-
-
 <app-onboarding-modal [open]="showOnboarding()" [isManager]="ui.isManager()" [error]="onboardingError()"
-
   (submitProfile)="handleRegister($event)" />
-
-
 
 <app-invite-modal [open]="inviteOpen()" [roomCode]="roomId()" [roomUrl]="roomUrl()" (closed)="closeInvite()" />
 
-
-
 @if (!partyStarted()) {
-
 <app-start-confirm-modal
-
   [open]="startConfirmOpen()"
-
   [error]="startError()"
-
   [isSubmitting]="isStarting()"
-
   (confirmed)="confirmStart()"
-
   (closed)="closeStartConfirm()"
-
 />
-
 }

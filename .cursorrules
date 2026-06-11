@@ -22,7 +22,7 @@ Suivi projet : **`backlog.md`** (taches en cours + futur features), **`journal.m
 
 
 
-**Angular 21** + **Tailwind CSS 4** + **DaisyUI** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
+**Angular 21** + **Tailwind CSS 4** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
 
 
 
@@ -30,7 +30,7 @@ Suivi projet : **`backlog.md`** (taches en cours + futur features), **`journal.m
 
 
 
-- **Styles** : classes Tailwind/DaisyUI dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind/DaisyUI.
+- **Styles** : classes Tailwind dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind (`@theme` palette Nord).
 
 - **Tests** : hors scope pour l'instant (ticket **TEST-01** dans `backlog.md`). Ne pas ajouter de `*.spec.ts`, `*.test.js` ni scripts `test` tant que le process n'est pas defini.
 

@@ -1,6 +1,6 @@
 @if (open()) {
-  <dialog class="modal modal-open">
-    <div class="modal-box max-w-md">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-base-100 rounded-box shadow-2xl w-full max-w-md border border-base-300 p-6">
       <h2 class="text-xl font-bold mb-2">{{ title() }}</h2>
       <p class="text-base-content/80">
         Les joueurs ne pourront plus rejoindre une fois la partie débutée.
@@ -10,21 +10,18 @@
         <p class="text-error text-sm mt-3">{{ error() }}</p>
       }
 
-      <div class="modal-action">
-        <button type="button" class="btn btn-ghost" (click)="close()" [disabled]="isSubmitting()">
+      <div class="flex justify-end gap-2 mt-6">
+        <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-base-200 rounded-field min-h-10 px-4" (click)="close()" [disabled]="isSubmitting()">
           Annuler
         </button>
-        <button type="button" class="btn btn-success" (click)="confirm()" [disabled]="isSubmitting()">
+        <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-success text-success-content hover:opacity-90 rounded-field min-h-10 px-4" (click)="confirm()" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
-            <span class="loading loading-spinner loading-sm"></span>
+            <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
           } @else {
             Confirmer
           }
         </button>
       </div>
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button type="button" (click)="close()">close</button>
-    </form>
-  </dialog>
+  </div>
 }

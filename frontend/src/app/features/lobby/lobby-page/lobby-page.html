@@ -21,7 +21,7 @@
         @if (managerGroups().length > 0) {
           <button
             type="button"
-            class="btn btn-outline btn-error shrink-0"
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none border border-error text-error hover:bg-error/10 rounded-field min-h-10 px-4 shrink-0"
             [disabled]="isEndingSession()"
             (click)="openEndSessionConfirm()"
           >
@@ -52,9 +52,9 @@
 
 @if (endSessionConfirmOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div class="card bg-base-100 shadow-2xl w-full max-w-md border border-base-300">
-      <div class="card-body gap-4">
-        <h2 class="card-title text-lg">{{ endSessionButtonLabel() }} ?</h2>
+    <div class="rounded-box bg-base-100 shadow-2xl w-full max-w-md border border-base-300">
+      <div class="flex flex-col gap-4 p-6">
+        <h2 class="text-lg font-bold">{{ endSessionButtonLabel() }} ?</h2>
         @if (isLastSession()) {
           <p class="text-base-content/70">
             La partie sera fermée pour tous les joueurs.
@@ -67,16 +67,16 @@
         @if (endSessionError()) {
           <p class="text-error text-sm">{{ endSessionError() }}</p>
         }
-        <div class="card-actions justify-end gap-2 mt-2">
-          <button type="button" class="btn btn-ghost" (click)="closeEndSessionConfirm()">Annuler</button>
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-base-200 rounded-field min-h-10 px-4" (click)="closeEndSessionConfirm()">Annuler</button>
           <button
             type="button"
-            class="btn btn-error"
+            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-error text-error-content hover:opacity-90 rounded-field min-h-10 px-4"
             [disabled]="isEndingSession()"
             (click)="confirmEndSession()"
           >
             @if (isEndingSession()) {
-              <span class="loading loading-spinner loading-sm"></span>
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
             }
             Confirmer
           </button>

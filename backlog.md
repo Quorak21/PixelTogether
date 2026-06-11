@@ -57,16 +57,16 @@ Idées et évolutions — pas de priorité imposée, tri libre. Quand une idée 
 - Créer un composant unique pour toutes les modales de "warning"
 - Avatar généré par IA (lol)
 - Refonte UI totale (tous les écrans)
-- Retrait DaisyUI, Tailwind seul
 - Config manager avancée : taille grille, pool 20–30 couleurs
 - Compte manager + crédits (facturation simulée)
 - Journal d'audit par partie (preuve de service B2B, hors RAM)
 - Mode marathon (sans limite 60 min)
 - Manager : choix de musique (pistes prédéfinies)
-- Documentation sur landing page pour expliquer le principe + readme github pour le portfolio
+- Documentation sur landing page pour expliquer le principe + readme github pour le portfolio // a terminer
 - Waiting room : encart qui explique rapidement le déroulement
 - SEO
 - Kick un joueur de la waiting room
 - Rendre invisible la création de nouvelle game (éviter les trolls — à définir)
 - Meilleure gestion du blanc : si deux blancs côte à côte, enlever la bordure entre eux
 - Spinner ou état « Chargement… » pendant ack socket + navigation (éviter l'impression de bug)
+- Showcase visuel de gameplay interactif sur la landing (grille de démo 8x8 animée, palettes exclusives des joueurs fictifs) pour expliquer le concept en un coup d'œil
