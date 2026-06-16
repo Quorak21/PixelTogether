@@ -1,50 +1,56 @@
-<div class="flex flex-col h-full min-h-0 bg-base-100">
-  <div class="flex items-center gap-2 shrink-0 p-3 bg-neutral text-neutral-content select-none">
-    <span>💬</span>
-    <span class="font-bold text-sm tracking-wide">{{ ui.groupLabel() || 'Chat' }}</span>
+<div class="flex flex-col h-full min-h-0 bg-transparent text-white">
+  <!-- Header du chat -->
+  <div class="flex items-center gap-2.5 shrink-0 px-4 py-3 bg-slate-950/40 border-b border-white/10 select-none">
+    <span class="text-base-content/80">💬</span>
+    <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">{{ ui.groupLabel() || 'Chat' }}</span>
   </div>
 
-  <div class="flex-1 min-h-0 overflow-y-auto p-4 bg-base-200/30">
+  <!-- Zone de messages -->
+  <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2 bg-slate-950/20">
     @if (chatMessages().length === 0) {
-      <div class="flex flex-col items-center justify-center h-full text-sm italic text-base-content/40">
-        <span class="text-3xl mb-3 opacity-20">💬</span>
+      <div class="flex flex-col items-center justify-center h-full text-sm italic text-landing-muted">
+        <span class="text-3xl mb-2 opacity-20">💬</span>
         <p>Aucun message pour le moment.</p>
       </div>
     } @else {
       @for (msg of chatMessages(); track $index) {
         <div class="flex items-start gap-1 text-sm min-w-0">
           @if (isManagerMessage(msg)) {
-            <span class="flex items-center gap-1 font-bold text-red-500 mr-2 shrink-0">👑 {{ msg.pseudo }}:</span>
+            <span class="flex items-center gap-1 font-bold text-brand-coral mr-2 shrink-0">👑 {{ msg.pseudo }}:</span>
           } @else {
-            <span class="font-bold text-secondary mr-2 shrink-0">{{ msg.pseudo }}:</span>
+            <span class="font-bold text-brand-violet mr-2 shrink-0">{{ msg.pseudo }}:</span>
           }
-          <span class="text-base-content/90 break-all min-w-0">{{ msg.message }}</span>
+          <span class="text-white/90 break-all min-w-0">{{ msg.message }}</span>
         </div>
       }
     }
     <div #messagesEnd></div>
   </div>
 
-  <div class="shrink-0 p-3 border-t border-base-200 bg-base-100">
-    <form (ngSubmit)="sendMessage()" class="relative flex gap-2 items-center" autocomplete="off">
-      <input
-        type="text"
-        [(ngModel)]="inputValue"
-        name="chatInput"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        class="w-full text-sm py-1.5 px-3 rounded-full border border-base-300 bg-base-200/50 pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-inner flex-1"
-        placeholder="Écrire un message..."
-        maxlength="200"
-      />
-      <button
-        type="submit"
-        class="inline-flex items-center justify-center font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-content hover:bg-primary/90 rounded-full aspect-square p-0 absolute right-0.5 shadow-md min-h-[1.75rem] h-7 w-7 text-sm"
-        [disabled]="!inputValue.trim()"
-      >
-        ➤
-      </button>
-    </form>
-  </div>
+  @if (!hideFooter) {
+    <div class="shrink-0 border-t border-white/10 bg-slate-950/40 px-4 py-3">
+      <form (ngSubmit)="sendMessage()" class="flex w-full items-center gap-2" autocomplete="off">
+        <div class="relative flex-1 min-w-0">
+          <input
+            type="text"
+            [(ngModel)]="inputValue"
+            name="chatInput"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-sm text-white placeholder-slate-500 focus:border-brand-violet focus:outline-none focus:ring-1 focus:ring-brand-violet/50"
+            placeholder="Écrire un message..."
+            maxlength="200"
+          />
+          <button
+            type="submit"
+            class="absolute right-1.5 top-1/2 inline-flex h-7 w-7 min-h-[1.75rem] -translate-y-1/2 items-center justify-center rounded-lg bg-brand-violet text-xs font-medium text-white shadow-md transition-colors hover:bg-brand-violet/90 disabled:pointer-events-none disabled:opacity-50"
+            [disabled]="!inputValue.trim()"
+          >
+            ➤
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 </div>

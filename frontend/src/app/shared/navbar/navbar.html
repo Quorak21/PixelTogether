@@ -32,6 +32,16 @@
   </div>
 
   <div class="relative z-[2] flex flex-none items-center gap-3">
+    @if (otherTeammates().length) {
+      <div class="flex items-center gap-3">
+        @for (mate of otherTeammates(); track mate.socketId) {
+          <div class="flex min-w-0 items-center gap-2">
+            <app-avatar-placeholder [color]="mate.avatarColor" size="sm" />
+            <span class="max-w-24 truncate text-sm font-semibold text-landing-muted">{{ mate.pseudo }}</span>
+          </div>
+        }
+      </div>
+    }
     @if (ui.gameMode() && ui.currentProfile(); as profile) {
       <div class="flex min-w-0 items-center gap-2">
         <app-avatar-placeholder [color]="profile.avatarColor" size="sm" />

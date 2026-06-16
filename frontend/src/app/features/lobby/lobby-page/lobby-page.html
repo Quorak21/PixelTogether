@@ -3,34 +3,68 @@
 }
 
 <div
-  class="flex w-full bg-base-100 h-full overflow-hidden"
+  class="relative flex h-full min-h-full w-full flex-col overflow-y-auto bg-landing-bg
+         before:pointer-events-none before:absolute before:inset-0 before:z-0 before:opacity-[0.035]
+         before:bg-[image:repeating-linear-gradient(#fff_0_1px,transparent_1px_100%),repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_100%)]
+         before:bg-[length:20px_20px] before:content-['']"
   [class.pointer-events-none]="transitionActive() && ui.groupTransition()"
   [class.blur-sm]="transitionActive() && ui.groupTransition()"
 >
-  <div class="flex flex-col flex-1 bg-base-200 m-3 p-6 md:p-10 rounded-3xl shadow-inner relative overflow-y-auto w-full">
-    <div class="w-full max-w-7xl mx-auto flex flex-col h-full">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 class="text-4xl md:text-5xl font-black text-base-content tracking-tight">
-            {{ managerPartyName() || 'Supervision' }}
-          </h1>
-          <p class="text-base-content/60 mt-2 text-lg font-medium">
-            {{ managerTheme() }} — {{ managerSessionLabel() }}
-          </p>
+  <div class="pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden="true">
+    <div class="absolute -left-40 -top-40 h-[520px] w-[520px] animate-mesh-pulse rounded-full bg-brand-violet blur-[120px]"></div>
+    <div class="absolute -bottom-32 -right-20 h-[440px] w-[440px] animate-mesh-pulse rounded-full bg-brand-coral blur-[120px]"></div>
+  </div>
+
+  <div class="relative z-[2] flex flex-1 flex-col items-center p-4 md:p-8">
+    <div class="w-full max-w-7xl flex flex-col gap-6">
+      
+      <!-- En-tête Supervision -->
+      <div class="flex flex-col gap-6 rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-lg backdrop-blur-xl">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div class="min-w-0 flex-1">
+            <h1 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-3xl font-black tracking-tight text-transparent md:text-4xl pb-2">
+              {{ managerPartyName() || 'Supervision' }}
+            </h1>
+            <p class="mt-1.5 text-sm font-medium text-landing-muted">
+              Thème : <span class="text-white">{{ managerTheme() }}</span>
+              — <span class="text-[#A5B4FC]">{{ managerSessionLabel() }}</span>
+            </p>
+          </div>
+
+          @if (sessionTimerLabel(); as timer) {
+            <div
+              class="flex shrink-0 flex-col items-center rounded-xl border-2 px-8 py-2 shadow-[0_0_32px_rgba(99,102,241,0.35)]"
+              [class.border-brand-violet/60]="!sessionTimerUrgent()"
+              [class.bg-brand-violet/15]="!sessionTimerUrgent()"
+              [class.border-brand-coral/70]="sessionTimerUrgent()"
+              [class.bg-brand-coral/15]="sessionTimerUrgent()"
+              [class.shadow-[0_0_32px_rgba(244,63,94,0.4)]]="sessionTimerUrgent()"
+              [class.animate-pulse]="sessionTimerUrgent()"
+            >
+              <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-landing-muted">Temps restant</span>
+              <span
+                class="font-mono text-3xl font-black tabular-nums leading-none"
+                [class.text-[#A5B4FC]]="!sessionTimerUrgent()"
+                [class.text-brand-coral]="sessionTimerUrgent()"
+              >{{ timer }}</span>
+            </div>
+          }
+
+          @if (managerGroups().length > 0) {
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-error/50 bg-error/10 px-6 py-3 font-semibold text-error transition-all hover:bg-error/20 disabled:opacity-50 lg:self-center"
+              [disabled]="isEndingSession()"
+              (click)="openEndSessionConfirm()"
+            >
+              {{ endSessionButtonLabel() }}
+            </button>
+          }
         </div>
-        @if (managerGroups().length > 0) {
-          <button
-            type="button"
-            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none border border-error text-error hover:bg-error/10 rounded-field min-h-10 px-4 shrink-0"
-            [disabled]="isEndingSession()"
-            (click)="openEndSessionConfirm()"
-          >
-            {{ endSessionButtonLabel() }}
-          </button>
-        }
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
+      <!-- Grille des groupes -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
         @for (group of managerGroups(); track group.groupCode) {
           <app-room-card
             [group]="group"
@@ -41,8 +75,8 @@
       </div>
 
       @if (managerGroups().length === 0) {
-        <div class="flex-1 flex flex-col items-center justify-center text-base-content/40 italic pb-20">
-          <span class="text-6xl mb-6 opacity-20">▦</span>
+        <div class="flex-1 flex flex-col items-center justify-center text-landing-muted italic py-20 bg-slate-900/20 rounded-2xl border border-white/5">
+          <span class="text-6xl mb-4 opacity-20">▦</span>
           <p class="text-lg">Aucune sous-partie active.</p>
         </div>
       }
@@ -50,35 +84,44 @@
   </div>
 </div>
 
+<!-- Modal de confirmation de fin de session -->
 @if (endSessionConfirmOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div class="rounded-box bg-base-100 shadow-2xl w-full max-w-md border border-base-300">
-      <div class="flex flex-col gap-4 p-6">
-        <h2 class="text-lg font-bold">{{ endSessionButtonLabel() }} ?</h2>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-xl">
+      <div class="flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-white">{{ endSessionButtonLabel() }} ?</h2>
         @if (isLastSession()) {
-          <p class="text-base-content/70">
+          <p class="text-landing-muted">
             La partie sera fermée pour tous les joueurs.
           </p>
         } @else {
-          <p class="text-base-content/70">
+          <p class="text-landing-muted">
             La session en cours s'arrêtera. Tout le monde retournera en salle d'attente.
           </p>
         }
         @if (endSessionError()) {
-          <p class="text-error text-sm">{{ endSessionError() }}</p>
+          <p class="text-red-400 text-sm">{{ endSessionError() }}</p>
         }
-        <div class="flex justify-end gap-2 mt-2">
-          <button type="button" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-base-200 rounded-field min-h-10 px-4" (click)="closeEndSessionConfirm()">Annuler</button>
+        <div class="flex justify-end gap-3 mt-4">
           <button
             type="button"
-            class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-error text-error-content hover:opacity-90 rounded-field min-h-10 px-4"
+            class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-2.5 font-medium text-landing-muted transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+            (click)="closeEndSessionConfirm()"
+            [disabled]="isEndingSession()"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-coral to-[#E11D48] px-5 py-2.5 font-semibold text-white transition-all hover:scale-[1.02] disabled:opacity-50"
             [disabled]="isEndingSession()"
             (click)="confirmEndSession()"
           >
             @if (isEndingSession()) {
               <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+            } @else {
+              Confirmer
             }
-            Confirmer
           </button>
         </div>
       </div>

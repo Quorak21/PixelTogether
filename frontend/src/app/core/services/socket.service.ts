@@ -37,7 +37,6 @@ export class SocketService {
     this.socket.emit(event, payload);
   }
 
-  // pattern req/réponse — le back appelle callback() en 3e arg de socket.on
   emitWithAck<TPayload, TResponse>(event: string, payload: TPayload): Promise<TResponse> {
     return new Promise<TResponse>((resolve) => {
       this.socket.emit(event, payload, (response: TResponse) => resolve(response));

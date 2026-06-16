@@ -1,5 +1,10 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { GroupTransitionPayload, ParticipantRole, PlayerProfile } from '../../types/entities';
+import {
+  GroupPlayer,
+  GroupTransitionPayload,
+  ParticipantRole,
+  PlayerProfile,
+} from '../../types/entities';
 
 // état client cross-route (navbar, transitions) — pas de NgRx, signals suffisent
 @Injectable({ providedIn: 'root' })
@@ -32,6 +37,7 @@ export class UiStateService {
 
   readonly selectedColor = signal('#000000');
   readonly colors = signal<string[]>([]);
+  readonly groupTeammates = signal<GroupPlayer[]>([]);
 
   // bascule en mode WR, reset le groupCode
   joinWaitingRoom(eventId: string): void {
@@ -96,6 +102,14 @@ export class UiStateService {
     this.currentProfile.set(null);
   }
 
+  setGroupTeammates(teammates: GroupPlayer[]): void {
+    this.groupTeammates.set(teammates);
+  }
+
+  clearGroupTeammates(): void {
+    this.groupTeammates.set([]);
+  }
+
   exitWaitingRoom(): void {
     this.currentRoomId.set(null);
     this.currentEventId.set(null);
@@ -109,6 +123,7 @@ export class UiStateService {
     this.clearSessionEndsAt();
     this.clearSessionMeta();
     this.clearCurrentProfile();
+    this.clearGroupTeammates();
   }
 
   exitGame(): void {
@@ -127,6 +142,7 @@ export class UiStateService {
     this.clearCurrentProfile();
     this.colors.set([]);
     this.selectedColor.set('#000000');
+    this.clearGroupTeammates();
   }
 
   setSelectedColor(color: string): void {

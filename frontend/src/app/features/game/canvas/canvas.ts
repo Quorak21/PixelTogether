@@ -64,6 +64,7 @@ export class CanvasComponent implements AfterViewInit {
       this.ui.partyName.set(data.partyName);
       this.ui.groupLabel.set(data.groupLabel);
       this.ui.setSessionEndsAt(data.sessionEndsAt);
+      this.ui.setGroupTeammates(data.teammates ?? []);
       this.renderGrid(data);
     };
     const onDrawPixel = (data: { x: number; y: number; color: string }) => this.drawSinglePixel(data);

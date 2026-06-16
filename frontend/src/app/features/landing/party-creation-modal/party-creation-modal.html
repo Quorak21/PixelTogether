@@ -1,112 +1,137 @@
 @if (ui.partyCreationOpen()) {
-<div class="fixed inset-0 z-50 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
-  <div class="bg-base-100 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-sm relative border border-base-300 max-h-[90vh] overflow-y-auto">
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md transition-opacity duration-300">
+  <div
+    class="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-slate-950/95 p-6 shadow-2xl backdrop-blur-xl md:p-8"
+    role="dialog" aria-modal="true" aria-labelledby="party-creation-title">
     <button type="button" (click)="ui.partyCreationOpen.set(false)"
-      class="inline-flex items-center justify-center font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-base-200 rounded-full aspect-square p-0 min-h-8 h-8 w-8 text-sm absolute right-3 top-3 text-base-content/60 hover:text-base-content"
+      class="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-landing-muted transition-all hover:bg-white/10 hover:text-white hover:rotate-90 md:right-6 md:top-6"
       aria-label="Fermer">
       ✕
     </button>
 
-    <h2 class="text-xl font-bold text-base-content mb-6 pr-8">Nouvelle partie</h2>
-
-    <form [formGroup]="form" (ngSubmit)="createParty()" class="space-y-5" autocomplete="off">
-      <div class="flex flex-col gap-1 w-full">
-        <label class="pb-1" for="party-name">
-          <span class="font-semibold text-base-content/80">Nom de la partie</span>
-        </label>
-        <input
-          id="party-name"
-          type="text"
-          autofocus
-          formControlName="partyName"
-          placeholder="Team building Q2…"
-          maxlength="30"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          [class.border-error]="isInvalid('partyName')"
-          required
-        />
-      </div>
-
-      <div class="flex flex-col gap-1 w-full">
-        <label class="pb-1" for="session-count">
-          <span class="font-semibold text-base-content/80">Nombre de sessions</span>
-        </label>
-        <input
-          id="session-count"
-          type="number"
-          formControlName="sessionCount"
-          [min]="sessionCountMin"
-          [max]="sessionCountMax"
-          step="1"
-          class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          [class.border-error]="isInvalid('sessionCount')"
-          required
-        />
-        <span class="pt-1 text-sm text-base-content/60">Max {{ sessionCountMax }} sessions</span>
-      </div>
-
-      <div class="flex flex-col gap-1 w-full">
-        <label class="pb-1" for="session-duration">
-          <span class="font-semibold text-base-content/80">Durée d'une session</span>
-        </label>
-        <input
-          id="session-duration"
-          type="number"
-          formControlName="sessionDurationMinutes"
-          [min]="sessionDurationMin"
-          [max]="sessionDurationMax"
-          step="1"
-          class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          [class.border-error]="isInvalid('sessionDurationMinutes')"
-          required
-        />
-        <span class="pt-1 text-sm text-base-content/60">{{ sessionDurationMin }}–{{ sessionDurationMax }} minutes</span>
-      </div>
-
-      <div class="space-y-3" formArrayName="themes">
-        <p class="text-sm font-semibold text-base-content/80">Thème par session</p>
-        @for (themeControl of themes.controls; track $index) {
-        <div class="flex flex-col gap-1 w-full">
-          <label class="pb-1" [for]="'party-theme-' + $index">
-            <span class="text-base-content/70">Session {{ $index + 1 }}</span>
-          </label>
-          <input
-            [id]="'party-theme-' + $index"
-            type="text"
-            [formControlName]="$index"
-            placeholder="Paysage, portrait, abstrait…"
-            maxlength="30"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            class="w-full rounded-field border border-base-300 bg-base-200/50 px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            [class.border-error]="isThemeInvalid($index)"
-            required
-          />
-        </div>
-        }
-      </div>
-
-      <p
-        class="text-sm text-center font-medium"
-        [class.text-error]="totalDurationExceeded()"
-        [class.text-base-content/70]="!totalDurationExceeded()"
-      >
-        Durée totale : {{ totalDurationMinutes() }} min
-        @if (totalDurationExceeded()) {
-          <span class="block text-error text-xs mt-1">Maximum {{ maxPartyDurationMinutes }} minutes</span>
-        }
+    <header class="mb-6 pr-10">
+      <h2 id="party-creation-title" class="font-display text-2xl font-black tracking-tight text-white md:text-3xl">
+        Nouvelle partie
+      </h2>
+      <p class="mt-1.5 text-sm text-landing-muted">
+        Configurez la session pour votre équipe
       </p>
+    </header>
 
-      <button type="submit" [disabled]="!canSubmit()" class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-content hover:bg-primary/90 rounded-field min-h-10 px-4 w-full">
+    <form [formGroup]="form" (ngSubmit)="createParty()" class="flex flex-col gap-6" autocomplete="off">
+      <!-- Identité -->
+      <section class="flex flex-col gap-2">
+        <label for="party-name" class="text-sm font-semibold text-white/90">
+          Nom de la partie
+        </label>
+        <input id="party-name" type="text" autofocus formControlName="partyName"
+          placeholder="Ex. Team Building Printemps 2026" maxlength="30" autocomplete="off" autocapitalize="off"
+          spellcheck="false"
+          class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+          [class.border-error]="isInvalid('partyName')" required />
+      </section>
+
+      <!-- Paramètres sessions -->
+      <section class="rounded-xl border border-white/[0.06] bg-slate-900/40 p-4 backdrop-blur-sm">
+        <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-landing-muted">
+          Paramètres des sessions
+        </p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="flex flex-col gap-2">
+            <label for="session-count" class="text-sm font-semibold text-white/90">
+              Nombre de sessions
+            </label>
+            <input id="session-count" type="number" formControlName="sessionCount" [min]="sessionCountMin"
+              [max]="sessionCountMax" step="1"
+              class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+              [class.border-error]="isInvalid('sessionCount')" required />
+            <span class="text-xs text-landing-muted">De {{ sessionCountMin }} à {{ sessionCountMax }} sessions</span>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="session-duration" class="text-sm font-semibold text-white/90">
+              Durée par session
+            </label>
+            <div class="relative">
+              <input id="session-duration" type="number" formControlName="sessionDurationMinutes"
+                [min]="sessionDurationMin" [max]="sessionDurationMax" step="1"
+                class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 pr-14 text-white transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+                [class.border-error]="isInvalid('sessionDurationMinutes')" required />
+              <span
+                class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-landing-muted"
+                aria-hidden="true">
+                min
+              </span>
+            </div>
+            <span class="text-xs text-landing-muted">{{ sessionDurationMin }}–{{ sessionDurationMax }} minutes</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Thèmes par session -->
+      <section class="flex flex-col gap-3" formArrayName="themes">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-sm font-semibold text-white/90">Thème par session</p>
+          <span
+            class="shrink-0 rounded-full border border-brand-violet/30 bg-brand-violet/10 px-2.5 py-0.5 text-xs font-medium text-brand-violet">
+            {{ themes.controls.length }} session{{ themes.controls.length > 1 ? 's' : '' }}
+          </span>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          @for (themeControl of themes.controls; track $index) {
+          <div class="flex flex-col gap-2">
+            <label [for]="'party-theme-' + $index" class="flex items-center gap-2">
+              <span
+                class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-violet/20 text-xs font-bold text-brand-violet"
+                aria-hidden="true">
+                {{ $index + 1 }}
+              </span>
+              <span class="text-sm text-landing-muted">Session {{ $index + 1 }}</span>
+            </label>
+            <input [id]="'party-theme-' + $index" type="text" [formControlName]="$index"
+              [placeholder]="$index === 0 ? 'Ex. Paysage urbain' : $index === 1 ? 'Ex. Portrait collectif' : $index === 2 ? 'Ex. Abstraction libre' : 'Ex. Thème créatif'"
+              maxlength="30" autocomplete="off" autocapitalize="off" spellcheck="false"
+              class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+              [class.border-error]="isThemeInvalid($index)" required />
+          </div>
+          }
+        </div>
+      </section>
+
+      <!-- Indicateur durée totale -->
+      <div
+        class="flex flex-col items-center gap-1 rounded-xl border px-4 py-3 text-center transition-colors duration-200"
+        [class.border-error/40]="totalDurationExceeded()" [class.bg-error/10]="totalDurationExceeded()"
+        [class.border-brand-violet/30]="!totalDurationExceeded()" [class.bg-brand-violet/5]="!totalDurationExceeded()">
+        <p class="text-sm font-semibold" [class.text-error]="totalDurationExceeded()"
+          [class.text-white]="!totalDurationExceeded()">
+          Durée totale estimée
+        </p>
+        <p class="font-display text-2xl font-black tracking-tight" [class.text-error]="totalDurationExceeded()"
+          [class.text-brand-violet]="!totalDurationExceeded()">
+          {{ totalDurationMinutes() }}&nbsp;min
+        </p>
+        @if (totalDurationExceeded()) {
+        <p class="text-xs text-error">
+          Maximum autorisé : {{ maxPartyDurationMinutes }} minutes
+        </p>
+        } @else {
+        <p class="text-xs text-landing-muted">
+          Plafond : {{ maxPartyDurationMinutes }} minutes
+        </p>
+        }
+      </div>
+
+      <button type="submit" [disabled]="!canSubmit()"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:hover:scale-100">
         Créer la partie
       </button>
 
       @if (error()) {
-      <p class="text-sm text-center text-error">{{ error() }}</p>
+      <p class="text-center text-sm text-red-400">{{ error() }}</p>
       }
     </form>
   </div>

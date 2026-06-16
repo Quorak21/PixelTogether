@@ -13,6 +13,25 @@
 
 ## Entrées
 
+- **UI-GROUP-NAV** — **Coéquipiers dans la navbar** : affichage des autres membres du groupe (avatar + pseudo) à côté du joueur courant en mode jeu ; données `teammates` persistées via `UiStateService` (`gameStarted` + `gridState`).
+
+- **AUTH-ROLLBACK** — **Abandon reprise session / JWT** : retour au modèle classique `socket.id` (pas de handshake auth, pas de `localStorage`/`sessionStorage`, pas d'overlay reconnexion). Tentatives AUTH-01 / AUTH-02 / FRONT-04 retirées du code ; chantier repris plus tard sous **AUTH-03** (`backlog.md`).
+- **FRONT-04** — **Perte de connexion en pleine partie** : soft-disconnect (joueur reste dans la partie), overlay global, rejoin socket via `resumeSession`, blocage canvas/chat hors ligne. *(Abandonné avec AUTH-ROLLBACK — à refaire dans AUTH-03.)*
+
+- **SEC-02** — Actions manager par identité stable : `managerId` + `assertIsManager` sur start/close/vote/endSession ; plus de garde via `socket.id`.
+- **AUTH-01** — JWT éphémère (exp calée sur config partie), `JWT_SECRET` en env, `revokedEvents` à la clôture, un seul event manager actif, token en `sessionStorage`.
+
+**GAME-UI-01** — Refonte layout du jeu & contrastes :
+- Le fond autour du canvas blanc a été éclairci (`bg-slate-200`) pour éliminer le contraste trop agressif.
+- Le timer de session a été retiré de la navbar pour être positionné en haut à gauche de la zone de dessin pour la grid (et dans le titre de supervision pour le lobby manager).
+- La barre de chat va désormais jusqu'en bas de la fenêtre, alignant sa boîte de saisie avec la barre des couleurs.
+- Le thème de la session est mis en valeur avec un badge dégradé premium.
+- Tous les participants du groupe (pseudos et avatars) sont maintenant affichés dans la navbar en cours de partie.
+
+**LOBBY-01** — Refonte lobby manager : adaptation de la page supervision au thème glassmorphism dark (en-tête, vignette avec prévisualisations, modale de confirmation). Les avatars des joueurs dans les vignettes de sous-parties s'adaptent désormais dynamiquement à leur effectif (3 joueurs alignés, ou 4 joueurs en 2x2).
+
+**WR-02** — Bouton de démarrage vert : le bouton de démarrage du manager dans la salle d'attente passe désormais au vert sobre (success theme token) lorsqu'il y a assez de joueurs pour démarrer la partie (minimum 2 joueurs).
+
 **WR-UI-01** — Refonte waiting room glass dark : panneau central (titre dégradé, grille joueurs, statut, CTA manager, stats), tous les modes WR harmonisés, modales dark glass ; navbar WR épurée (logo seul, pas avatar/pseudo ni nom de partie).
 
 **UI-01** — Styling Tailwind seul : palette Nord via `@theme`, classes composant migrées en utilitaires.

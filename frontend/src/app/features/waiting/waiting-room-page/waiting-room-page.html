@@ -34,7 +34,7 @@
         <div class="rounded-xl border border-white/[0.06] bg-slate-950/50 px-6 py-5 text-center">
           @if (partyName()) {
             <h1
-              class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-2xl font-black tracking-tight text-transparent md:text-3xl"
+              class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-2xl font-black tracking-tight text-transparent md:text-3xl pb-1.5"
             >
               {{ partyName() }}
             </h1>
@@ -190,7 +190,15 @@
             </button>
             <button
               type="button"
-              class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 font-semibold text-white/90 transition-all hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border px-6 py-3.5 font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
+              [class.border-success/50]="canStart()"
+              [class.bg-success/10]="canStart()"
+              [class.text-success]="canStart()"
+              [class.hover:bg-success/20]="canStart()"
+              [class.border-white/20]="!canStart()"
+              [class.bg-white/5]="!canStart()"
+              [class.text-white/90]="!canStart()"
+              [class.hover:bg-white/10]="!canStart()"
               [disabled]="!canStart() || isStarting()"
               (click)="handleStartClick()"
             >
@@ -230,7 +238,15 @@
           <div class="flex flex-col items-center gap-2">
             <button
               type="button"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 font-semibold text-white/90 transition-all hover:bg-white/10 disabled:opacity-50"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-6 py-3.5 font-semibold transition-all disabled:opacity-50"
+              [class.border-success/50]="canStart()"
+              [class.bg-success/10]="canStart()"
+              [class.text-success]="canStart()"
+              [class.hover:bg-success/20]="canStart()"
+              [class.border-white/20]="!canStart()"
+              [class.bg-white/5]="!canStart()"
+              [class.text-white/90]="!canStart()"
+              [class.hover:bg-white/10]="!canStart()"
               [disabled]="isStarting()"
               (click)="handleStartClick()"
             >

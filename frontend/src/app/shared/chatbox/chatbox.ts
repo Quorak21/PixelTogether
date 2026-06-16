@@ -1,11 +1,13 @@
 import {
   AfterViewInit,
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
   inject,
   input,
+  Input,
   signal,
   viewChild,
 } from '@angular/core';
@@ -34,6 +36,7 @@ export class ChatboxComponent implements AfterViewInit {
 
   readonly eventId = input.required<string>();
   readonly groupCode = input.required<string>();
+  @Input({ transform: booleanAttribute }) hideFooter = false;
   readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
   readonly chatMessages = signal<ChatMessage[]>([]);

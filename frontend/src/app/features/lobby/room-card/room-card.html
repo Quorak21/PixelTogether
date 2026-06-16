@@ -1,27 +1,27 @@
 <div
-  class="rounded-box bg-base-100 shadow-sm border border-base-300 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:scale-[1.02] group flex flex-col"
+  class="rounded-2xl border border-white/10 bg-slate-900/40 shadow-lg backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-brand-violet/30 hover:shadow-[0_0_25px_-5px_rgba(99,102,241,0.15)] group flex flex-col overflow-hidden"
 >
   <div
-    class="aspect-square w-full bg-base-200 relative overflow-hidden cursor-pointer flex items-center justify-center group-hover:bg-primary/5 transition-colors"
+    class="aspect-square w-full bg-slate-950/50 relative overflow-hidden cursor-pointer flex items-center justify-center border-b border-white/[0.06] hover:bg-slate-950/30 transition-colors"
     (click)="joinGroup.emit()"
   >
     @if (image()) {
-      <img [src]="image()" alt="Aperçu grille" class="object-contain z-45 w-[90%] h-[90%]" />
+      <img [src]="image()" alt="Aperçu grille" class="object-contain z-10 w-[92%] h-[92%] transition-transform duration-300 group-hover:scale-[1.03]" />
     } @else {
-      <span class="text-5xl opacity-30">▦</span>
+      <span class="text-5xl text-white opacity-20 group-hover:opacity-35 transition-opacity">▦</span>
     }
   </div>
 
-  <div class="flex flex-col p-6 justify-between">
+  <div class="flex flex-col p-5 justify-between flex-1">
     <div>
-      <h2 class="text-xl font-bold text-primary mb-3">
+      <h2 class="text-xl font-bold text-white mb-4 group-hover:text-brand-violet transition-colors">
         {{ group().label }}
       </h2>
-      <div class="flex flex-wrap gap-4">
+      <div class="grid gap-4 justify-items-center" [class]="gridClass()">
         @for (player of group().players; track player.socketId) {
-          <div class="flex flex-col items-center gap-2 min-w-[4.5rem]">
+          <div class="flex flex-col items-center gap-1.5 w-full">
             <app-avatar-placeholder [color]="player.avatarColor" size="lg" />
-            <span class="font-semibold text-sm text-center leading-tight">{{ player.pseudo }}</span>
+            <span class="font-semibold text-xs text-landing-muted text-center leading-tight max-w-[6.5rem] truncate" [title]="player.pseudo">{{ player.pseudo }}</span>
           </div>
         }
       </div>
@@ -30,7 +30,7 @@
       <button
         type="button"
         (click)="joinGroup.emit()"
-        class="inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none border border-primary text-primary hover:bg-primary/10 rounded-field min-h-10 px-4 w-full shadow-sm"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 font-semibold text-white/90 transition-all hover:bg-white/10 active:scale-[0.98]"
       >
         Observer
       </button>

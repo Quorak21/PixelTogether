@@ -41,6 +41,18 @@ export class NavbarComponent {
     return formatRemainingMs(endsAt - this.now());
   });
 
+  readonly otherTeammates = computed(() => {
+    if (!this.ui.gameMode()) {
+      return [];
+    }
+    const myId = this.socket.id();
+    const teammates = this.ui.groupTeammates();
+    if (!myId) {
+      return teammates;
+    }
+    return teammates.filter((mate) => mate.socketId !== myId);
+  });
+
   constructor() {
     const interval = window.setInterval(() => {
       this.now.set(Date.now());

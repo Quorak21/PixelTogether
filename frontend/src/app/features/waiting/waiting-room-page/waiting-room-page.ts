@@ -450,6 +450,7 @@ export class WaitingRoomPageComponent {
       this.ui.setSessionEndsAt(payload.sessionEndsAt);
       if (payload.role === 'player') {
         this.ui.groupLabel.set(payload.groupLabel);
+        this.ui.setGroupTeammates(payload.teammates ?? []);
       }
 
       if (payload.role === 'manager') {

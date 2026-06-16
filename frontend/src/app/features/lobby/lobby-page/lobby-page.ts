@@ -13,6 +13,13 @@ import {
 import { GroupTransitionModalComponent } from '../../game/group-transition-modal/group-transition-modal';
 import { RoomCardComponent } from '../room-card/room-card';
 
+function formatRemainingMs(remainingMs: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 @Component({
   selector: 'app-lobby-page',
   imports: [RoomCardComponent, GroupTransitionModalComponent],
@@ -47,7 +54,33 @@ export class LobbyPageComponent {
   readonly isEndingSession = signal(false);
   readonly endSessionError = signal('');
 
+  private readonly now = signal(Date.now());
+
+  readonly sessionTimerLabel = computed(() => {
+    const endsAt = this.ui.sessionEndsAt();
+    if (endsAt === null) {
+      return null;
+    }
+    return formatRemainingMs(endsAt - this.now());
+  });
+
+  readonly sessionTimerUrgent = computed(() => {
+    const endsAt = this.ui.sessionEndsAt();
+    if (endsAt === null) {
+      return false;
+    }
+    return endsAt - this.now() <= 60_000;
+  });
+
   constructor() {
+    const interval = window.setInterval(() => {
+      this.now.set(Date.now());
+    }, 1000);
+
+    this.destroyRef.onDestroy(() => {
+      window.clearInterval(interval);
+    });
+
     if (!this.eventId()) {
       void this.router.navigateByUrl('/');
       return;
