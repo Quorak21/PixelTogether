@@ -1,10 +1,12 @@
 import { computed, Injectable, signal } from '@angular/core';
 import {
+  GameMode,
   GroupPlayer,
   GroupTransitionPayload,
   ParticipantRole,
   PlayerProfile,
 } from '../../types/entities';
+import { GAME_MODE_COOP, GAME_MODE_COMPETITIVE } from '../config/session-config';
 
 // état client cross-route (navbar, transitions) — pas de NgRx, signals suffisent
 @Injectable({ providedIn: 'root' })
@@ -32,8 +34,35 @@ export class UiStateService {
   readonly hasProfile = computed(() => this.currentProfile() !== null);
 
   readonly partyCreationOpen = signal(false);
+  readonly partyCreationMode = signal<GameMode>(GAME_MODE_COMPETITIVE);
+  readonly partyGameMode = signal<GameMode | null>(null);
   readonly joinRoomOpen = signal(false);
   readonly joinRoomError = signal<string | null>(null);
+
+  readonly isCoopParty = computed(() => this.partyGameMode() === GAME_MODE_COOP);
+  readonly isCompetitiveParty = computed(
+    () => !this.partyGameMode() || this.partyGameMode() === GAME_MODE_COMPETITIVE,
+  );
+
+  readonly partyModeLabel = computed(() => {
+    if (this.partyGameMode() === GAME_MODE_COOP) return 'Coopératif';
+    if (this.partyGameMode() === GAME_MODE_COMPETITIVE) return 'Compétitif';
+    return '';
+  });
+
+  openPartyCreation(mode: GameMode): void {
+    this.partyCreationMode.set(mode);
+    this.partyCreationOpen.set(true);
+  }
+
+  setPartyGameMode(mode: GameMode | null): void {
+    this.partyGameMode.set(mode);
+  }
+
+  /** Popup globale : manager absent, fermeture imminente. */
+  readonly managerAbsentWarning = signal<{ message: string; secondsLeft: number } | null>(null);
+
+  private managerAbsentCountdownId: ReturnType<typeof setInterval> | null = null;
 
   readonly selectedColor = signal('#000000');
   readonly colors = signal<string[]>([]);
@@ -46,6 +75,20 @@ export class UiStateService {
     this.currentGroupCode.set(null);
     this.waitingMode.set(true);
     this.gameMode.set(false);
+  }
+
+  /** Fin de session : retour WR sans effacer mode de partie ni rôle manager. */
+  leaveCanvasForWaitingRoom(eventId: string): void {
+    this.currentEventId.set(eventId);
+    this.currentRoomId.set(eventId);
+    this.currentGroupCode.set(null);
+    this.waitingMode.set(true);
+    this.gameMode.set(false);
+    this.groupLabel.set('');
+    this.clearGroupTeammates();
+    this.colors.set([]);
+    this.selectedColor.set('#000000');
+    this.clearGroupTransition();
   }
 
   joinGame(eventId: string, groupCode?: string): void {
@@ -110,6 +153,45 @@ export class UiStateService {
     this.groupTeammates.set([]);
   }
 
+  /**
+   * Quitte la vue d'un groupe (spectateur / joueur) sans quitter la partie.
+   * Efface uniquement les pseudos coéquipiers et le contexte canvas.
+   */
+  leaveGroupView(eventId: string): void {
+    this.gameMode.set(false);
+    this.currentEventId.set(eventId);
+    this.currentRoomId.set(eventId);
+    this.currentGroupCode.set(null);
+    this.groupLabel.set('');
+    this.clearGroupTeammates();
+    this.colors.set([]);
+    this.selectedColor.set('#000000');
+  }
+
+  showManagerAbsentWarning(message: string, closesInMs: number): void {
+    this.clearManagerAbsentWarning();
+    const secondsLeft = Math.max(1, Math.ceil(closesInMs / 1000));
+    this.managerAbsentWarning.set({ message, secondsLeft });
+
+    this.managerAbsentCountdownId = setInterval(() => {
+      const current = this.managerAbsentWarning();
+      if (!current) return;
+      if (current.secondsLeft <= 1) {
+        this.clearManagerAbsentWarning();
+        return;
+      }
+      this.managerAbsentWarning.set({ ...current, secondsLeft: current.secondsLeft - 1 });
+    }, 1000);
+  }
+
+  clearManagerAbsentWarning(): void {
+    if (this.managerAbsentCountdownId !== null) {
+      clearInterval(this.managerAbsentCountdownId);
+      this.managerAbsentCountdownId = null;
+    }
+    this.managerAbsentWarning.set(null);
+  }
+
   exitWaitingRoom(): void {
     this.currentRoomId.set(null);
     this.currentEventId.set(null);
@@ -119,6 +201,7 @@ export class UiStateService {
     this.gameTheme.set('');
     this.partyName.set('');
     this.groupLabel.set('');
+    this.setPartyGameMode(null);
     this.clearGroupTransition();
     this.clearSessionEndsAt();
     this.clearSessionMeta();
@@ -136,6 +219,7 @@ export class UiStateService {
     this.gameTheme.set('');
     this.partyName.set('');
     this.groupLabel.set('');
+    this.setPartyGameMode(null);
     this.clearGroupTransition();
     this.clearSessionEndsAt();
     this.clearSessionMeta();

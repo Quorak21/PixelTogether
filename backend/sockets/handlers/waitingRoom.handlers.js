@@ -6,18 +6,30 @@ import {
   handleEndParty,
   handleShowResults,
 } from '../../services/vote/voteLifecycle.js';
+import { handleWaitingRoomEntry } from './reconnect.handlers.js';
+import {
+  removePlayerSessionFromEvent,
+} from '../../services/reconnect/sessionToken.js';
+import {
+  isAvatarColorValid,
+  getParticipantRole,
+  isRegistered,
+  removePlayerFromEvent,
+  isManager,
+  resolvePlayerId,
+} from '../../services/event/participants.js';
+import {
+  isCoop,
+  validateGuestRegistration,
+  validateStartPlayerCount,
+} from '../../services/event/gameMode.js';
+import { guardAck } from './socketGuards.js';
 
 // entrée WR, inscription, startGame, vote — tout ce qui se passe hors canvas
 export function registerWaitingRoomHandlers(socket, deps) {
-  const { io, store, constants, participants, payloads, lifecycle } = deps;
+  const { io, store, constants, payloads, lifecycle } = deps;
   const { activeEvents, normalizeEventId } = store;
   const { LABEL_MIN, LABEL_MAX, PSEUDO_REGEX } = constants;
-  const {
-    isAvatarColorValid,
-    getParticipantRole,
-    isRegistered,
-    removePlayerFromEvent,
-  } = participants;
   const { buildWaitingRoomState, toPublicPlayer } = payloads;
   const { emitGameStarted } = lifecycle;
 
@@ -38,7 +50,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return;
     }
 
-    // enterWaitingRoom bloqué si session en cours — les joueurs restent en jeu
+    // enterWaitingRoom bloqué si session en cours — utiliser reconnectSession
     if (event.status === 'started') {
       const error = 'La partie a déjà commencé.';
       if (typeof callback === 'function') callback({ error });
@@ -46,17 +58,20 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return;
     }
 
-    const role = getParticipantRole(event, socket.id);
-    socket.data.role = role;
-    socket.data.eventId = eventId;
-    socket.join(eventId);
+    const entry = handleWaitingRoomEntry(socket, event, eventId, data, deps);
+    if (entry.error) {
+      if (typeof callback === 'function') callback({ error: entry.error });
+      socket.emit('waitingRoomError', { error: entry.error });
+      return;
+    }
 
-    const state = buildWaitingRoomState(event, socket.id);
+    const state = entry.state;
     socket.emit('waitingRoomState', state);
     if (typeof callback === 'function') callback({ ...state });
   });
 
   socket.on('registerPlayer', (data, callback) => {
+    if (!guardAck(callback)) return;
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
 
@@ -68,7 +83,12 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: 'La partie a déjà commencé.' });
     }
 
-    if (isRegistered(event, socket.id)) {
+    const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
+    if (!playerId) {
+      return callback({ error: 'Session invalide. Rejoignez la salle d\'attente.' });
+    }
+
+    if (isRegistered(event, socket.id, playerId)) {
       return callback({ error: 'Vous êtes déjà enregistré.' });
     }
 
@@ -84,12 +104,18 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: 'Couleur avatar invalide.' });
     }
 
-    const role = getParticipantRole(event, socket.id);
+    const role = getParticipantRole(event, socket.id, playerId);
 
     if (role === 'manager') {
       event.managerProfile = { pseudo, avatarColor };
     } else {
+      const guestError = validateGuestRegistration(event);
+      if (guestError) {
+        return callback(guestError);
+      }
+
       event.players.push({
+        playerId,
         socketId: socket.id,
         pseudo,
         avatarColor,
@@ -99,13 +125,15 @@ export function registerWaitingRoomHandlers(socket, deps) {
 
     socket.data.role = role;
     socket.data.eventId = eventId;
+    socket.data.playerId = playerId;
 
-    const state = buildWaitingRoomState(event, socket.id);
+    const state = buildWaitingRoomState(event, socket.id, playerId);
     socket.to(eventId).emit('waitingRoomUpdated', { players: state.players });
     callback({ ...state });
   });
 
   socket.on('startGame', (data, callback) => {
+    if (!guardAck(callback)) return;
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
 
@@ -113,7 +141,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: "La partie n'existe pas." });
     }
 
-    if (socket.id !== event.manager) {
+    if (!isManager(event, socket)) {
       return callback({ error: 'Seul le manager peut démarrer la partie.' });
     }
 
@@ -121,7 +149,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: 'La partie est déjà lancée.' });
     }
 
-    if (event.activeVote?.status === 'open') { // vote ouvert = session suivante bloquée
+    if (event.activeVote?.status === 'open') {
       return callback({ error: 'Clôturez le vote avant de démarrer la session.' });
     }
 
@@ -129,16 +157,22 @@ export function registerWaitingRoomHandlers(socket, deps) {
       return callback({ error: 'Le manager doit compléter son profil avant de démarrer.' });
     }
 
-    if (!event.partyStarted && event.players.length < 2) {
-      return callback({ error: 'Au moins 2 joueurs sont requis pour démarrer.' });
+    if (!event.partyStarted) {
+      const playerCountError = validateStartPlayerCount(event);
+      if (playerCountError) {
+        return callback(playerCountError);
+      }
     }
 
     event.activeVote = null;
+    event.coopWrMode = null;
     event.partyStarted = true;
     event.name = event.themes[event.currentSession - 1];
     event.status = 'started';
     beginSession(event, deps);
-    scheduleSessionEnd(event, io);
+    if (!isCoop(event)) {
+      scheduleSessionEnd(event, io);
+    }
     emitGameStarted(io, event);
     callback({ eventId, status: 'started' });
   });
@@ -162,13 +196,20 @@ export function registerWaitingRoomHandlers(socket, deps) {
   socket.on('leaveWaitingRoom', (data) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
-    if (!event || socket.id === event.manager) {
+    if (!event || isManager(event, socket)) {
       return;
     }
 
-    const removed = removePlayerFromEvent(event, socket.id);
+    const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
+    const removed = removePlayerFromEvent(event, socket.id, playerId);
+
+    if (playerId) {
+      removePlayerSessionFromEvent(event, playerId);
+    }
+
     socket.leave(eventId);
     socket.data.eventId = undefined;
+    socket.data.playerId = undefined;
 
     if (removed && event.status === 'waiting') {
       io.to(eventId).emit('waitingRoomUpdated', {

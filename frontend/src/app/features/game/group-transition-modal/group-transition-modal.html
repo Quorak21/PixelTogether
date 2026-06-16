@@ -1,20 +1,21 @@
 @if (visible() && ui.groupTransition(); as transition) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div class="rounded-box bg-base-100 shadow-2xl w-full max-w-2xl border border-base-300">
-      <div class="flex flex-col gap-6 p-6">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div
+      class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/95 shadow-2xl"
+    >
+      <div class="flex flex-col gap-6 p-6 md:p-8">
         <div class="text-center">
-          <p class="text-sm uppercase tracking-widest text-base-content/50 font-semibold">Thème</p>
-          <h2 class="text-3xl font-black text-primary">{{ transition.theme }}</h2>
-          <p class="text-base-content/60 mt-2">Préparez-vous — {{ secondsLeft() }}s</p>
+          <p class="text-xs font-semibold uppercase tracking-widest text-landing-muted">Thème</p>
+          <h2 class="mt-1 font-display text-3xl font-black text-white">{{ transition.theme }}</h2>
         </div>
 
-        @if (transition.role === 'player') {
+        @if ('myColors' in transition && transition.myColors.length) {
           <div>
-            <h3 class="text-lg font-bold text-center mb-4">Vos couleurs</h3>
-            <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+            <h3 class="mb-4 text-center text-lg font-bold text-white">Vos couleurs</h3>
+            <div class="mb-6 flex flex-wrap justify-center gap-1.5">
               @for (color of transition.myColors; track color) {
                 <span
-                  class="w-5 h-5 rounded-sm border border-base-300 shrink-0"
+                  class="h-5 w-5 shrink-0 rounded-sm border border-white/20"
                   [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
                   [style.backgroundColor]="color"
                   [title]="color"
@@ -22,16 +23,18 @@
               }
             </div>
 
-            <h3 class="text-lg font-bold text-center mb-4">Votre équipe</h3>
+            @if (!ui.isCoopParty()) {
+            <h3 class="mb-4 text-center text-lg font-bold text-white">Votre équipe</h3>
+            }
             <div class="flex flex-wrap justify-center gap-6">
               @for (mate of transition.teammates; track mate.socketId) {
-                <div class="flex flex-col items-center gap-2 min-w-[5rem]">
+                <div class="flex min-w-[5rem] flex-col items-center gap-2">
                   <app-avatar-placeholder [color]="mate.avatarColor" size="lg" />
-                  <span class="font-semibold text-base text-center">{{ mate.pseudo }}</span>
-                  <div class="flex flex-wrap justify-center gap-1 max-w-[6rem]">
+                  <span class="text-center text-base font-semibold text-white">{{ mate.pseudo }}</span>
+                  <div class="flex max-w-[6rem] flex-wrap justify-center gap-1">
                     @for (color of mate.colors; track color) {
                       <span
-                        class="w-5 h-5 rounded-sm border border-base-300 shrink-0"
+                        class="h-5 w-5 shrink-0 rounded-sm border border-white/20"
                         [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
                         [style.backgroundColor]="color"
                         [title]="color"
@@ -41,27 +44,27 @@
                 </div>
               }
             </div>
-            <p class="text-center text-lg font-bold text-base-content/70 mt-4">
+            @if (!ui.isCoopParty()) {
+            <p class="mt-4 text-center text-lg font-bold text-brand-violet/90">
               {{ transition.groupLabel }}
             </p>
+            }
           </div>
-        } @else {
-          <div class="space-y-4 max-h-[50vh] overflow-y-auto">
-            <h3 class="text-lg font-bold text-center">Répartition des groupes</h3>
+        } @else if ('groups' in transition) {
+          <div class="max-h-[50vh] space-y-4 overflow-y-auto">
+            <h3 class="text-center text-lg font-bold text-white">Répartition des groupes</h3>
             @for (group of transition.groups; track group.groupCode) {
-              <div class="rounded-2xl border border-base-300 bg-base-200/50 p-4">
-                <p class="font-bold text-primary text-lg mb-3">
-                  {{ group.groupLabel }}
-                </p>
+              <div class="rounded-xl border border-white/10 bg-slate-900/50 p-4">
+                <p class="mb-3 text-lg font-bold text-brand-violet">{{ group.groupLabel }}</p>
                 <div class="space-y-3">
                   @for (player of group.players; track player.socketId) {
                     <div class="flex flex-wrap items-center gap-3">
                       <app-avatar-placeholder [color]="player.avatarColor" size="md" />
-                      <span class="font-medium min-w-[4rem]">{{ player.pseudo }}</span>
+                      <span class="min-w-[4rem] font-medium text-white">{{ player.pseudo }}</span>
                       <div class="flex flex-wrap gap-1">
                         @for (color of player.colors; track color) {
                           <span
-                            class="w-5 h-5 rounded-sm border border-base-300 shrink-0"
+                            class="h-5 w-5 shrink-0 rounded-sm border border-white/20"
                             [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
                             [style.backgroundColor]="color"
                             [title]="color"
@@ -75,6 +78,16 @@
             }
           </div>
         }
+
+        <div class="flex justify-center pt-2">
+          <button
+            type="button"
+            class="inline-flex min-w-[8rem] items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-8 py-3 font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+            (click)="close()"
+          >
+            OK
+          </button>
+        </div>
       </div>
     </div>
   </div>

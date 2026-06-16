@@ -12,47 +12,54 @@
 
     <header class="mb-6 pr-10">
       <h2 id="party-creation-title" class="font-display text-2xl font-black tracking-tight text-white md:text-3xl">
-        Nouvelle partie
+        {{ modalTitle() }}
       </h2>
       <p class="mt-1.5 text-sm text-landing-muted">
-        Configurez la session pour votre équipe
+        @if (isCoop()) {
+        Une seule grille, collaboration directe
+        } @else {
+        Équipes en compétition, vote entre les créations
+        }
       </p>
     </header>
 
     <form [formGroup]="form" (ngSubmit)="createParty()" class="flex flex-col gap-6" autocomplete="off">
-      <!-- Identité -->
       <section class="flex flex-col gap-2">
         <label for="party-name" class="text-sm font-semibold text-white/90">
           Nom de la partie
         </label>
         <input id="party-name" type="text" autofocus formControlName="partyName"
-          placeholder="Ex. Team Building Printemps 2026" maxlength="30" autocomplete="off" autocapitalize="off"
+          placeholder="Ex. Team Building Automne 2026" maxlength="30" autocomplete="off" autocapitalize="off"
           spellcheck="false"
           class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
           [class.border-error]="isInvalid('partyName')" required />
       </section>
 
-      <!-- Paramètres sessions -->
       <section class="rounded-xl border border-white/[0.06] bg-slate-900/40 p-4 backdrop-blur-sm">
+        @if (isCoop() && coopPlayersHint()) {
+        <p class="mb-4 text-xs text-brand-violet/90">{{ coopPlayersHint() }}</p>
+        }
         <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-landing-muted">
           Paramètres des sessions
         </p>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4" [class.sm:grid-cols-2]="!isCoop()">
           <div class="flex flex-col gap-2">
             <label for="session-count" class="text-sm font-semibold text-white/90">
-              Nombre de sessions
+              Nombre
             </label>
-            <input id="session-count" type="number" formControlName="sessionCount" [min]="sessionCountMin"
-              [max]="sessionCountMax" step="1"
+            <input id="session-count" type="number" formControlName="sessionCount" [min]="sessionCountMin()"
+              [max]="sessionCountMax()" step="1"
               class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
               [class.border-error]="isInvalid('sessionCount')" required />
-            <span class="text-xs text-landing-muted">De {{ sessionCountMin }} à {{ sessionCountMax }} sessions</span>
+            <span class="text-xs text-landing-muted">De {{ sessionCountMin() }} à {{ sessionCountMax() }}
+              sessions</span>
           </div>
 
+          @if (!isCoop()) {
           <div class="flex flex-col gap-2">
             <label for="session-duration" class="text-sm font-semibold text-white/90">
-              Durée par session
+              Durée
             </label>
             <div class="relative">
               <input id="session-duration" type="number" formControlName="sessionDurationMinutes"
@@ -67,13 +74,13 @@
             </div>
             <span class="text-xs text-landing-muted">{{ sessionDurationMin }}–{{ sessionDurationMax }} minutes</span>
           </div>
+          }
         </div>
       </section>
 
-      <!-- Thèmes par session -->
       <section class="flex flex-col gap-3" formArrayName="themes">
         <div class="flex items-center justify-between gap-2">
-          <p class="text-sm font-semibold text-white/90">Thème par session</p>
+          <p class="text-sm font-semibold text-white/90">Thème</p>
           <span
             class="shrink-0 rounded-full border border-brand-violet/30 bg-brand-violet/10 px-2.5 py-0.5 text-xs font-medium text-brand-violet">
             {{ themes.controls.length }} session{{ themes.controls.length > 1 ? 's' : '' }}
@@ -91,8 +98,7 @@
               </span>
               <span class="text-sm text-landing-muted">Session {{ $index + 1 }}</span>
             </label>
-            <input [id]="'party-theme-' + $index" type="text" [formControlName]="$index"
-              [placeholder]="$index === 0 ? 'Ex. Paysage urbain' : $index === 1 ? 'Ex. Portrait collectif' : $index === 2 ? 'Ex. Abstraction libre' : 'Ex. Thème créatif'"
+            <input [id]="'party-theme-' + $index" type="text" [formControlName]="$index" [placeholder]="themePlaceholder($index)"
               maxlength="30" autocomplete="off" autocapitalize="off" spellcheck="false"
               class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
               [class.border-error]="isThemeInvalid($index)" required />
@@ -101,29 +107,16 @@
         </div>
       </section>
 
-      <!-- Indicateur durée totale -->
+      @if (!isCoop()) {
       <div
-        class="flex flex-col items-center gap-1 rounded-xl border px-4 py-3 text-center transition-colors duration-200"
-        [class.border-error/40]="totalDurationExceeded()" [class.bg-error/10]="totalDurationExceeded()"
-        [class.border-brand-violet/30]="!totalDurationExceeded()" [class.bg-brand-violet/5]="!totalDurationExceeded()">
-        <p class="text-sm font-semibold" [class.text-error]="totalDurationExceeded()"
-          [class.text-white]="!totalDurationExceeded()">
-          Durée totale estimée
-        </p>
-        <p class="font-display text-2xl font-black tracking-tight" [class.text-error]="totalDurationExceeded()"
-          [class.text-brand-violet]="!totalDurationExceeded()">
+        class="flex flex-col items-center gap-1 rounded-xl border border-brand-violet/30 bg-brand-violet/5 px-4 py-3 text-center">
+        <p class="text-sm font-semibold text-white">Durée totale estimée</p>
+        <p class="font-display text-2xl font-black tracking-tight text-brand-violet">
           {{ totalDurationMinutes() }}&nbsp;min
         </p>
-        @if (totalDurationExceeded()) {
-        <p class="text-xs text-error">
-          Maximum autorisé : {{ maxPartyDurationMinutes }} minutes
-        </p>
-        } @else {
-        <p class="text-xs text-landing-muted">
-          Plafond : {{ maxPartyDurationMinutes }} minutes
-        </p>
-        }
+        <p class="text-xs text-landing-muted">Minimum {{ COMPETITIVE_PLAYERS_MIN }} joueurs pour démarrer</p>
       </div>
+      }
 
       <button type="submit" [disabled]="!canSubmit()"
         class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:hover:scale-100">

@@ -11,3 +11,20 @@
     <app-footer />
   </footer>
 </div>
+
+@if (ui.managerAbsentWarning(); as warning) {
+<div
+  class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+  role="alertdialog"
+  aria-modal="true"
+  aria-labelledby="manager-absent-title"
+>
+  <div
+    class="w-full max-w-md rounded-2xl border border-amber-500/40 bg-slate-950/95 p-6 text-center shadow-2xl"
+  >
+    <h2 id="manager-absent-title" class="text-lg font-bold text-white">Manager absent</h2>
+    <p class="mt-3 text-sm leading-relaxed text-landing-muted">{{ warning.message }}</p>
+    <p class="mt-4 font-mono text-2xl font-bold tabular-nums text-amber-400">{{ warning.secondsLeft }} s</p>
+  </div>
+</div>
+}

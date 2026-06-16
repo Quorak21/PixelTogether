@@ -9,6 +9,8 @@ import {
 import { Router } from '@angular/router';
 import { SocketService } from '../../core/services/socket.service';
 import { UiStateService } from '../../core/services/ui-state.service';
+import { SessionTokenService } from '../../core/services/session-token.service';
+import { EndSessionPayload, EndSessionResponse } from '../../types/socket-payloads';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder';
 
 function formatRemainingMs(remainingMs: number): string {
@@ -29,11 +31,13 @@ export class NavbarComponent {
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionToken = inject(SessionTokenService);
 
   private readonly now = signal(Date.now());
 
-  // décompte basé sur sessionEndsAt serveur (inclut les +5s transition)
+  // décompte basé sur sessionEndsAt serveur (inclut la marge transition au lancement)
   readonly sessionTimerLabel = computed(() => {
+    if (this.ui.isCoopParty()) return null;
     const endsAt = this.ui.sessionEndsAt();
     if (endsAt === null) {
       return null;
@@ -42,16 +46,31 @@ export class NavbarComponent {
   });
 
   readonly otherTeammates = computed(() => {
-    if (!this.ui.gameMode()) {
+    if (!this.ui.gameMode() || this.ui.isCoopParty()) {
       return [];
     }
+    const myPlayerId = this.sessionToken.read()?.playerId;
     const myId = this.socket.id();
     const teammates = this.ui.groupTeammates();
-    if (!myId) {
-      return teammates;
-    }
-    return teammates.filter((mate) => mate.socketId !== myId);
+    return teammates.filter(
+      (mate) => mate.playerId !== myPlayerId && mate.socketId !== myId,
+    );
   });
+
+  readonly showCoopEndSession = computed(
+    () => this.ui.gameMode() && this.ui.isCoopParty() && this.ui.isManager(),
+  );
+
+  readonly endSessionConfirmTitle = computed(() => {
+    if (this.ui.currentSession() >= this.ui.sessionCount()) {
+      return 'Terminer la session actuelle ?';
+    }
+    return 'Terminer la session actuelle et passer à la suivante ?';
+  });
+
+  readonly endSessionConfirmOpen = signal(false);
+  readonly isEndingSession = signal(false);
+  readonly endSessionError = signal('');
 
   constructor() {
     const interval = window.setInterval(() => {
@@ -63,16 +82,18 @@ export class NavbarComponent {
     });
   }
 
-  // sortie contextuelle : closeRoom (manager WR), leaveWaitingRoom, exitGame ou retour lobby
+  // sortie contextuelle : WR = quitter la partie ; en jeu manager = retour lobby sans couper la session
   handleExitToLobby(): void {
-    const eventId = this.ui.currentEventId() ?? this.ui.currentRoomId();
+    const eventId = this.resolveEventId();
 
     if (eventId) {
       if (this.ui.waitingMode()) {
         if (this.ui.isManager()) {
           this.socket.emit('closeRoom', { eventId, roomId: eventId });
+          this.sessionToken.clear();
         } else {
           this.socket.emit('leaveWaitingRoom', { eventId, roomId: eventId });
+          this.sessionToken.clear();
         }
         this.ui.exitWaitingRoom();
         void this.router.navigateByUrl('/');
@@ -80,9 +101,8 @@ export class NavbarComponent {
       }
 
       if (this.ui.gameMode()) {
-        if (this.ui.isManager()) {
-          this.ui.gameMode.set(false);
-          this.ui.currentGroupCode.set(null);
+        if (this.ui.isManager() && this.ui.isCompetitiveParty()) {
+          this.ui.leaveGroupView(eventId);
           void this.router.navigateByUrl(`/lobby/${eventId}`);
           return;
         }
@@ -93,9 +113,62 @@ export class NavbarComponent {
           roomId: eventId,
         });
         this.ui.exitGame();
+        void this.router.navigateByUrl('/');
+        return;
+      }
+
+      // Manager compétitif hors canvas
+      if (this.ui.isManager() && this.ui.isCompetitiveParty()) {
+        this.ui.leaveGroupView(eventId);
+        void this.router.navigateByUrl(`/lobby/${eventId}`);
+        return;
       }
     }
 
     void this.router.navigateByUrl('/');
+  }
+
+  /** eventId stable même si currentRoomId vaut « EVENT/GROUP ». */
+  private resolveEventId(): string | null {
+    const direct = this.ui.currentEventId();
+    if (direct) {
+      return direct;
+    }
+    const roomId = this.ui.currentRoomId();
+    if (!roomId) {
+      return null;
+    }
+    return roomId.includes('/') ? roomId.split('/')[0] : roomId;
+  }
+
+  openEndSessionConfirm(): void {
+    this.endSessionError.set('');
+    this.endSessionConfirmOpen.set(true);
+  }
+
+  closeEndSessionConfirm(): void {
+    this.endSessionConfirmOpen.set(false);
+    this.endSessionError.set('');
+  }
+
+  async confirmEndSession(): Promise<void> {
+    const eventId = this.resolveEventId();
+    if (!eventId || this.isEndingSession()) return;
+
+    this.isEndingSession.set(true);
+    this.endSessionError.set('');
+
+    const response = await this.socket.emitWithAck<EndSessionPayload, EndSessionResponse>('endSession', {
+      eventId,
+    });
+
+    if (response.error) {
+      this.endSessionError.set(response.error);
+      this.isEndingSession.set(false);
+      return;
+    }
+
+    this.endSessionConfirmOpen.set(false);
+    this.isEndingSession.set(false);
   }
 }

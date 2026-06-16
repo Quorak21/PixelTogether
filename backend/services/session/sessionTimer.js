@@ -10,7 +10,7 @@ export { clearSessionTimer };
 
 
 
-// durée session + 5s de marge pour la modale transition front
+// durée session + marge lecture modale transition (SESSION_TRANSITION_SECONDS)
 export function scheduleSessionEnd(event, io) {
 
   clearSessionTimer(event);

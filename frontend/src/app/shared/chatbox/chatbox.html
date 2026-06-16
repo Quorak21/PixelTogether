@@ -2,7 +2,7 @@
   <!-- Header du chat -->
   <div class="flex items-center gap-2.5 shrink-0 px-4 py-3 bg-slate-950/40 border-b border-white/10 select-none">
     <span class="text-base-content/80">💬</span>
-    <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">{{ ui.groupLabel() || 'Chat' }}</span>
+    <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">{{ ui.isCoopParty() ? 'Discussion' : (ui.groupLabel() || 'Chat') }}</span>
   </div>
 
   <!-- Zone de messages -->

@@ -4,7 +4,19 @@ export type ParticipantRole = 'manager' | 'player';
 
 export type RoomStatus = 'waiting' | 'started'; // started = session canvas en cours
 
-export type WrMode = 'players' | 'voting' | 'voteResult' | 'podium'; // pilote l'UI waiting room (getWrMode côté back)
+export type GameMode = 'coop' | 'competitive';
+
+export type WrMode = 'players' | 'voting' | 'voteResult' | 'podium' | 'sessionResult' | 'gallery';
+
+export type ReconnectPhase =
+  | 'waiting'
+  | 'voting'
+  | 'voteResult'
+  | 'podium'
+  | 'sessionResult'
+  | 'gallery'
+  | 'game'
+  | 'lobby';
 
 export interface PodiumPlayer {
   rank: number;
@@ -29,6 +41,14 @@ export interface VoteCandidate {
 }
 
 // champs vote réutilisés dans waitingRoomState, sessionEnded, voteStateUpdated
+export interface GalleryGrid {
+  sessionNumber: number;
+  theme: string;
+  label: string;
+  image: string | null;
+  groupCode: string;
+}
+
 export interface VoteStateFields {
   wrMode: WrMode;
   voteCandidates: VoteCandidate[];
@@ -38,6 +58,8 @@ export interface VoteStateFields {
   isLastVote?: boolean;
   topPlayers?: PodiumPlayer[];
   topGrids?: PodiumGrid[];
+  sessionResultGrid?: GalleryGrid | null;
+  galleryGrids?: GalleryGrid[];
 }
 
 export interface PlayerProfile {
@@ -47,6 +69,7 @@ export interface PlayerProfile {
 
 export interface PublicPlayer extends PlayerProfile {
   socketId: string;
+  playerId?: string;
 }
 
 export interface GroupPlayer extends PublicPlayer {
@@ -55,6 +78,7 @@ export interface GroupPlayer extends PublicPlayer {
 
 export interface WaitingRoomPlayer extends PlayerProfile {
   socketId: string;
+  playerId?: string;
   role: 'player';
 }
 
@@ -91,6 +115,7 @@ export interface GridStatePayload {
   groupLabel: string;
   partyName: string;
   theme: string;
+  gameMode?: GameMode;
   pixels: Record<string, string>; // clés "x,y" comme côté back
   width: number;
   height: number;
@@ -106,6 +131,7 @@ export interface SessionEndedPayload extends VoteStateFields {
   eventId: string;
   partyName: string;
   theme: string;
+  gameMode?: GameMode;
   sessionCount: number;
   currentSession: number;
   partyStarted?: boolean;
@@ -120,10 +146,12 @@ export interface GroupTransitionPlayerPayload {
   groupLabel: string;
   partyName: string;
   theme: string;
+  gameMode?: GameMode;
+  managerParticipates?: boolean;
   sessionCount: number;
   currentSession: number;
   sessionEndsAt?: number | null;
-  role: 'player';
+  role: 'player' | 'manager';
   myColors: string[];
   teammates: GroupPlayer[];
 }
@@ -132,12 +160,15 @@ export interface GroupTransitionManagerPayload {
   eventId: string;
   partyName: string;
   theme: string;
+  gameMode?: GameMode;
+  managerParticipates?: boolean;
   sessionCount: number;
   currentSession: number;
   sessionEndsAt?: number | null;
   role: 'manager';
+  groupCode?: string;
   groups: { groupCode: string; groupIndex: number; groupLabel: string; players: GroupPlayer[] }[];
 }
 
-// contenu modale transition 5s — rempli par gameStarted avant navigation
+// contenu modale transition — rempli par gameStarted avant navigation
 export type GroupTransitionPayload = GroupTransitionPlayerPayload | GroupTransitionManagerPayload;

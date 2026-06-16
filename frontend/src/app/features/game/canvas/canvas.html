@@ -13,8 +13,8 @@
     id="canvas"
     (pointerup)="handleDraw($event)"
     class="shrink-0 bg-white shadow-2xl"
-    [class.cursor-crosshair]="!ui.isManager()"
-    [class.cursor-grab]="ui.isManager()"
+    [class.cursor-crosshair]="!ui.isManager() || ui.isCoopParty()"
+    [class.cursor-grab]="ui.isManager() && !ui.isCoopParty()"
     [style.transition]="isDragging() ? 'none' : 'transform 0.1s ease-in-out'"
     [style.transform]="'translate(' + position().x + 'px, ' + position().y + 'px) scale(' + scale() + ')'"
   ></canvas>

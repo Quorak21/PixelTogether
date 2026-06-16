@@ -42,6 +42,21 @@
           @if (partySubtitle()) {
             <p class="mt-2 text-sm text-landing-muted">{{ partySubtitle() }}</p>
           }
+          @if (ui.isManager() && wrMode() === 'players') {
+            <div class="mt-4 flex justify-center">
+              <span
+                class="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 font-mono text-sm tabular-nums"
+                [class.border-success/40]="playerCountReady()"
+                [class.bg-success/10]="playerCountReady()"
+                [class.text-success]="playerCountReady()"
+                [class.border-brand-violet/40]="!playerCountReady()"
+                [class.bg-brand-violet/10]="!playerCountReady()"
+                [class.text-[#A5B4FC]]="!playerCountReady()"
+              >
+                {{ managerPlayerCounter() }}
+              </span>
+            </div>
+          }
         </div>
 
         <!-- Zone principale selon wrMode -->
@@ -60,7 +75,7 @@
 
           @if (wrMode() === 'voting') {
             @if (voteCandidates().length === 0) {
-              <p class="py-8 text-center text-landing-muted">Aucune œuvre à voter pour l'instant…</p>
+              <p class="py-8 text-center text-landing-muted">Aucun dessin à voter pour l'instant…</p>
             } @else {
               <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @for (candidate of voteCandidates(); track candidate.groupCode) {
@@ -115,9 +130,9 @@
               </div>
 
               <div>
-                <h3 class="mb-4 text-lg font-bold text-white">Top œuvres</h3>
+                <h3 class="mb-4 text-lg font-bold text-white">Top dessins</h3>
                 @if (topGrids().length === 0) {
-                  <p class="text-landing-muted">Aucune œuvre classée.</p>
+                  <p class="text-landing-muted">Aucun dessin classé.</p>
                 } @else {
                   <ol class="space-y-2">
                     @for (grid of topGrids(); track grid.rank) {
@@ -140,7 +155,7 @@
             </div>
           }
 
-          @if (wrMode() === 'voteResult') {
+          @if (wrMode() === 'voteResult' || wrMode() === 'sessionResult') {
             <div class="flex flex-col items-center justify-center gap-4 py-4">
               @if (winnerCandidate(); as winner) {
                 <div class="w-full overflow-hidden rounded-xl border-2 border-brand-violet">
@@ -157,9 +172,11 @@
                   </div>
                   <div class="flex flex-col items-center gap-1 p-5 text-center">
                     <h3 class="text-2xl font-black text-white">{{ winner.label }}</h3>
+                    @if (wrMode() === 'voteResult') {
                     <p class="text-landing-muted">
                       {{ winner.voteCount }} vote{{ winner.voteCount > 1 ? 's' : '' }}
                     </p>
+                    }
                   </div>
                 </div>
               } @else {
@@ -167,15 +184,40 @@
               }
             </div>
           }
+
+          @if (wrMode() === 'gallery') {
+            @if (galleryGrids().length === 0) {
+              <p class="py-8 text-center text-landing-muted">Aucun dessin à afficher.</p>
+            } @else {
+              <div class="grid gap-4 sm:grid-cols-2">
+                @for (grid of galleryGrids(); track grid.groupCode) {
+                  <div class="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
+                    <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60 p-4">
+                      @if (grid.image) {
+                        <img [src]="grid.image" [alt]="grid.label" class="max-h-full max-w-full object-contain" />
+                      } @else {
+                        <span class="text-5xl opacity-30">▦</span>
+                      }
+                    </div>
+                    <div class="p-4 text-center">
+                      <h3 class="font-bold text-white">{{ grid.label }}</h3>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
         </div>
 
         <!-- Barre de statut -->
+        @if (showWaitingStatusBar()) {
         <div class="rounded-xl bg-brand-violet/20 px-5 py-4 text-center">
           <p class="font-semibold text-white">{{ waitingTitle() }}</p>
           @if (waitingSubtitle()) {
             <p class="mt-1 text-sm text-landing-muted">{{ waitingSubtitle() }}</p>
           }
         </div>
+        }
 
         <!-- Actions manager -->
         @if (managerShowsInitialStart()) {
@@ -282,7 +324,27 @@
           </div>
         }
 
-        @if (managerShowsEndParty()) {
+        @if (managerShowsCoopStart()) {
+          <div class="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-success/50 bg-success/10 px-6 py-3.5 font-semibold text-success transition-all hover:bg-success/20 disabled:opacity-50"
+              [disabled]="isStarting()"
+              (click)="handleStartClick()"
+            >
+              @if (isStarting()) {
+                <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+              } @else {
+                {{ startButtonLabel() }}
+              }
+            </button>
+            @if (startError()) {
+              <p class="text-sm text-red-400">{{ startError() }}</p>
+            }
+          </div>
+        }
+
+        @if (managerShowsCoopEndParty() || managerShowsEndParty()) {
           <div class="flex flex-col items-center gap-2">
             <button
               type="button"
@@ -334,6 +396,8 @@
 @if (!partyStarted()) {
   <app-start-confirm-modal
     [open]="startConfirmOpen()"
+    [title]="startConfirmTitle()"
+    [hint]="startConfirmHint()"
     [error]="startError()"
     [isSubmitting]="isStarting()"
     (confirmed)="confirmStart()"

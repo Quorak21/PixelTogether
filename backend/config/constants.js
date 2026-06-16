@@ -29,13 +29,30 @@ export const GAME_PALETTE_16 = [
 
 export const AVATAR_COLOR_REGEX = /^#[0-9a-f]{6}$/i;
 
+export const GAME_MODE_COOP = 'coop';
+export const GAME_MODE_COMPETITIVE = 'competitive';
+export const GAME_MODES = [GAME_MODE_COOP, GAME_MODE_COMPETITIVE];
+
 export const SESSION_DURATION_MIN = 1;
-export const SESSION_DURATION_MAX = 60;
+export const SESSION_DURATION_MAX = 20;
 export const SESSION_DURATION_DEFAULT = 15;
+
+// coop : pas de timer — sessionDurationMinutes ignoré à la création
+export const COOP_GUESTS_MIN = 2;
+export const COOP_GUESTS_MAX = 7;
+export const COOP_GRID_MAX = 8;
+export const COOP_SESSION_COUNT_MIN = 1;
+export const COOP_SESSION_COUNT_MAX = 4;
+
+export const COMPETITIVE_PLAYERS_MIN = 6;
+export const COMPETITIVE_SESSION_COUNT_MIN = 3;
+export const COMPETITIVE_SESSION_COUNT_MAX = 8;
+
+// legacy — plus de validation plafond total partie
 export const MAX_PARTY_DURATION_MINUTES = 60;
 export const SESSION_COUNT_MIN = 1;
 export const SESSION_COUNT_MAX = 5;
-export const SESSION_TRANSITION_SECONDS = 5;
+export const SESSION_TRANSITION_SECONDS = 10;
 
 export const LABEL_MIN = 3;
 export const LABEL_MAX = 30;
@@ -44,3 +61,15 @@ export const PSEUDO_REGEX = LABEL_REGEX;
 
 export const PIXEL_COLOR_REGEX = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 export const MESSAGE_REGEX = /^.{1,300}$/;
+
+// marge token reconnexion après durée estimée de la partie
+export const RECONNECT_MARGIN_MINUTES = 15;
+// délai avant fermeture auto si le manager est déconnecté
+export const MANAGER_DISCONNECT_TIMEOUT_MS = 5 * 60 * 1000;
+// popup d'avertissement envoyé ce délai avant la fermeture
+export const MANAGER_ABSENT_WARNING_MS = 5 * 1000;
+
+// throttling socket par event (BACK-04) — serveur only
+export const PIXEL_COOLDOWN_MS = 50;
+export const CHAT_COOLDOWN_MS = 500;
+export const VOTE_COOLDOWN_MS = 300;

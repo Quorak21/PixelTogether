@@ -3,17 +3,20 @@ import {
   getParticipantRole,
   isRegistered,
   getParticipantPseudo,
+  resolvePlayerId,
 } from './participants.js';
 import { getEventGroupImages } from '../grid/preview.js';
 import { buildVoteFields } from '../vote/voteLifecycle.js';
+import { isCoop } from './gameMode.js';
 
-export function toPublicPlayer({ socketId, pseudo, avatarColor }) {
-  return { socketId, pseudo, avatarColor };
+export function toPublicPlayer({ socketId, pseudo, avatarColor, playerId }) {
+  return { socketId, pseudo, avatarColor, playerId };
 }
 
 export function toGroupPlayer(player) {
   return {
     socketId: player.socketId,
+    playerId: player.playerId,
     pseudo: player.pseudo,
     avatarColor: player.avatarColor,
     colors: player.assignedColors ?? [],
@@ -29,14 +32,16 @@ export function toChatMessage(event, group, entry) {
   };
 }
 
-function buildWaitingRoomBase(event, socketId) {
-  const role = getParticipantRole(event, socketId);
+function buildWaitingRoomBase(event, socketId, playerId = null) {
+  const pid = resolvePlayerId(event, socketId, playerId);
+  const role = getParticipantRole(event, socketId, pid);
   return {
     roomId: event.id,
     eventId: event.id,
     partyName: event.partyName,
     theme: event.name,
     name: event.name,
+    gameMode: event.gameMode ?? 'competitive',
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
     sessionDurationMinutes: event.sessionDurationMinutes,
@@ -45,36 +50,72 @@ function buildWaitingRoomBase(event, socketId) {
     role,
     managerProfile: event.managerProfile,
     players: event.players.map(toPublicPlayer),
-    isRegistered: isRegistered(event, socketId),
+    isRegistered: isRegistered(event, socketId, pid),
+    playerId: pid,
   };
 }
 
-export function buildVotePayload(event, socketId) {
+export function buildVotePayload(event, socketId, playerId = null) {
+  const pid = resolvePlayerId(event, socketId, playerId);
   return {
     eventId: event.id,
-    ...buildVoteFields(event, socketId),
+    ...buildVoteFields(event, pid),
   };
 }
 
-export function buildSessionEndedPayload(event, socketId) {
+export function buildSessionEndedPayload(event, socketId, playerId = null) {
+  const pid = resolvePlayerId(event, socketId, playerId);
   return {
     eventId: event.id,
     partyName: event.partyName,
     theme: event.name,
+    gameMode: event.gameMode ?? 'competitive',
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
     partyStarted: event.partyStarted,
     players: event.players.map(toPublicPlayer),
     status: 'waiting',
-    ...buildVoteFields(event, socketId),
+    ...buildVoteFields(event, pid),
   };
 }
 
 // état WR complet = infos partie + champs vote (wrMode, candidats…)
-export function buildWaitingRoomState(event, socketId) {
+export function buildWaitingRoomState(event, socketId, playerId = null) {
   return {
-    ...buildWaitingRoomBase(event, socketId),
-    ...buildVoteFields(event, socketId),
+    ...buildWaitingRoomBase(event, socketId, playerId),
+    ...buildVoteFields(event, resolvePlayerId(event, socketId, playerId)),
+  };
+}
+
+/** État canvas pour reconnexion ou joinGroup. */
+export function buildGridStatePayload(event, groupCode, socket, gridSize) {
+  const group = event.groups[groupCode];
+  if (!group) return null;
+
+  const playerId = socket.data?.playerId;
+  const isManagerSocket = playerId === event.managerPlayerId || socket.id === event.manager;
+  const member = group.players.find(
+    (p) => p.playerId === playerId || p.socketId === socket.id,
+  );
+  const playerColors = member?.assignedColors ?? [];
+  const managerPlays = isCoop(event) && isManagerSocket;
+
+  return {
+    eventId: event.id,
+    groupCode,
+    groupIndex: group.groupIndex,
+    groupLabel: isCoop(event) ? 'Discussion' : `Groupe ${group.groupIndex}`,
+    partyName: event.partyName,
+    theme: event.name,
+    gameMode: event.gameMode ?? 'competitive',
+    pixels: group.pixels,
+    width: gridSize,
+    height: gridSize,
+    name: event.name,
+    colors: isManagerSocket && !managerPlays ? [] : playerColors,
+    role: isManagerSocket ? 'manager' : 'player',
+    teammates: group.players.map(toGroupPlayer),
+    sessionEndsAt: event.sessionEndsAt ?? null,
   };
 }
 

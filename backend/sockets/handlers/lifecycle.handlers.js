@@ -1,45 +1,49 @@
-// fermeture volontaire + cleanup déco (manager = fin de partie pour tous)
+// fermeture volontaire + cleanup déco (manager = grace period 5 min)
+import { setSessionConnected } from '../../services/reconnect/sessionToken.js';
+import {
+  resolvePlayerId,
+  scheduleManagerAbsentClose,
+  isManager,
+} from '../../services/event/participants.js';
+
 export function registerLifecycleHandlers(socket, deps) {
-  const { io, store, participants, payloads, lifecycle } = deps;
-  const { activeEvents, normalizeEventId, groupRoomName } = store;
-  const { removePlayerFromEvent, findPlayerGroup } = participants;
-  const { toPublicPlayer } = payloads;
+  const { io, store, lifecycle } = deps;
+  const { activeEvents, normalizeEventId } = store;
   const { closeEvent } = lifecycle;
 
   socket.on('closeRoom', (data) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
-    if (!event || socket.id !== event.manager) return;
+    if (!event || !isManager(event, socket)) return;
 
     closeEvent(io, eventId);
     socket.leave(eventId);
   });
 
-  socket.on('disconnect', () => { // scan tous les events — un socket ne peut être que dans un event à la fois en pratique
+  socket.on('disconnect', () => {
     for (const eventId in activeEvents) {
       const event = activeEvents[eventId];
+      const playerId = resolvePlayerId(event, socket.id);
 
-      if (event.manager === socket.id) {
-        closeEvent(io, eventId);
-      } else if (
-        event.players.some((p) => p.socketId === socket.id) ||
-        Object.values(event.groups).some((g) => g.players.some((p) => p.socketId === socket.id))
-      ) {
-        const wasWaiting = event.status === 'waiting';
-        const removed = removePlayerFromEvent(event, socket.id);
+      if (isManager(event, socket)) {
+        setSessionConnected(event.managerPlayerId, false);
+        scheduleManagerAbsentClose(io, event, eventId, closeEvent);
+        continue;
+      }
 
-        if (event.status === 'started') {
-          const assignment = findPlayerGroup(event, socket.id);
-          if (assignment) {
-            socket.to(groupRoomName(eventId, assignment.groupCode)).emit('exitGame', {
-              socketId: socket.id,
-            });
-          }
-        } else if (wasWaiting && removed) {
-          io.to(eventId).emit('waitingRoomUpdated', {
-            players: event.players.map(toPublicPlayer),
-          });
-        }
+      const inEvent =
+        event.players.some((p) => p.socketId === socket.id || p.playerId === playerId) ||
+        Object.values(event.groups).some((g) =>
+          g.players.some((p) => p.socketId === socket.id || p.playerId === playerId),
+        ) ||
+        (playerId &&
+          event.sessionsByToken &&
+          Object.values(event.sessionsByToken).includes(playerId));
+
+      if (!inEvent) continue;
+
+      if (playerId) {
+        setSessionConnected(playerId, false);
       }
     }
   });

@@ -2,10 +2,13 @@
 
 import {
   EventLobbyState,
+  GameMode,
+  GridStatePayload,
   GroupTransitionManagerPayload,
   GroupTransitionPlayerPayload,
   ParticipantRole,
   PlayerProfile,
+  ReconnectPhase,
   RoomStatus,
   SessionEndedPayload,
   VoteStateFields,
@@ -14,15 +17,39 @@ import {
 
 export type { SessionEndedPayload };
 
+export interface ReconnectSessionPayload {
+  token: string;
+}
+
+export interface ReconnectSessionResponse extends SessionFields {
+  phase?: ReconnectPhase;
+  eventId?: string;
+  role?: ParticipantRole;
+  groupCode?: string;
+  waitingRoomState?: WaitingRoomStatePayload;
+  lobbyState?: EventLobbyState;
+  gridState?: GridStatePayload;
+  error?: string;
+}
+
+export interface SessionFields {
+  playerId?: string;
+  token?: string;
+  expiresAt?: number;
+}
+
 // → lobby.handlers newGrid
 export interface NewGridPayload {
   partyName: string;
   sessionCount: number;
   themes: string[];
-  sessionDurationMinutes: number;
+  gameMode: GameMode;
+  managerParticipates?: boolean;
+  sessionDurationMinutes?: number;
+  token?: string;
 }
 
-export interface NewGridResponse {
+export interface NewGridResponse extends SessionFields {
   id?: string;
   manager?: string;
   name?: string;
@@ -32,18 +59,20 @@ export interface NewGridResponse {
 
 export interface EnterWaitingRoomPayload {
   roomId: string;
+  token?: string;
 }
 
 // ack enterWaitingRoom + registerPlayer — inclut vote fields
-export interface WaitingRoomStatePayload extends VoteStateFields {
+export interface WaitingRoomStatePayload extends VoteStateFields, SessionFields {
   roomId: string;
   eventId?: string;
   partyName: string;
   theme: string;
   name: string;
+  gameMode: GameMode;
   sessionCount: number;
   currentSession: number;
-  sessionDurationMinutes?: number;
+  sessionDurationMinutes?: number | null;
   partyStarted?: boolean;
   status: RoomStatus;
   role: ParticipantRole;

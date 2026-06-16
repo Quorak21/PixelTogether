@@ -10,7 +10,10 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
+import { SessionTokenService } from '../../../core/services/session-token.service';
+import { ReconnectService } from '../../../core/services/reconnect.service';
 import {
+  GalleryGrid,
   PodiumGrid,
   PodiumPlayer,
   SessionEndedPayload,
@@ -20,6 +23,13 @@ import {
   WaitingRoomPlayer,
   WrMode,
 } from '../../../types/entities';
+import {
+  COOP_GUESTS_MIN,
+  COOP_GRID_MAX,
+  COMPETITIVE_PLAYERS_MIN,
+  GAME_MODE_COOP,
+  coopGridOccupancy,
+} from '../../../core/config/session-config';
 import {
   CastVotePayload,
   CloseVotePayload,
@@ -61,6 +71,8 @@ import { PlayerCardComponent } from '../player-card/player-card';
 export class WaitingRoomPageComponent {
   readonly ui = inject(UiStateService);
   private readonly socket = inject(SocketService);
+  private readonly sessionToken = inject(SessionTokenService);
+  private readonly reconnect = inject(ReconnectService);
   private readonly route = inject(ActivatedRoute);
   readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -87,6 +99,8 @@ export class WaitingRoomPageComponent {
   readonly isLastVote = signal(false);
   readonly topPlayers = signal<PodiumPlayer[]>([]);
   readonly topGrids = signal<PodiumGrid[]>([]);
+  readonly sessionResultGrid = signal<GalleryGrid | null>(null);
+  readonly galleryGrids = signal<GalleryGrid[]>([]);
 
   readonly onboardingOpen = signal(false);
   readonly onboardingError = signal('');
@@ -101,17 +115,62 @@ export class WaitingRoomPageComponent {
   readonly partyError = signal('');
 
   readonly playerCount = computed(() => this.players().length);
+  readonly isCoop = computed(() => this.ui.partyGameMode() === GAME_MODE_COOP);
+
+  readonly coopGridCount = computed(() =>
+    this.isCoop() ? coopGridOccupancy(this.playerCount()) : this.playerCount(),
+  );
+
+  readonly playerCountReady = computed(() => {
+    if (this.isCoop()) {
+      return this.playerCount() >= COOP_GUESTS_MIN;
+    }
+    return this.playerCount() >= COMPETITIVE_PLAYERS_MIN;
+  });
+
+  readonly managerPlayerCounter = computed(() => {
+    if (this.isCoop()) {
+      return `${this.coopGridCount()} / ${COOP_GRID_MAX} · min. ${COOP_GUESTS_MIN + 1} sur la grille`;
+    }
+    return `${this.playerCount()} joueur${this.playerCount() > 1 ? 's' : ''} · min. ${COMPETITIVE_PLAYERS_MIN}`;
+  });
+
+  readonly startConfirmTitle = computed(() =>
+    this.isCoop() ? 'Démarrer la partie coopérative ?' : 'Démarrer la partie compétitive ?',
+  );
+
+  readonly startConfirmHint = computed(
+    () => 'Plus personne ne pourra rejoindre une fois la partie lancée.',
+  );
+
   readonly sessionLabel = computed(
     () => `Session ${this.currentSession()}/${this.sessionCount()}`,
   );
   readonly canStart = computed(
-    () => this.ui.isManager() && (this.partyStarted() || this.playerCount() >= 2),
+    () => this.ui.isManager() && (this.partyStarted() || this.playerCountReady()),
   );
   readonly winnerCandidate = computed(() => {
+    if (this.wrMode() === 'sessionResult') {
+      const grid = this.sessionResultGrid();
+      if (!grid) return null;
+      return {
+        groupCode: grid.groupCode,
+        groupIndex: grid.sessionNumber,
+        label: grid.label,
+        image: grid.image,
+        voteCount: 0,
+      };
+    }
     const code = this.winnerGroupCode();
     if (!code) return null;
     return this.voteCandidates().find((c) => c.groupCode === code) ?? null;
   });
+  readonly managerShowsCoopStart = computed(
+    () => this.ui.isManager() && this.isCoop() && this.wrMode() === 'sessionResult',
+  );
+  readonly managerShowsCoopEndParty = computed(
+    () => this.ui.isManager() && this.isCoop() && this.wrMode() === 'gallery',
+  );
   readonly managerShowsCloseVote = computed(
     () => this.ui.isManager() && this.wrMode() === 'voting',
   );
@@ -135,9 +194,12 @@ export class WaitingRoomPageComponent {
   readonly waitingTitle = computed(() => {
     switch (this.wrMode()) {
       case 'voting':
-        return 'Votez pour votre œuvre préférée !';
+        return 'Votez pour votre dessin préféré !';
       case 'voteResult':
-        return "L'œuvre gagnante";
+      case 'sessionResult':
+        return 'Le dessin de la session';
+      case 'gallery':
+        return 'Galerie des dessins';
       case 'podium':
         return 'Classement final';
       default:
@@ -157,13 +219,17 @@ export class WaitingRoomPageComponent {
     return 'Votre manager vous a préparé un super thème !';
   });
   readonly waitingSubtitle = computed(() => {
-    if (this.wrMode() === 'players') {
-      return `${this.playerCount()} joueur${this.playerCount() > 1 ? 's' : ''} déjà prêt${this.playerCount() > 1 ? 's' : ''} !`;
-    }
     if (this.wrMode() === 'voting') {
-      return 'Cliquez sur une œuvre pour voter — vous pouvez changer votre choix.';
+      return '';
+    }
+    if (this.wrMode() === 'gallery') {
+      return 'Retrouvez toutes les créations de la partie.';
     }
     return '';
+  });
+  readonly showWaitingStatusBar = computed(() => {
+    const mode = this.wrMode();
+    return mode !== 'sessionResult' && mode !== 'gallery' && mode !== 'voteResult';
   });
   readonly roomUrl = computed(() => `${window.location.origin}/room/${this.roomId()}`);
   readonly showOnboarding = computed(() => this.onboardingOpen() && !this.isRegistered());
@@ -347,11 +413,32 @@ export class WaitingRoomPageComponent {
     this.isStarting.set(false);
   }
 
-  // 1er appel socket à l'arrivée sur /room/:id — le join modal ne fait que naviguer
+  // 1er appel socket à l'arrivée sur /room/:id — reconnexion ou enterWaitingRoom
   private async enterRoom(roomId: string): Promise<void> {
+    const session = this.sessionToken.read();
+
+    if (session?.token) {
+      const reconnected = await this.reconnect.reconnect();
+      if (reconnected) {
+        if (reconnected.phase === 'game' && reconnected.groupCode) {
+          await this.reconnect.resumeAndNavigate(reconnected);
+          return;
+        }
+        if (reconnected.phase === 'lobby') {
+          await this.reconnect.resumeAndNavigate(reconnected);
+          return;
+        }
+        if (reconnected.waitingRoomState) {
+          this.applyState(reconnected.waitingRoomState);
+          this.isLoading.set(false);
+          return;
+        }
+      }
+    }
+
     const response = await this.socket.emitWithAck<EnterWaitingRoomPayload, WaitingRoomStatePayload>(
       'enterWaitingRoom',
-      { roomId },
+      { roomId, token: session?.token },
     );
 
     this.isLoading.set(false);
@@ -359,9 +446,11 @@ export class WaitingRoomPageComponent {
     if (response.error) {
       this.pageError.set(response.error);
       this.ui.exitWaitingRoom();
+      this.sessionToken.clear();
       return;
     }
 
+    this.reconnect.saveFromWaitingRoom(response);
     this.applyState(response);
   }
 
@@ -376,6 +465,7 @@ export class WaitingRoomPageComponent {
     this.ui.partyName.set(state.partyName);
     this.ui.gameTheme.set(state.theme ?? state.name);
     this.ui.setSessionMeta(state.sessionCount, state.currentSession, Boolean(state.partyStarted));
+    this.ui.setPartyGameMode(state.gameMode);
     this.players.set(state.players);
     this.managerProfile.set(state.managerProfile);
     this.isRegistered.set(state.isRegistered);
@@ -410,6 +500,12 @@ export class WaitingRoomPageComponent {
     if (state.topGrids) {
       this.topGrids.set(state.topGrids);
     }
+    if (state.sessionResultGrid !== undefined) {
+      this.sessionResultGrid.set(state.sessionResultGrid);
+    }
+    if (state.galleryGrids) {
+      this.galleryGrids.set(state.galleryGrids);
+    }
   }
 
   private syncProfileFromState(state: WaitingRoomStatePayload): void {
@@ -422,8 +518,10 @@ export class WaitingRoomPageComponent {
       return;
     }
 
-    const socketId = this.socket.id();
-    const me = state.players.find((player) => player.socketId === socketId);
+    const playerId = state.playerId ?? this.sessionToken.read()?.playerId;
+    const me = state.players.find(
+      (player) => player.playerId === playerId || player.socketId === this.socket.id(),
+    );
     if (me) {
       this.ui.setCurrentProfile({
         pseudo: me.pseudo,
@@ -448,27 +546,73 @@ export class WaitingRoomPageComponent {
       this.ui.gameTheme.set(payload.theme);
       this.ui.setSessionMeta(payload.sessionCount, payload.currentSession, true);
       this.ui.setSessionEndsAt(payload.sessionEndsAt);
+      if (payload.gameMode) {
+        this.ui.setPartyGameMode(payload.gameMode);
+      }
+
+      const isCoopManager =
+        payload.role === 'manager' && payload.gameMode === GAME_MODE_COOP;
+
+      if (isCoopManager) {
+        const groupCode =
+          ('groupCode' in payload && payload.groupCode) ||
+          ('groups' in payload ? payload.groups?.[0]?.groupCode : undefined);
+
+        if (!groupCode) {
+          return;
+        }
+
+        this.ui.setRole('manager');
+
+        if ('myColors' in payload && payload.myColors?.length) {
+          this.ui.setColorsFromTransition(payload.myColors);
+          this.ui.setGroupTeammates(payload.teammates ?? []);
+          const playerId = this.sessionToken.read()?.playerId;
+          const me = payload.teammates?.find((mate) => mate.playerId === playerId);
+          if (me) {
+            this.ui.setCurrentProfile({ pseudo: me.pseudo, avatarColor: me.avatarColor });
+          }
+        } else if ('groups' in payload && payload.groups?.[0]) {
+          this.ui.groupLabel.set(payload.groups[0].groupLabel);
+        }
+
+        this.sessionToken.updateGroupCode(groupCode);
+        this.ui.joinGame(payload.eventId, groupCode);
+        void this.router.navigateByUrl(`/game/${payload.eventId}/${groupCode}`);
+        return;
+      }
+
       if (payload.role === 'player') {
         this.ui.groupLabel.set(payload.groupLabel);
         this.ui.setGroupTeammates(payload.teammates ?? []);
+        const playerId = this.sessionToken.read()?.playerId;
+        const me = payload.teammates?.find(
+          (mate) => mate.playerId === playerId || mate.socketId === this.socket.id(),
+        );
+        if (me) {
+          this.ui.setCurrentProfile({ pseudo: me.pseudo, avatarColor: me.avatarColor });
+        }
       }
 
-      if (payload.role === 'manager') {
+      if (payload.role === 'manager' && payload.gameMode !== GAME_MODE_COOP) {
         const { eventId, partyName, theme, sessionEndsAt } = payload;
         this.ui.setRole('manager');
-        this.ui.exitWaitingRoom(); // manager ne reste pas en WR pendant le jeu
         this.ui.currentEventId.set(eventId);
         this.ui.partyName.set(partyName);
         this.ui.gameTheme.set(theme);
         this.ui.setSessionEndsAt(sessionEndsAt);
+        this.ui.waitingMode.set(false);
         void this.router.navigateByUrl(`/lobby/${eventId}`);
         return;
       }
 
-      this.ui.setRole('player');
-      this.ui.setColorsFromTransition(payload.myColors);
-      this.ui.joinGame(payload.eventId, payload.groupCode);
-      void this.router.navigateByUrl(`/game/${payload.eventId}/${payload.groupCode}`);
+      if ('groupCode' in payload && payload.groupCode && 'myColors' in payload) {
+        this.ui.setRole(payload.role === 'manager' ? 'manager' : 'player');
+        this.ui.setColorsFromTransition(payload.myColors);
+        this.sessionToken.updateGroupCode(payload.groupCode);
+        this.ui.joinGame(payload.eventId, payload.groupCode);
+        void this.router.navigateByUrl(`/game/${payload.eventId}/${payload.groupCode}`);
+      }
     };
 
     const onSessionEnded = (payload: SessionEndedPayload) => { // retour WR + wrMode voting
@@ -495,10 +639,14 @@ export class WaitingRoomPageComponent {
         payload.currentSession,
         payload.partyStarted ?? true,
       );
-      this.applyVoteState(payload);
-      if (this.ui.isManager()) {
-        this.ui.setRole('manager');
+      if (payload.gameMode) {
+        this.ui.setPartyGameMode(payload.gameMode);
       }
+      const sessionRole = this.sessionToken.read()?.role;
+      if (sessionRole) {
+        this.ui.setRole(sessionRole);
+      }
+      this.applyVoteState(payload);
     };
 
     const onVoteStateUpdated = (payload: VoteStateUpdatedPayload) => {
@@ -522,8 +670,17 @@ export class WaitingRoomPageComponent {
       if (closedId !== this.roomId()) {
         return;
       }
+      this.sessionToken.clear();
       this.ui.exitWaitingRoom();
       void this.router.navigateByUrl('/');
+    };
+
+    const onManagerAbsent = (payload: { eventId?: string; roomId?: string; message?: string }) => {
+      const closedId = payload.eventId ?? payload.roomId;
+      if (closedId !== this.roomId()) {
+        return;
+      }
+      // navigation gérée globalement par app.ts sur managerAbsent
     };
 
     this.socket.on<WaitingRoomUpdatedPayload>('waitingRoomUpdated', onUpdated);
@@ -532,6 +689,7 @@ export class WaitingRoomPageComponent {
     this.socket.on<VoteStateUpdatedPayload>('voteStateUpdated', onVoteStateUpdated);
     this.socket.on<WaitingRoomErrorPayload>('waitingRoomError', onWaitingRoomError);
     this.socket.on<{ roomId: string }>('roomClosed', onRoomClosed);
+    this.socket.on<{ eventId?: string; roomId?: string; message?: string }>('managerAbsent', onManagerAbsent);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('waitingRoomUpdated', onUpdated as (...args: unknown[]) => void);
@@ -540,6 +698,7 @@ export class WaitingRoomPageComponent {
       this.socket.off('voteStateUpdated', onVoteStateUpdated as (...args: unknown[]) => void);
       this.socket.off('waitingRoomError', onWaitingRoomError as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
+      this.socket.off('managerAbsent', onManagerAbsent as (...args: unknown[]) => void);
     });
   }
 }

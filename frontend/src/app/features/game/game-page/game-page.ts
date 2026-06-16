@@ -26,7 +26,6 @@ function formatRemainingMs(remainingMs: number): string {
   templateUrl: './game-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-// shell jeu : canvas + chat + palette (palette masquée manager côté template)
 export class GamePageComponent {
   readonly ui = inject(UiStateService);
   private readonly route = inject(ActivatedRoute);
@@ -39,19 +38,23 @@ export class GamePageComponent {
   readonly groupCode = signal(this.route.snapshot.paramMap.get('groupCode') ?? '');
   readonly transitionActive = signal(Boolean(this.ui.groupTransition()));
 
+  readonly managerSpectatorBar = computed(
+    () => this.ui.isCompetitiveParty() && this.ui.isManager(),
+  );
+  readonly showPlayerLayout = computed(
+    () => !this.ui.isManager() || this.ui.isCoopParty(),
+  );
+
   readonly sessionTimerLabel = computed(() => {
+    if (this.ui.isCoopParty()) return null;
     const endsAt = this.ui.sessionEndsAt();
-    if (endsAt === null) {
-      return null;
-    }
+    if (endsAt === null) return null;
     return formatRemainingMs(endsAt - this.now());
   });
 
   readonly sessionTimerUrgent = computed(() => {
     const endsAt = this.ui.sessionEndsAt();
-    if (endsAt === null) {
-      return false;
-    }
+    if (endsAt === null) return false;
     return endsAt - this.now() <= 60_000;
   });
 
@@ -83,7 +86,8 @@ export class GamePageComponent {
 
   returnToLobby(): void {
     const eventId = this.eventId();
-    if (eventId) {
+    if (eventId && this.ui.isCompetitiveParty()) {
+      this.ui.leaveGroupView(eventId);
       void this.router.navigateByUrl(`/lobby/${eventId}`);
     }
   }

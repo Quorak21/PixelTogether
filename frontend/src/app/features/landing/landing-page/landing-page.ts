@@ -1,28 +1,37 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideCrown, LucideUsers } from '@lucide/angular';
 import { UiStateService } from '../../../core/services/ui-state.service';
+import { SessionTokenService } from '../../../core/services/session-token.service';
+import { ReconnectService } from '../../../core/services/reconnect.service';
+import { SocketService } from '../../../core/services/socket.service';
 import { PartyCreationModalComponent } from '../party-creation-modal/party-creation-modal';
+import { GameMode } from '../../../types/entities';
 
 const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 
 export type InfoModalKind = 'why' | 'docs';
 
-// entrée app : formulaire join inline + modale création (pas de socket ici)
+// entrée app : reprise auto si token valide, sinon join / création
 @Component({
   selector: 'app-landing-page',
   imports: [PartyCreationModalComponent, ReactiveFormsModule, LucideCrown, LucideUsers],
   templateUrl: './landing-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingPageComponent {
+export class LandingPageComponent implements OnInit {
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly sessionToken = inject(SessionTokenService);
+  private readonly reconnect = inject(ReconnectService);
+  private readonly socket = inject(SocketService);
 
   readonly error = signal('');
   readonly infoModal = signal<InfoModalKind | null>(null);
+  readonly isResuming = signal(false);
+  readonly hasActiveSession = computed(() => this.sessionToken.hasValidSession());
 
   readonly form = this.fb.nonNullable.group({
     code: [
@@ -41,6 +50,10 @@ export class LandingPageComponent {
     });
   }
 
+  ngOnInit(): void {
+    void this.tryResumeSession();
+  }
+
   openInfoModal(kind: InfoModalKind): void {
     this.infoModal.set(kind);
   }
@@ -49,12 +62,13 @@ export class LandingPageComponent {
     this.infoModal.set(null);
   }
 
-  openCreateModal(): void {
-    this.ui.partyCreationOpen.set(true);
+  openCreateModal(mode: GameMode): void {
+    if (this.hasActiveSession()) return;
+    this.ui.openPartyCreation(mode);
   }
 
   joinRoom(): void {
-    if (this.form.invalid) {
+    if (this.hasActiveSession() || this.form.invalid) {
       return;
     }
 
@@ -69,5 +83,40 @@ export class LandingPageComponent {
     this.ui.joinWaitingRoom(code);
     void this.router.navigateByUrl(`/room/${code}`);
     this.form.reset();
+  }
+
+  private async tryResumeSession(): Promise<void> {
+    if (!this.sessionToken.hasValidSession()) {
+      return;
+    }
+
+    this.isResuming.set(true);
+
+    await this.waitForSocket();
+
+    const response = await this.reconnect.reconnect();
+    if (response) {
+      await this.reconnect.resumeAndNavigate(response);
+    }
+
+    this.isResuming.set(false);
+  }
+
+  private waitForSocket(): Promise<void> {
+    if (this.socket.isConnected()) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (this.socket.isConnected()) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 50);
+      setTimeout(() => {
+        clearInterval(check);
+        resolve();
+      }, 3000);
+    });
   }
 }

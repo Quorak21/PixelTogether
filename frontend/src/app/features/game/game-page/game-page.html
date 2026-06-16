@@ -5,7 +5,7 @@
 
   <div class="flex flex-col flex-1 min-h-0" [class.pointer-events-none]="transitionActive() && ui.groupTransition()"
     [class.blur-sm]="transitionActive() && ui.groupTransition()">
-    @if (ui.isManager()) {
+    @if (managerSpectatorBar()) {
     <div
       class="shrink-0 flex items-center justify-between gap-4 border-b border-white/10 bg-slate-900/40 px-6 py-3 backdrop-blur-md"
     >
@@ -15,7 +15,11 @@
           <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
         </span>
         <span class="truncate text-sm font-bold text-white/95">
-          Spectateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Groupe' }}</span>
+          @if (ui.isCoopParty()) {
+            Animateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Discussion' }}</span>
+          } @else {
+            Spectateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Groupe' }}</span>
+          }
         </span>
       </div>
 
@@ -26,38 +30,27 @@
           [class.bg-brand-violet/15]="!sessionTimerUrgent()"
           [class.border-brand-coral/70]="sessionTimerUrgent()"
           [class.bg-brand-coral/15]="sessionTimerUrgent()"
-          [class.shadow-[0_0_32px_rgba(244,63,94,0.4)]]="sessionTimerUrgent()"
-          [class.animate-pulse]="sessionTimerUrgent()"
         >
           <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-landing-muted">Temps restant</span>
-          <span
-            class="font-mono text-3xl font-black tabular-nums leading-none"
+          <span class="font-mono text-3xl font-black tabular-nums leading-none"
             [class.text-[#A5B4FC]]="!sessionTimerUrgent()"
-            [class.text-brand-coral]="sessionTimerUrgent()"
-          >{{ timer }}</span>
+            [class.text-brand-coral]="sessionTimerUrgent()">{{ timer }}</span>
         </div>
       }
 
-      <button
-        type="button"
-        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/90 transition-all hover:bg-white/10 active:scale-[0.98]"
-        (click)="returnToLobby()"
-      >
-        Retour au lobby
-      </button>
+      <div class="flex shrink-0 items-center gap-2">
+        @if (ui.isCompetitiveParty()) {
+        <button type="button"
+          class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/90 transition-all hover:bg-white/10"
+          (click)="returnToLobby()">
+          Retour au lobby
+        </button>
+        }
+      </div>
     </div>
     }
 
-    @if (ui.isManager()) {
-    <div class="flex flex-1 min-h-0">
-      <div class="relative flex-1 min-w-0 overflow-hidden bg-slate-800">
-        <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
-      </div>
-      <aside class="w-80 shrink-0 min-h-0 border-l border-white/10 bg-slate-950/20 backdrop-blur-md">
-        <app-chatbox [eventId]="eventId()" [groupCode]="groupCode()" />
-      </aside>
-    </div>
-    } @else {
+    @if (showPlayerLayout()) {
     <div class="grid min-h-0 flex-1 grid-cols-[1fr_20rem] grid-rows-[1fr_auto]">
       <div class="relative col-start-1 row-start-1 min-h-0 overflow-hidden bg-slate-600">
         <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
@@ -85,6 +78,15 @@
         class="col-start-2 row-start-2 flex min-h-[3.75rem] items-center border-l border-t border-white/10 bg-slate-950/40 px-4 backdrop-blur-md">
         <app-chat-input [eventId]="eventId()" [groupCode]="groupCode()" class="w-full" />
       </div>
+    </div>
+    } @else {
+    <div class="flex flex-1 min-h-0">
+      <div class="relative flex-1 min-w-0 overflow-hidden bg-slate-800">
+        <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
+      </div>
+      <aside class="w-80 shrink-0 min-h-0 border-l border-white/10 bg-slate-950/20 backdrop-blur-md">
+        <app-chatbox [eventId]="eventId()" [groupCode]="groupCode()" />
+      </aside>
     </div>
     }
   </div>

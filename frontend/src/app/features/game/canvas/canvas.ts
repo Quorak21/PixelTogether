@@ -12,6 +12,8 @@ import {
 import { Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
+import { SessionTokenService } from '../../../core/services/session-token.service';
+import { ReconnectService } from '../../../core/services/reconnect.service';
 import { GridStatePayload, SessionEndedPayload } from '../../../types/entities';
 
 @Component({
@@ -25,6 +27,8 @@ export class CanvasComponent implements AfterViewInit {
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionToken = inject(SessionTokenService);
+  private readonly reconnect = inject(ReconnectService);
 
   readonly eventId = input.required<string>();
   readonly groupCode = input.required<string>();
@@ -41,11 +45,6 @@ export class CanvasComponent implements AfterViewInit {
   private pointerDownPos = { x: 0, y: 0 };
 
   ngAfterViewInit(): void {
-    this.socket.emit('joinGroup', {
-      eventId: this.eventId(),
-      groupCode: this.groupCode(),
-    });
-
     const onJoinRoomError = (data: { error: string }) => {
       const eventId = this.eventId();
       if (data.error.includes('pas encore démarré') && eventId) {
@@ -59,21 +58,20 @@ export class CanvasComponent implements AfterViewInit {
       void this.router.navigateByUrl('/');
     };
     const onGridState = (data: GridStatePayload) => {
-      this.ui.setRole(data.role);
-      this.ui.gameTheme.set(data.theme ?? data.name);
-      this.ui.partyName.set(data.partyName);
-      this.ui.groupLabel.set(data.groupLabel);
-      this.ui.setSessionEndsAt(data.sessionEndsAt);
-      this.ui.setGroupTeammates(data.teammates ?? []);
+      this.reconnect.hydrateGridState(data);
       this.renderGrid(data);
     };
     const onDrawPixel = (data: { x: number; y: number; color: string }) => this.drawSinglePixel(data);
     const onRoomClosed = (data: { eventId?: string; roomId?: string }) => {
       const closedId = data.eventId ?? data.roomId;
       if (closedId === this.eventId()) {
+        this.sessionToken.clear();
         this.ui.exitGame();
         void this.router.navigateByUrl('/');
       }
+    };
+    const onManagerAbsent = (_data: { eventId?: string; roomId?: string }) => {
+      // navigation gérée globalement par app.ts
     };
     const onSessionEnded = (payload: SessionEndedPayload) => {
       if (payload.eventId !== this.eventId()) {
@@ -87,8 +85,10 @@ export class CanvasComponent implements AfterViewInit {
         payload.currentSession,
         payload.partyStarted ?? true,
       );
-      this.ui.exitGame();
-      this.ui.joinWaitingRoom(payload.eventId);
+      if (payload.gameMode) {
+        this.ui.setPartyGameMode(payload.gameMode);
+      }
+      this.ui.leaveCanvasForWaitingRoom(payload.eventId);
       void this.router.navigateByUrl(`/room/${payload.eventId}`);
     };
 
@@ -96,6 +96,7 @@ export class CanvasComponent implements AfterViewInit {
     this.socket.on<GridStatePayload>('gridState', onGridState);
     this.socket.on<{ x: number; y: number; color: string }>('drawPixel', onDrawPixel);
     this.socket.on<{ eventId?: string; roomId?: string }>('roomClosed', onRoomClosed);
+    this.socket.on<{ eventId?: string; roomId?: string }>('managerAbsent', onManagerAbsent);
     this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
 
     this.destroyRef.onDestroy(() => {
@@ -103,12 +104,56 @@ export class CanvasComponent implements AfterViewInit {
       this.socket.off('gridState', onGridState as (...args: unknown[]) => void);
       this.socket.off('drawPixel', onDrawPixel as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
+      this.socket.off('managerAbsent', onManagerAbsent as (...args: unknown[]) => void);
       this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
+    });
+
+    void this.bootstrapCanvas();
+  }
+
+  /** Reconnexion token puis joinGroup si nécessaire. */
+  private async bootstrapCanvas(): Promise<void> {
+    const session = this.sessionToken.read();
+
+    if (session?.token) {
+      const response = await this.reconnect.reconnect();
+
+      // Manager en observation : phase lobby → rejoindre le groupe choisi dans l'URL
+      if (response?.phase === 'lobby' && session.role === 'manager') {
+        this.ui.setRole('manager');
+        this.ui.joinGame(this.eventId(), this.groupCode());
+        this.emitJoinGroup();
+        return;
+      }
+
+      if (response?.phase === 'game' && response.gridState) {
+        const sameGroup = response.groupCode === this.groupCode();
+        if (sameGroup || session.role === 'player') {
+          this.reconnect.hydrateGridState(response.gridState);
+          this.renderGrid(response.gridState);
+          return;
+        }
+      }
+
+      if (response && response.phase !== 'game') {
+        await this.reconnect.resumeAndNavigate(response);
+        return;
+      }
+    }
+
+    this.emitJoinGroup();
+  }
+
+  private emitJoinGroup(): void {
+    this.socket.emit('joinGroup', {
+      eventId: this.eventId(),
+      groupCode: this.groupCode(),
     });
   }
 
   handleDraw(event: PointerEvent): void {
-    if (this.ui.isManager() || this.hasMoved || event.button !== 0) { // hasMoved évite draw au relâchement après pan
+    const managerCanDraw = this.ui.isCoopParty() && this.ui.isManager();
+    if ((this.ui.isManager() && !managerCanDraw) || this.hasMoved || event.button !== 0) {
       this.hasMoved = false;
       return;
     }

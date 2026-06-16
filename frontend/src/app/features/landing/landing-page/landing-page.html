@@ -29,55 +29,81 @@
     </div>
 
     <!-- Salles et Actions en Grid (Modernisation Glassmorphism Épuré) -->
-    <div class="grid w-full max-w-3xl grid-cols-1 gap-6 md:grid-cols-2">
-
-      <!-- Carte Créer Session -->
-      <div
-        class="group flex flex-col items-center gap-6 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)]">
+    @if (isResuming()) {
+    <p class="text-sm text-landing-muted">Reconnexion à votre partie…</p>
+  } @else if (hasActiveSession()) {
+    <div
+      class="w-full max-w-3xl rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-xl backdrop-blur-xl">
+      <p class="text-base font-semibold text-white">Vous êtes déjà dans une partie</p>
+      <p class="mt-2 text-sm text-landing-muted">
+        Rechargez la page pour reprendre, ou quittez la partie depuis la salle d'attente.
+      </p>
+    </div>
+  } @else {
+    <div class="flex w-full max-w-3xl flex-col gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div
-          class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-violet/20 shadow-[0_0_15px_rgba(99,102,241,0.15)] text-brand-violet transition-all duration-300 group-hover:scale-110">
-          <svg lucideCrown class="h-7 w-7 text-brand-violet" aria-hidden="true"></svg>
+          class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)]">
+          <div class="flex w-full items-start justify-between">
+            <div
+              class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-violet/20 text-brand-violet transition-all duration-300 group-hover:scale-110">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <span
+              class="inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full border border-white/20 text-xs font-bold text-landing-muted"
+              title="Petit groupe sur une seule grille. Pas de vote : le manager peut jouer avec l'équipe.">?</span>
+          </div>
+          <h2 class="text-lg font-bold text-white">Coopératif</h2>
+          <p class="text-sm text-landing-muted">2–8 joueurs · une grille</p>
+          <button type="button" (click)="openCreateModal('coop')"
+            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02]">
+            Créer une partie coop
+          </button>
         </div>
 
-        <h2 class="text-lg font-bold text-white">Nouvelle session</h2>
-
-        <button type="button" (click)="openCreateModal()"
-          class="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)]">
-          Créer une session pour votre équipe
-        </button>
+        <div
+          class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-coral/30 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(244,63,94,0.15)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-coral/50">
+          <div class="flex w-full items-start justify-between">
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-coral/20 text-brand-coral group-hover:scale-110 transition-all">
+              <svg lucideCrown class="h-7 w-7" aria-hidden="true"></svg>
+            </div>
+            <span
+              class="inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full border border-white/20 text-xs font-bold text-landing-muted"
+              title="Équipes en compétition, vote entre créations, min. 6 joueurs. Manager spectateur.">?</span>
+          </div>
+          <h2 class="text-lg font-bold text-white">Compétitif</h2>
+          <p class="text-sm text-landing-muted">6+ joueurs · vote & podium</p>
+          <button type="button" (click)="openCreateModal('competitive')"
+            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02]">
+            Créer une partie compétitive
+          </button>
+        </div>
       </div>
 
-      <!-- Carte Rejoindre Partie -->
       <div
-        class="group relative flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-slate-900/40 p-8 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-coral/30 hover:shadow-[0_0_50px_-12px_rgba(244,63,94,0.15)]">
-        <svg lucideUsers
-          class="absolute right-6 top-6 h-6 w-6 text-landing-muted transition-colors duration-300 group-hover:text-brand-coral/60"
-          aria-hidden="true"></svg>
-
-        <div class="flex flex-col gap-1 pr-8">
+        class="group relative flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-slate-900/40 p-8 shadow-xl backdrop-blur-xl sm:flex-row sm:items-center">
+        <svg lucideUsers class="absolute right-6 top-6 h-6 w-6 text-landing-muted sm:static sm:shrink-0" aria-hidden="true"></svg>
+        <div class="flex flex-col gap-1 pr-8 sm:flex-1">
           <h2 class="text-lg font-bold text-white">Rejoindre une partie</h2>
           <p class="text-sm text-landing-muted">Entrez le code fourni par votre manager</p>
         </div>
-
-        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="mt-auto flex flex-col gap-3 w-full" autocomplete="off">
-          <div class="relative w-full">
-            <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"
-              autocapitalize="characters" spellcheck="false"
-              class="w-full text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3.5 uppercase tracking-[0.2em] text-lg font-black text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20" />
-          </div>
-
+        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="flex w-full flex-col gap-3 sm:max-w-md sm:flex-row sm:items-center" autocomplete="off">
+          <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"
+            autocapitalize="characters" spellcheck="false"
+            class="w-full flex-1 text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3.5 uppercase tracking-[0.2em] text-lg font-black text-white placeholder-slate-600 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20" />
           @if (error()) {
-          <p class="text-sm text-red-400">{{ error() }}</p>
+          <p class="text-sm text-red-400 w-full sm:order-last">{{ error() }}</p>
           }
-
           <button type="submit"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-brand-violet bg-transparent px-6 py-3.5 font-semibold text-brand-violet transition-all duration-200 hover:bg-brand-violet/10 hover:scale-[1.01] active:scale-[0.99]">
+            class="inline-flex shrink-0 items-center justify-center rounded-xl border border-brand-violet px-6 py-3.5 font-semibold text-brand-violet hover:bg-brand-violet/10 sm:w-auto w-full">
             Rejoindre
           </button>
         </form>
       </div>
-
     </div>
+  }
 
     <!-- Liens vers les informations et documentation -->
     <div class="flex flex-col sm:flex-row items-center gap-6 md:gap-8 mt-4">

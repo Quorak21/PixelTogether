@@ -13,6 +13,20 @@
 
 ## Entrées
 
+- **BACK-04** — **Rate-limit events socket** : `isRateLimited` dans `socketGuards.js` ; cooldowns 50/500/300 ms sur `pixelPlaced`, `sendMessage`, `castVote` (ack noop sur vote).
+
+- **BACK-02** — **Validation entrées socket (ACK guards)** : helper `socketGuards.js` (`guardAck`/`ack`) ; protection callback sur `newGrid`, `registerPlayer`/`startGame` et handlers vote — plus de crash si ACK absent.
+
+- **ADD-35** — **Pseudo navbar waiting room** : avatar + pseudo du joueur en haut à droite en salle d'attente (manager et joueurs enregistrés).
+
+- **MODE-01** — **Modes coop / compétitif (backend)** : `gameMode` + `managerParticipates` sur l'event ; lifecycle coop (groupe unique, pas de timer/vote) ; garde-fous joueurs par mode.
+- **MODE-02** — **Fin de session coop** : `sessionResult` + `gallery` (sans vote ni podium) ; manager enchaîne ou `endParty`.
+- **MODE-03** — **Manager joueur en coop** : toggle à la création ; palette + pixels si participation ; spectateur sinon.
+- **MODE-04** — **Garde-fous démarrage** : validation start/register par mode (coop 2–7/8 invités, compétitif min 6).
+- **MODE-05** — **Landing & création** : cartes Coop/Compétitif + rejoindre ; modale adaptée ; compteur joueurs WR manager.
+
+- **AUTH-03** — **Reconnexion session par token (v2)** : `playerId` UUID stable + token opaque en `localStorage` (`pxl-session`), event `reconnectSession`, remap socket à la reconnexion ; landing auto-resume ; garde-fous une partie/navigateur et fermeture si manager absent 5 min (`managerAbsent`).
+
 - **UI-GROUP-NAV** — **Coéquipiers dans la navbar** : affichage des autres membres du groupe (avatar + pseudo) à côté du joueur courant en mode jeu ; données `teammates` persistées via `UiStateService` (`gameStarted` + `gridState`).
 
 - **AUTH-ROLLBACK** — **Abandon reprise session / JWT** : retour au modèle classique `socket.id` (pas de handshake auth, pas de `localStorage`/`sessionStorage`, pas d'overlay reconnexion). Tentatives AUTH-01 / AUTH-02 / FRONT-04 retirées du code ; chantier repris plus tard sous **AUTH-03** (`backlog.md`).

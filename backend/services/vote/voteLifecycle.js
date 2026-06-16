@@ -1,8 +1,37 @@
 import { getSortedGroups } from '../../store/eventStore.js';
-import { getParticipantRole } from '../event/participants.js';
+import { getParticipantRole, isManager } from '../event/participants.js';
+import { isCoop } from '../event/gameMode.js';
+import { VOTE_COOLDOWN_MS } from '../../config/constants.js';
+import { guardAck, isRateLimited } from '../../sockets/handlers/socketGuards.js';
 
 export function getArchiveSession(event, sessionNumber) {
   return event.sessionArchive?.find((entry) => entry.sessionNumber === sessionNumber) ?? null;
+}
+
+// copie les groupes dans sessionArchive sans ouvrir de vote (coop)
+export function snapshotSessionArchive(event) {
+  const sessionNumber = event.currentSession;
+  const theme = event.themes[sessionNumber - 1] ?? event.name;
+
+  const groups = getSortedGroups(event).map(({ groupCode, group }) => ({
+    groupCode,
+    groupIndex: group.groupIndex,
+    label: isCoop(event) ? theme : `Groupe ${group.groupIndex}`,
+    image: group.image ?? null,
+    voteCount: 0,
+    players: group.players.map((p) => ({
+      socketId: p.socketId,
+      playerId: p.playerId,
+      pseudo: p.pseudo,
+      avatarColor: p.avatarColor,
+    })),
+  }));
+
+  if (!event.sessionArchive) {
+    event.sessionArchive = [];
+  }
+
+  event.sessionArchive.push({ sessionNumber, theme, groups });
 }
 
 // copie les groupes dans sessionArchive et ouvre activeVote
@@ -18,6 +47,7 @@ export function snapshotSessionForVote(event) {
     voteCount: 0,
     players: group.players.map((p) => ({
       socketId: p.socketId,
+      playerId: p.playerId,
       pseudo: p.pseudo,
       avatarColor: p.avatarColor,
     })),
@@ -47,7 +77,8 @@ export function applyVoteDelta(event, groupCode, delta) {
 
   group.voteCount += delta;
   for (const player of group.players) {
-    const key = player.socketId;
+    const key = player.playerId;
+    if (!key) continue;
     event.playerVoteTotals[key] = (event.playerVoteTotals[key] ?? 0) + delta;
   }
 }
@@ -69,14 +100,14 @@ export function pickWinner(archiveSession) {
 
 export function buildTopPlayers(event, limit = 3) {
   const totals = event.playerVoteTotals ?? {};
-  const playerById = new Map(event.players.map((p) => [p.socketId, p]));
+  const playerById = new Map(event.players.map((p) => [p.playerId, p]));
 
   const ranked = Object.entries(totals)
-    .map(([socketId, voteTotal]) => {
-      const player = playerById.get(socketId);
+    .map(([playerId, voteTotal]) => {
+      const player = playerById.get(playerId);
       if (!player) return null;
       return {
-        socketId,
+        playerId,
         pseudo: player.pseudo,
         avatarColor: player.avatarColor,
         voteTotal,
@@ -127,6 +158,13 @@ export function buildTopGrids(event, limit = 3) {
 
 // pilote l'UI waiting room (boutons manager, grille vote, podium…)
 export function getWrMode(event) {
+  if (isCoop(event)) {
+    if (!event.partyStarted) return 'players';
+    if (event.coopWrMode === 'gallery') return 'gallery';
+    if (event.coopWrMode === 'sessionResult') return 'sessionResult';
+    return 'players';
+  }
+
   if (event.showingResults) return 'podium';
   if (!event.partyStarted) return 'players';
   if (event.activeVote?.status === 'open') return 'voting';
@@ -154,8 +192,73 @@ export function buildVoteCandidates(event) {
   }));
 }
 
-export function buildVoteFields(event, socketId) {
+export function buildSessionResultGrid(event) {
+  const archive = event.sessionArchive?.[event.sessionArchive.length - 1];
+  const group = archive?.groups?.[0];
+  if (!archive || !group) return null;
+
+  return {
+    sessionNumber: archive.sessionNumber,
+    theme: archive.theme,
+    label: group.label,
+    image: group.image,
+    groupCode: group.groupCode,
+  };
+}
+
+export function buildGalleryGrids(event) {
+  const grids = [];
+
+  for (const session of event.sessionArchive ?? []) {
+    for (const group of session.groups) {
+      grids.push({
+        sessionNumber: session.sessionNumber,
+        theme: session.theme,
+        label: isCoop(event)
+          ? `${session.theme} — Session ${session.sessionNumber}`
+          : group.label,
+        image: group.image ?? null,
+        groupCode: group.groupCode,
+      });
+    }
+  }
+
+  return grids;
+}
+
+export function buildVoteFields(event, playerId) {
   const wrMode = getWrMode(event);
+
+  if (wrMode === 'gallery') {
+    return {
+      wrMode,
+      voteCandidates: [],
+      myVote: null,
+      winnerGroupCode: null,
+      winnerImage: null,
+      isLastVote: true,
+      topPlayers: [],
+      topGrids: [],
+      sessionResultGrid: null,
+      galleryGrids: buildGalleryGrids(event),
+    };
+  }
+
+  if (wrMode === 'sessionResult') {
+    const grid = buildSessionResultGrid(event);
+    return {
+      wrMode,
+      voteCandidates: [],
+      myVote: null,
+      winnerGroupCode: grid?.groupCode ?? null,
+      winnerImage: grid?.image ?? null,
+      isLastVote: event.currentSession >= event.sessionCount,
+      topPlayers: [],
+      topGrids: [],
+      sessionResultGrid: grid,
+      galleryGrids: [],
+    };
+  }
 
   if (wrMode === 'podium') {
     return {
@@ -167,11 +270,13 @@ export function buildVoteFields(event, socketId) {
       isLastVote: true,
       topPlayers: buildTopPlayers(event),
       topGrids: buildTopGrids(event),
+      sessionResultGrid: null,
+      galleryGrids: [],
     };
   }
 
   const voteCandidates = wrMode === 'voting' || wrMode === 'voteResult' ? buildVoteCandidates(event) : [];
-  const myVote = event.activeVote?.votes?.[socketId] ?? null;
+  const myVote = playerId ? (event.activeVote?.votes?.[playerId] ?? null) : null;
   const winnerGroupCode = event.activeVote?.winnerGroupCode ?? null;
   const winnerCandidate =
     winnerGroupCode != null ? voteCandidates.find((c) => c.groupCode === winnerGroupCode) ?? null : null;
@@ -185,24 +290,25 @@ export function buildVoteFields(event, socketId) {
     isLastVote: isLastVote(event),
     topPlayers: [],
     topGrids: [],
+    sessionResultGrid: null,
+    galleryGrids: [],
   };
 }
 
-export function canParticipateInVote(event, socketId) {
-  const role = getParticipantRole(event, socketId);
-  if (role === 'manager') {
+export function canParticipateInVote(event, playerId) {
+  if (playerId === event.managerPlayerId) {
     return Boolean(event.managerProfile);
   }
-  return event.players.some((p) => p.socketId === socketId);
+  return event.players.some((p) => p.playerId === playerId);
 }
 
 // change de vote autorisé — delta appliqué sur l'ancien choix si besoin
-export function castVote(event, socketId, groupCode) {
+export function castVote(event, playerId, groupCode) {
   if (event.status !== 'waiting' || !event.activeVote || event.activeVote.status !== 'open') {
     return { error: 'Le vote n\'est pas ouvert.' };
   }
 
-  if (!canParticipateInVote(event, socketId)) {
+  if (!canParticipateInVote(event, playerId)) {
     return { error: 'Vous ne pouvez pas voter.' };
   }
 
@@ -217,7 +323,7 @@ export function castVote(event, socketId, groupCode) {
   }
 
   const weight = 1;
-  const previous = event.activeVote.votes[socketId];
+  const previous = event.activeVote.votes[playerId];
 
   if (previous === groupCode) {
     return { ok: true };
@@ -227,7 +333,7 @@ export function castVote(event, socketId, groupCode) {
     applyVoteDelta(event, previous, -weight);
   }
 
-  event.activeVote.votes[socketId] = groupCode;
+  event.activeVote.votes[playerId] = groupCode;
   applyVoteDelta(event, groupCode, weight);
 
   return { ok: true };
@@ -246,6 +352,7 @@ export function closeVote(event) {
 }
 
 export function handleCastVote(socket, data, callback, deps) {
+  if (!guardAck(callback)) return;
   const { io, store } = deps;
   const { activeEvents, normalizeEventId, normalizeGroupCode } = store;
 
@@ -257,35 +364,52 @@ export function handleCastVote(socket, data, callback, deps) {
     return callback({ error: "La partie n'existe pas." });
   }
 
-  const result = castVote(event, socket.id, groupCode);
+  if (isCoop(event)) {
+    return callback({ error: 'Pas de vote en mode coopératif.' });
+  }
+
+  const playerId = socket.data?.playerId;
+  if (!playerId) {
+    return callback({ error: 'Session invalide.' });
+  }
+
+  if (isRateLimited(socket, 'castVote', VOTE_COOLDOWN_MS)) {
+    return callback(votePayloadFor(event, playerId));
+  }
+
+  const result = castVote(event, playerId, groupCode);
   if (result.error) {
     return callback({ error: result.error });
   }
 
   emitVoteStateUpdated(io, event);
-  callback(votePayloadFor(event, socket.id));
+  callback(votePayloadFor(event, playerId));
 }
 
-function votePayloadFor(event, socketId) {
+function votePayloadFor(event, playerId) {
   return {
     eventId: event.id,
-    ...buildVoteFields(event, socketId),
+    ...buildVoteFields(event, playerId),
   };
 }
 
 // chaque client reçoit son myVote + wrMode (pas un broadcast identique)
 function emitVoteStateUpdated(io, event) {
-  const recipients = [event.manager, ...event.players.map((p) => p.socketId)];
+  const recipients = [
+    { playerId: event.managerPlayerId, socketId: event.manager },
+    ...event.players.map((p) => ({ playerId: p.playerId, socketId: p.socketId })),
+  ];
   const seen = new Set();
 
-  for (const socketId of recipients) {
-    if (seen.has(socketId)) continue;
-    seen.add(socketId);
-    io.to(socketId).emit('voteStateUpdated', votePayloadFor(event, socketId));
+  for (const { playerId, socketId } of recipients) {
+    if (!playerId || seen.has(playerId)) continue;
+    seen.add(playerId);
+    io.to(socketId).emit('voteStateUpdated', votePayloadFor(event, playerId));
   }
 }
 
 export function handleCloseVote(socket, data, callback, deps) {
+  if (!guardAck(callback)) return;
   const { io, store } = deps;
   const { activeEvents, normalizeEventId } = store;
 
@@ -296,7 +420,11 @@ export function handleCloseVote(socket, data, callback, deps) {
     return callback({ error: "La partie n'existe pas." });
   }
 
-  if (socket.id !== event.manager) {
+  if (isCoop(event)) {
+    return callback({ error: 'Pas de vote en mode coopératif.' });
+  }
+
+  if (!isManager(event, socket)) {
     return callback({ error: 'Seul le manager peut clôturer le vote.' });
   }
 
@@ -306,7 +434,7 @@ export function handleCloseVote(socket, data, callback, deps) {
   }
 
   emitVoteStateUpdated(io, event);
-  callback(votePayloadFor(event, socket.id));
+  callback(votePayloadFor(event, event.managerPlayerId));
 }
 
 // réservé au dernier vote — active le mode podium
@@ -328,6 +456,7 @@ export function openResults(event) {
 }
 
 export function handleShowResults(socket, data, callback, deps) {
+  if (!guardAck(callback)) return;
   const { io, store } = deps;
   const { activeEvents, normalizeEventId } = store;
 
@@ -338,7 +467,11 @@ export function handleShowResults(socket, data, callback, deps) {
     return callback({ error: "La partie n'existe pas." });
   }
 
-  if (socket.id !== event.manager) {
+  if (isCoop(event)) {
+    return callback({ error: 'Pas de podium en mode coopératif.' });
+  }
+
+  if (!isManager(event, socket)) {
     return callback({ error: 'Seul le manager peut afficher les résultats.' });
   }
 
@@ -348,11 +481,12 @@ export function handleShowResults(socket, data, callback, deps) {
   }
 
   emitVoteStateUpdated(io, event);
-  callback(votePayloadFor(event, socket.id));
+  callback(votePayloadFor(event, event.managerPlayerId));
 }
 
 // ordre imposé : closeVote → showResults → endParty (sinon erreur)
 export function handleEndParty(socket, data, callback, deps) {
+  if (!guardAck(callback)) return;
   const { io, store, lifecycle } = deps;
   const { activeEvents, normalizeEventId } = store;
   const { closeEvent } = lifecycle;
@@ -364,11 +498,15 @@ export function handleEndParty(socket, data, callback, deps) {
     return callback({ error: "La partie n'existe pas." });
   }
 
-  if (socket.id !== event.manager) {
+  if (!isManager(event, socket)) {
     return callback({ error: 'Seul le manager peut terminer la partie.' });
   }
 
-  if (!event.showingResults) {
+  if (isCoop(event)) {
+    if (event.coopWrMode !== 'gallery') {
+      return callback({ error: 'Terminez toutes les sessions avant de fermer la partie.' });
+    }
+  } else if (!event.showingResults) {
     return callback({ error: 'Affichez les résultats avant de terminer la partie.' });
   }
 

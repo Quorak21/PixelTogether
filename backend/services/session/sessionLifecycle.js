@@ -1,7 +1,9 @@
 import { splitIntoGroups } from '../shuffle/groupShuffle.js';
 import { assignPalettesToGroup } from '../colors/colorSplit.js';
 import { buildSessionEndedPayload } from '../event/payloads.js';
-import { snapshotSessionForVote } from '../vote/voteLifecycle.js';
+import { snapshotSessionForVote, snapshotSessionArchive } from '../vote/voteLifecycle.js';
+import { isManager } from '../event/participants.js';
+import { isCoop } from '../event/gameMode.js';
 
 export function clearSessionTimer(event) {
   if (event._sessionTimer) {
@@ -10,8 +12,51 @@ export function clearSessionTimer(event) {
   }
 }
 
+function buildCoopGroupMembers(event) {
+  const members = event.players.map((p) => ({ ...p }));
+
+  if (event.managerProfile) {
+    members.push({
+      playerId: event.managerPlayerId,
+      socketId: event.manager,
+      pseudo: event.managerProfile.pseudo,
+      avatarColor: event.managerProfile.avatarColor,
+      role: 'manager',
+    });
+  }
+
+  return members;
+}
+
+function beginCoopSession(event, deps) {
+  const { store, preview } = deps;
+  const { generateGroupCode } = store;
+  const { updateGroupPreview } = preview;
+
+  const eventId = event.id;
+  const groupCode = generateGroupCode(event);
+  const group = {
+    groupCode,
+    groupIndex: 1,
+    players: buildCoopGroupMembers(event),
+    pixels: {},
+    chatMessages: [],
+    image: null,
+  };
+
+  assignPalettesToGroup(group);
+  event.groups = { [groupCode]: group };
+  updateGroupPreview(eventId, groupCode);
+
+  return event.groups;
+}
+
 // reshuffle joueurs, assigne palettes, génère previews — appelé à chaque startGame
 export function beginSession(event, deps) {
+  if (isCoop(event)) {
+    return beginCoopSession(event, deps);
+  }
+
   const { store, preview } = deps;
   const { generateGroupCode } = store;
   const { updateGroupPreview } = preview;
@@ -47,13 +92,16 @@ export function dissolveSessionGroups(event) {
 
 // payload personnalisé par socket (myVote, wrMode, etc.)
 export function emitSessionEnded(io, event) {
-  const recipients = [event.manager, ...event.players.map((p) => p.socketId)];
-  const seen = new Set(); // manager peut aussi être dans players[] en théorie
+  const recipients = [
+    { playerId: event.managerPlayerId, socketId: event.manager },
+    ...event.players.map((p) => ({ playerId: p.playerId, socketId: p.socketId })),
+  ];
+  const seen = new Set();
 
-  for (const socketId of recipients) {
-    if (seen.has(socketId)) continue;
-    seen.add(socketId);
-    io.to(socketId).emit('sessionEnded', buildSessionEndedPayload(event, socketId));
+  for (const { playerId, socketId } of recipients) {
+    if (!playerId || seen.has(playerId)) continue;
+    seen.add(playerId);
+    io.to(socketId).emit('sessionEnded', buildSessionEndedPayload(event, socketId, playerId));
   }
 }
 
@@ -61,15 +109,21 @@ export function emitSessionEnded(io, event) {
 export function finishCurrentSession(io, event) {
   clearSessionTimer(event);
 
-  snapshotSessionForVote(event);
-
   const isLastSession = event.currentSession >= event.sessionCount;
+
+  if (isCoop(event)) {
+    snapshotSessionArchive(event);
+    event.coopWrMode = isLastSession ? 'gallery' : 'sessionResult';
+    event.activeVote = null;
+  } else {
+    snapshotSessionForVote(event);
+  }
 
   dissolveSessionGroups(event);
 
   if (!isLastSession) {
     event.currentSession += 1;
-    event.name = event.themes[event.currentSession - 1]; // thème de la prochaine session
+    event.name = event.themes[event.currentSession - 1];
   }
 
   emitSessionEnded(io, event);
@@ -88,7 +142,7 @@ export function handleEndSession(socket, data, callback, deps) {
     return;
   }
 
-  if (socket.id !== event.manager) {
+  if (!isManager(event, socket)) {
     if (typeof callback === 'function') callback({ error: 'Seul le manager peut arrêter la session.' });
     return;
   }

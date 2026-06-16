@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { ActivatedRoute, Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
+import { SessionTokenService } from '../../../core/services/session-token.service';
+import { ReconnectService } from '../../../core/services/reconnect.service';
 import { EventGroupCard } from '../../../types/entities';
 import { SessionEndedPayload } from '../../../types/entities';
 import {
@@ -33,6 +35,8 @@ export class LobbyPageComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionToken = inject(SessionTokenService);
+  private readonly reconnect = inject(ReconnectService);
 
   readonly eventId = signal(this.route.snapshot.paramMap.get('eventId')?.toUpperCase() ?? '');
   readonly managerGroups = signal<EventGroupCard[]>([]);
@@ -90,6 +94,43 @@ export class LobbyPageComponent {
     this.bindManagerListeners();
   }
 
+  private async tryReconnectLobby(): Promise<boolean> {
+    const session = this.sessionToken.read();
+    if (!session?.token) return false;
+
+    const response = await this.reconnect.reconnect();
+    if (!response) return false;
+
+    if (response.phase === 'lobby' && response.lobbyState) {
+      this.applyLobbyState(response.lobbyState);
+      return true;
+    }
+
+    if (response.phase === 'game' || response.phase === 'waiting' || response.phase === 'voting') {
+      await this.reconnect.resumeAndNavigate(response);
+      return true;
+    }
+
+    return false;
+  }
+
+  private applyLobbyState(response: EventLobbyStatePayload): void {
+    const eventId = this.eventId();
+    this.managerPartyName.set(response.partyName);
+    this.managerTheme.set(response.theme ?? response.name);
+    this.managerSessionCount.set(response.sessionCount ?? 1);
+    this.managerCurrentSession.set(response.currentSession ?? 1);
+    this.managerGroups.set(response.groups ?? []);
+    this.ui.gameTheme.set(response.theme ?? response.name);
+    this.ui.partyName.set(response.partyName);
+    this.ui.setSessionMeta(response.sessionCount ?? 1, response.currentSession ?? 1, true);
+    this.ui.currentEventId.set(eventId);
+    this.ui.setRole('manager');
+    if (response.sessionEndsAt) {
+      this.ui.setSessionEndsAt(response.sessionEndsAt);
+    }
+  }
+
   joinGroup(group: EventGroupCard): void {
     this.ui.setRole('manager');
     this.ui.groupLabel.set(group.label);
@@ -134,35 +175,28 @@ export class LobbyPageComponent {
     this.isEndingSession.set(false);
   }
 
-  // recharge l'état lobby (groupes, timer) — appelé au mount uniquement
+  // recharge l'état lobby (groupes, timer) — reconnexion ou getEventLobby
   private loadEventLobby(): void {
     const eventId = this.eventId();
     if (!eventId) {
       return;
     }
 
-    void this.socket
-      .emitWithAck<{ eventId: string }, EventLobbyStatePayload>('getEventLobby', { eventId })
-      .then((response) => {
-        if (response.error) {
-          this.ui.exitGame();
-          void this.router.navigateByUrl('/');
-          return;
-        }
-        this.managerPartyName.set(response.partyName);
-        this.managerTheme.set(response.theme ?? response.name);
-        this.managerSessionCount.set(response.sessionCount ?? 1);
-        this.managerCurrentSession.set(response.currentSession ?? 1);
-        this.managerGroups.set(response.groups ?? []);
-        this.ui.gameTheme.set(response.theme ?? response.name);
-        this.ui.partyName.set(response.partyName);
-        this.ui.setSessionMeta(response.sessionCount ?? 1, response.currentSession ?? 1, true);
-        this.ui.currentEventId.set(eventId);
-        this.ui.setRole('manager');
-        if (response.sessionEndsAt) {
-          this.ui.setSessionEndsAt(response.sessionEndsAt);
-        }
-      });
+    void this.tryReconnectLobby().then((reconnected) => {
+      if (reconnected) return;
+
+      void this.socket
+        .emitWithAck<{ eventId: string }, EventLobbyStatePayload>('getEventLobby', { eventId })
+        .then((response) => {
+          if (response.error) {
+            this.sessionToken.clear();
+            this.ui.exitGame();
+            void this.router.navigateByUrl('/');
+            return;
+          }
+          this.applyLobbyState(response);
+        });
+    });
   }
 
   // groupPreviewUpdated = refresh vignette sans re-fetch getEventLobby
@@ -185,8 +219,6 @@ export class LobbyPageComponent {
         return;
       }
       this.ui.clearSessionEndsAt();
-      this.ui.exitGame();
-      this.ui.joinWaitingRoom(payload.eventId);
       this.ui.partyName.set(payload.partyName);
       this.ui.gameTheme.set(payload.theme);
       this.ui.setSessionMeta(
@@ -194,25 +226,36 @@ export class LobbyPageComponent {
         payload.currentSession,
         payload.partyStarted ?? true,
       );
+      if (payload.gameMode) {
+        this.ui.setPartyGameMode(payload.gameMode);
+      }
+      this.ui.leaveCanvasForWaitingRoom(payload.eventId);
       void this.router.navigateByUrl(`/room/${payload.eventId}`);
     };
 
     const onRoomClosed = (data: { eventId?: string; roomId?: string }) => {
       const closedId = data.eventId ?? data.roomId;
       if (closedId === eventId) {
+        this.sessionToken.clear();
         this.ui.exitGame();
         void this.router.navigateByUrl('/');
       }
     };
 
+    const onManagerAbsent = (_data: { eventId?: string; roomId?: string }) => {
+      // navigation gérée globalement par app.ts
+    };
+
     this.socket.on<GroupPreviewUpdatedPayload>('groupPreviewUpdated', onPreviewUpdated);
     this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
     this.socket.on<{ eventId?: string; roomId?: string }>('roomClosed', onRoomClosed);
+    this.socket.on<{ eventId?: string; roomId?: string }>('managerAbsent', onManagerAbsent);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('groupPreviewUpdated', onPreviewUpdated as (...args: unknown[]) => void);
       this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
+      this.socket.off('managerAbsent', onManagerAbsent as (...args: unknown[]) => void);
     });
   }
 }
