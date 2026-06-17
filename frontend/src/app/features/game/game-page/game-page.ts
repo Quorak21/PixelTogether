@@ -6,13 +6,8 @@ import { ChatboxComponent } from '../../../shared/chatbox/chatbox';
 import { CanvasComponent } from '../canvas/canvas';
 import { ColorPaletteComponent } from '../color-palette/color-palette';
 import { GroupTransitionModalComponent } from '../group-transition-modal/group-transition-modal';
+import { formatRemainingMs } from '../../../core/utils/time';
 
-function formatRemainingMs(remainingMs: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
 
 @Component({
   selector: 'app-game-page',
@@ -43,6 +38,12 @@ export class GamePageComponent {
   );
   readonly showPlayerLayout = computed(
     () => !this.ui.isManager() || this.ui.isCoopParty(),
+  );
+
+  readonly showCanvasLoading = computed(
+    () =>
+      this.ui.gameCanvasLoading() &&
+      !(this.transitionActive() && this.ui.groupTransition()),
   );
 
   readonly sessionTimerLabel = computed(() => {

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  HostListener,
   computed,
   inject,
   signal,
@@ -74,7 +75,8 @@ export class WaitingRoomPageComponent {
   private readonly sessionToken = inject(SessionTokenService);
   private readonly reconnect = inject(ReconnectService);
   private readonly route = inject(ActivatedRoute);
-  readonly router = inject(Router);
+  private readonly router = inject(Router);
+
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly onboardingModal = viewChild(OnboardingModalComponent);
@@ -101,6 +103,23 @@ export class WaitingRoomPageComponent {
   readonly topGrids = signal<PodiumGrid[]>([]);
   readonly sessionResultGrid = signal<GalleryGrid | null>(null);
   readonly galleryGrids = signal<GalleryGrid[]>([]);
+  readonly enlargedImage = signal<{ url: string; title: string } | null>(null);
+
+  openImageEnlarge(url: string | null, title: string): void {
+    if (!url) return;
+    this.enlargedImage.set({ url, title });
+  }
+
+  closeImageEnlarge(): void {
+    this.enlargedImage.set(null);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.closeImageEnlarge();
+    }
+  }
 
   readonly onboardingOpen = signal(false);
   readonly onboardingError = signal('');
@@ -577,6 +596,7 @@ export class WaitingRoomPageComponent {
         }
 
         this.sessionToken.updateGroupCode(groupCode);
+        this.ui.beginGameCanvasLoading();
         this.ui.joinGame(payload.eventId, groupCode);
         void this.router.navigateByUrl(`/game/${payload.eventId}/${groupCode}`);
         return;
@@ -610,6 +630,7 @@ export class WaitingRoomPageComponent {
         this.ui.setRole(payload.role === 'manager' ? 'manager' : 'player');
         this.ui.setColorsFromTransition(payload.myColors);
         this.sessionToken.updateGroupCode(payload.groupCode);
+        this.ui.beginGameCanvasLoading();
         this.ui.joinGame(payload.eventId, payload.groupCode);
         void this.router.navigateByUrl(`/game/${payload.eventId}/${payload.groupCode}`);
       }

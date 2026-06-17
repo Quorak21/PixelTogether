@@ -1,6 +1,6 @@
 import { createCanvas } from 'canvas';
 
-// node-canvas → data URL (webp demandé, peut retomber en png selon l'env)
+// node-canvas → data URL PNG (fond blanc, compatible export ZIP)
 export function generateGridImage(pixels, gridSize, pixelSize = 20) {
   const canvas = createCanvas(gridSize * pixelSize, gridSize * pixelSize);
   const ctx = canvas.getContext('2d');
@@ -14,5 +14,5 @@ export function generateGridImage(pixels, gridSize, pixelSize = 20) {
     ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
   }
 
-  return canvas.toDataURL('image/webp');
+  return canvas.toDataURL('image/png');
 }

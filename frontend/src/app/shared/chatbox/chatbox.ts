@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
@@ -20,6 +21,7 @@ interface ChatMessage {
   socketId: string;
   pseudo: string;
   message: string;
+  role?: string;
 }
 
 @Component({
@@ -40,7 +42,6 @@ export class ChatboxComponent implements AfterViewInit {
   readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
   readonly chatMessages = signal<ChatMessage[]>([]);
-  readonly managerSocketId = signal<string | null>(null);
   inputValue = '';
 
   constructor() {
@@ -50,35 +51,31 @@ export class ChatboxComponent implements AfterViewInit {
         ...prev,
         { ...data, pseudo: data.pseudo ?? 'Joueur' },
       ]);
-    const onPlayersList = (data: { activePlayers: string[]; managerSocketId: string }) => {
-      this.managerSocketId.set(data.managerSocketId ?? null);
-    };
 
     this.socket.on<ChatMessage[]>('chatMessages', onChatMessages);
     this.socket.on<ChatMessage>('receiveMessage', onReceiveMessage);
-    this.socket.on<{ activePlayers: string[]; managerSocketId: string }>('playersList', onPlayersList);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('chatMessages', onChatMessages as (...args: unknown[]) => void);
       this.socket.off('receiveMessage', onReceiveMessage as (...args: unknown[]) => void);
-      this.socket.off('playersList', onPlayersList as (...args: unknown[]) => void);
+    });
+
+    // Auto-scroll au bas du chat dès que les messages changent
+    effect(() => {
+      this.chatMessages();
+      this.scrollToBottom();
     });
   }
+
 
   ngAfterViewInit(): void {
     const payload = { eventId: this.eventId(), groupCode: this.groupCode() };
     this.socket.emit('getChatMessages', payload);
-    this.socket.emit('getPlayersList', payload);
   }
 
   // manager peut spectater le groupe sans être dans group.players
   isManagerMessage(msg: ChatMessage): boolean {
-    const managerId = this.managerSocketId();
-    if (!managerId) {
-      return false;
-    }
-    const authorId = msg.senderId ?? msg.socketId;
-    return authorId === managerId;
+    return msg.role === 'manager';
   }
 
   sendMessage(): void {

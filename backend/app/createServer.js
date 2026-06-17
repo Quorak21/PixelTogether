@@ -43,5 +43,15 @@ export function createServer() {
 
   registerSocketHandlers(io, deps);
 
+  // Lancement du sweep d'inactivité périodique
+  const sweepInterval = setInterval(() => {
+    lifecycle.sweepInactiveEvents(io, store.activeEvents, constants.EVENT_INACTIVITY_TTL_MS);
+  }, constants.EVENT_SWEEP_INTERVAL_MS);
+
+  if (typeof sweepInterval.unref === 'function') {
+    sweepInterval.unref();
+  }
+
   return httpServer;
 }
+

@@ -139,7 +139,12 @@
                       <li class="flex items-center gap-3 rounded-lg border border-white/10 bg-slate-950/40 p-3">
                         <span class="w-6 font-black text-brand-violet">{{ grid.rank }}.</span>
                         @if (grid.image) {
-                          <img [src]="grid.image" [alt]="grid.label" class="h-12 w-12 rounded bg-slate-950/60 object-contain" />
+                          <img 
+                            [src]="grid.image" 
+                            [alt]="grid.label" 
+                            class="h-12 w-12 rounded bg-slate-950/60 object-contain cursor-zoom-in hover:scale-110 transition-transform duration-200" 
+                            (click)="openImageEnlarge(grid.image, grid.rank + '. ' + grid.label)"
+                          />
                         } @else {
                           <span class="flex h-12 w-12 items-center justify-center rounded bg-slate-950/60 text-xl opacity-40">▦</span>
                         }
@@ -155,28 +160,39 @@
             </div>
           }
 
-          @if (wrMode() === 'voteResult' || wrMode() === 'sessionResult') {
-            <div class="flex flex-col items-center justify-center gap-4 py-4">
+          @if (wrMode() === 'voteResult') {
+            <div class="flex flex-col items-center justify-center gap-4 py-4 max-w-md mx-auto">
               @if (winnerCandidate(); as winner) {
-                <div class="w-full overflow-hidden rounded-xl border-2 border-brand-violet">
-                  <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60 p-4">
+                <div 
+                  class="group w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900/40 p-4 shadow-lg backdrop-blur-xl hover:border-brand-violet/50 transition-all cursor-zoom-in"
+                  (click)="openImageEnlarge(winner.image ?? winnerImage(), 'Gagnant : ' + winner.label)"
+                >
+                  <div class="relative flex aspect-square w-full items-center justify-center bg-slate-950/60 p-4 rounded-lg overflow-hidden border border-white/5">
                     @if (winner.image ?? winnerImage()) {
                       <img
                         [src]="winner.image ?? winnerImage()"
                         [alt]="winner.label"
-                        class="max-h-[min(50vh,24rem)] h-full w-full object-contain"
+                        class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-102"
+                        style="image-rendering: pixelated; image-rendering: crisp-edges;"
                       />
+                      
+                      <!-- Hover Zoom Overlay -->
+                      <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 backdrop-blur-[1px]">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-violet/90 text-white shadow-lg transform scale-90 transition-transform duration-300 group-hover:scale-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM10.5 7.5v6m3-3h-6" />
+                          </svg>
+                        </div>
+                      </div>
                     } @else {
                       <span class="text-6xl opacity-30">▦</span>
                     }
                   </div>
-                  <div class="flex flex-col items-center gap-1 p-5 text-center">
+                  <div class="flex flex-col items-center gap-1 p-4 text-center">
                     <h3 class="text-2xl font-black text-white">{{ winner.label }}</h3>
-                    @if (wrMode() === 'voteResult') {
                     <p class="text-landing-muted">
                       {{ winner.voteCount }} vote{{ winner.voteCount > 1 ? 's' : '' }}
                     </p>
-                    }
                   </div>
                 </div>
               } @else {
@@ -185,22 +201,105 @@
             </div>
           }
 
+          @if (wrMode() === 'sessionResult') {
+            <div class="flex flex-col items-center justify-center gap-6 py-6 max-w-2xl mx-auto">
+              @if (sessionResultGrid(); as grid) {
+                <!-- Badge and Title -->
+                <div class="text-center space-y-2 select-none">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-violet/25 text-brand-violet text-xs font-bold uppercase tracking-wider border border-brand-violet/30 animate-pulse">
+                    ✨ Création terminée !
+                  </span>
+                  <h3 class="text-xl font-medium text-landing-muted">
+                    Session {{ grid.sessionNumber }} — Thème : <span class="text-white font-extrabold">{{ grid.theme }}</span>
+                  </h3>
+                </div>
+
+                <!-- Glassmorphic Card Frame -->
+                <div 
+                  class="group relative w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:border-brand-violet/50 hover:shadow-brand-violet/5 cursor-zoom-in"
+                  (click)="openImageEnlarge(grid.image, grid.theme + ' — Session ' + grid.sessionNumber)"
+                >
+                  <!-- Visual Container -->
+                  <div class="relative flex aspect-square w-full items-center justify-center rounded-2xl bg-slate-950/70 p-6 overflow-hidden border border-white/5">
+                    <div class="absolute inset-0 bg-radial-gradient from-brand-violet/10 via-transparent to-transparent opacity-50"></div>
+                    
+                    @if (grid.image) {
+                      <img
+                        [src]="grid.image"
+                        [alt]="grid.theme"
+                        class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-102"
+                        style="image-rendering: pixelated; image-rendering: crisp-edges;"
+                      />
+                      
+                      <!-- Hover Zoom Overlay -->
+                      <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 backdrop-blur-[2px]">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-violet/85 text-white shadow-lg shadow-brand-violet/30 transform scale-90 transition-transform duration-300 group-hover:scale-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM10.5 7.5v6m3-3h-6" />
+                          </svg>
+                        </div>
+                      </div>
+                    } @else {
+                      <span class="text-7xl opacity-25">▦</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="flex flex-col items-center justify-center py-10 text-landing-muted italic">
+                  <span class="inline-block size-6 animate-spin rounded-full border-2 border-current border-t-transparent mb-4"></span>
+                  <p>Chargement du dessin de la session...</p>
+                </div>
+              }
+            </div>
+          }
+
           @if (wrMode() === 'gallery') {
             @if (galleryGrids().length === 0) {
-              <p class="py-8 text-center text-landing-muted">Aucun dessin à afficher.</p>
+              <div class="flex flex-col items-center justify-center py-12 text-landing-muted italic bg-slate-900/20 rounded-2xl border border-white/5">
+                <span class="text-6xl mb-4 opacity-20">▦</span>
+                <p>Aucun dessin à afficher dans la galerie.</p>
+              </div>
             } @else {
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class="text-center mb-8 space-y-2 select-none">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-coral/25 text-brand-coral text-xs font-bold uppercase tracking-wider border border-brand-coral/30">
+                  🎉 Partie Terminée ! Galerie finale
+                </span>
+              </div>
+
+              <div class="grid gap-6 sm:grid-cols-2">
                 @for (grid of galleryGrids(); track grid.groupCode) {
-                  <div class="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
-                    <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60 p-4">
+                  <div 
+                    class="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-4 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-brand-violet/50 hover:shadow-2xl hover:shadow-brand-violet/5 hover:-translate-y-1 cursor-zoom-in"
+                    (click)="openImageEnlarge(grid.image, grid.theme + ' — Session ' + grid.sessionNumber)"
+                  >
+                    <div class="relative flex aspect-square w-full items-center justify-center rounded-xl bg-slate-950/70 p-4 overflow-hidden border border-white/5">
+                      <div class="absolute inset-0 bg-radial-gradient from-brand-violet/5 via-transparent to-transparent opacity-30"></div>
+                      
                       @if (grid.image) {
-                        <img [src]="grid.image" [alt]="grid.label" class="max-h-full max-w-full object-contain" />
+                        <img 
+                          [src]="grid.image" 
+                          [alt]="grid.label" 
+                          class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-102" 
+                          style="image-rendering: pixelated; image-rendering: crisp-edges;"
+                        />
+                        
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 backdrop-blur-[1px]">
+                          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-violet/90 text-white shadow-lg transform scale-90 transition-transform duration-300 group-hover:scale-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM10.5 7.5v6m3-3h-6" />
+                            </svg>
+                          </div>
+                        </div>
                       } @else {
-                        <span class="text-5xl opacity-30">▦</span>
+                        <span class="text-6xl opacity-25">▦</span>
                       }
                     </div>
-                    <div class="p-4 text-center">
-                      <h3 class="font-bold text-white">{{ grid.label }}</h3>
+                    
+                    <div class="mt-4 text-center space-y-1">
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-brand-violet bg-brand-violet/10 px-2 py-0.5 rounded">
+                        Session {{ grid.sessionNumber }}
+                      </span>
+                      <h4 class="font-extrabold text-white text-base truncate">{{ grid.theme }}</h4>
                     </div>
                   </div>
                 }
@@ -403,4 +502,38 @@
     (confirmed)="confirmStart()"
     (closed)="closeStartConfirm()"
   />
+}
+
+<!-- Lightbox pour agrandir l'image -->
+@if (enlargedImage(); as img) {
+  <div 
+    class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-4 md:p-8 backdrop-blur-md transition-all duration-300 animate-fade-in"
+    (click)="closeImageEnlarge()"
+  >
+    <button
+      type="button"
+      class="absolute right-4 top-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20 hover:scale-105 active:scale-95 shadow-lg"
+      (click)="closeImageEnlarge(); $event.stopPropagation()"
+      aria-label="Fermer"
+    >
+      <span class="text-2xl font-light">✕</span>
+    </button>
+
+    <div 
+      class="relative flex max-h-[85vh] max-w-full flex-col items-center justify-center gap-4 animate-scale-up"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="overflow-hidden rounded-2xl border border-white/15 bg-slate-950/80 p-2 shadow-2xl shadow-brand-violet/20">
+        <img
+          [src]="img.url"
+          [alt]="img.title"
+          class="max-h-[75vh] max-w-[90vw] object-contain shadow-inner rounded-xl"
+          style="image-rendering: pixelated; image-rendering: crisp-edges;"
+        />
+      </div>
+      <div class="text-center px-4 py-2 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl max-w-md">
+        <h4 class="text-lg font-bold text-white tracking-wide">{{ img.title }}</h4>
+      </div>
+    </div>
+  </div>
 }

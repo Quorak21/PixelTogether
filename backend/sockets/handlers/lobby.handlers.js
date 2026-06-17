@@ -26,6 +26,7 @@ export function registerLobbyHandlers(socket, deps) {
     SESSION_DURATION_DEFAULT,
     COOP_SESSION_COUNT_MIN,
     COMPETITIVE_SESSION_COUNT_MIN,
+    MAX_ACTIVE_EVENTS,
   } = constants;
   const { buildEventLobbyPayload } = payloads;
 
@@ -61,6 +62,12 @@ export function registerLobbyHandlers(socket, deps) {
     const existingToken = typeof data?.token === 'string' ? data.token.trim() : '';
     if (existingToken && validateToken(existingToken)) {
       return callback({ error: 'Vous êtes déjà dans une partie.' });
+    }
+
+    if (Object.keys(activeEvents).length >= MAX_ACTIVE_EVENTS) {
+      return callback({
+        error: 'Le serveur a atteint sa capacité maximale de parties actives. Veuillez patienter.',
+      });
     }
 
     const partyName = typeof data?.partyName === 'string' ? data.partyName.trim() : '';
@@ -176,6 +183,7 @@ export function registerLobbyHandlers(socket, deps) {
       showingResults: false,
       coopWrMode: null,
       sessionsByToken: {},
+      lastActivityAt: Date.now(),
     };
 
     const issued = issueSession(activeEvents[eventId], {
@@ -188,6 +196,8 @@ export function registerLobbyHandlers(socket, deps) {
     socket.data.eventId = eventId;
     socket.data.playerId = managerPlayerId;
     socket.join(eventId);
+
+    io.emit('serverCapacity', { maxCapReached: Object.keys(activeEvents).length >= MAX_ACTIVE_EVENTS });
 
     callback({
       id: eventId,

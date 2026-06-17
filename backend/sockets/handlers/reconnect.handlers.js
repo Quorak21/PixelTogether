@@ -66,6 +66,7 @@ export function handleReconnectSession(socket, data, callback, deps) {
   remapSocket(event, session.playerId, socket.id);
   setSessionConnected(session.playerId, true, socket.id);
   clearManagerDisconnectTimer(event);
+  event.lastActivityAt = Date.now();
 
   socket.data.playerId = session.playerId;
   socket.data.role = session.role;
@@ -130,6 +131,7 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
       remapSocket(event, session.playerId, socket.id);
       setSessionConnected(session.playerId, true, socket.id);
       clearManagerDisconnectTimer(event);
+      event.lastActivityAt = Date.now();
 
       socket.data.playerId = session.playerId;
       socket.data.role = session.role;
@@ -154,6 +156,7 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
     role: 'player',
     socketId: socket.id,
   });
+  event.lastActivityAt = Date.now();
 
   socket.data.playerId = playerId;
   socket.data.role = 'player';

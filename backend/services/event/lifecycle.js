@@ -5,6 +5,7 @@ import { clearSessionTimer } from '../session/sessionTimer.js';
 import { purgeEventSessions, updateSessionGroupCode } from '../reconnect/sessionToken.js';
 import { clearManagerDisconnectTimer } from './participants.js';
 import { isCoop } from './gameMode.js';
+import { MAX_ACTIVE_EVENTS } from '../../config/constants.js';
 
 function buildSessionInfo(event) {
   return {
@@ -96,4 +97,20 @@ export function closeEvent(io, eventId) {
   const images = getEventGroupImages(event);
   io.emit('roomClosed', { roomId: eventId, eventId, image: images });
   delete activeEvents[eventId];
+
+  io.emit('serverCapacity', { maxCapReached: Object.keys(activeEvents).length >= MAX_ACTIVE_EVENTS });
 }
+
+export function sweepInactiveEvents(io, activeEventsMap, ttlMs) {
+  const now = Date.now();
+  for (const eventId in activeEventsMap) {
+    const event = activeEventsMap[eventId];
+    if (event && event.lastActivityAt) {
+      const inactiveTime = now - event.lastActivityAt;
+      if (inactiveTime > ttlMs) {
+        closeEvent(io, eventId);
+      }
+    }
+  }
+}
+

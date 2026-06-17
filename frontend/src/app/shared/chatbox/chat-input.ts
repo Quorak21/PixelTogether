@@ -9,7 +9,8 @@ import { SocketService } from '../../core/services/socket.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatInputComponent {
-  readonly socket = inject(SocketService);
+  private readonly socket = inject(SocketService);
+
 
   readonly eventId = input.required<string>();
   readonly groupCode = input.required<string>();

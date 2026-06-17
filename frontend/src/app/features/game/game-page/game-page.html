@@ -90,4 +90,15 @@
     </div>
     }
   </div>
+
+  @if (showCanvasLoading()) {
+  <div
+    class="fixed inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-landing-bg/80 backdrop-blur-sm"
+    aria-live="polite"
+    aria-busy="true"
+  >
+    <span class="inline-block size-8 animate-spin rounded-full border-2 border-brand-violet border-t-transparent"></span>
+    <p class="text-sm text-landing-muted">Chargement de la grille…</p>
+  </div>
+  }
 </div>

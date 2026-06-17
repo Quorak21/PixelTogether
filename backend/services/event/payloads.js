@@ -24,11 +24,15 @@ export function toGroupPlayer(player) {
 }
 
 export function toChatMessage(event, group, entry) {
+  const isSenderManager = entry.role === 'manager' || 
+                          entry.playerId === event?.managerPlayerId || 
+                          (event?.manager && entry.socketId === event.manager);
   return {
     socketId: entry.socketId,
-    pseudo: entry.pseudo ?? getParticipantPseudo(event, entry.socketId, group),
+    pseudo: entry.pseudo ?? getParticipantPseudo(event, entry.socketId, group, entry.playerId),
     message: entry.message,
-    senderId: entry.socketId,
+    senderId: entry.playerId ?? entry.socketId,
+    role: isSenderManager ? 'manager' : 'player',
   };
 }
 

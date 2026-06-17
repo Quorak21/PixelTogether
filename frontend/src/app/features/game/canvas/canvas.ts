@@ -46,6 +46,7 @@ export class CanvasComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     const onJoinRoomError = (data: { error: string }) => {
+      this.ui.setGameCanvasReady();
       const eventId = this.eventId();
       if (data.error.includes('pas encore démarré') && eventId) {
         this.ui.joinWaitingRoom(eventId);
@@ -100,6 +101,7 @@ export class CanvasComponent implements AfterViewInit {
     this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
 
     this.destroyRef.onDestroy(() => {
+      this.ui.setGameCanvasReady();
       this.socket.off('joinRoomError', onJoinRoomError as (...args: unknown[]) => void);
       this.socket.off('gridState', onGridState as (...args: unknown[]) => void);
       this.socket.off('drawPixel', onDrawPixel as (...args: unknown[]) => void);
@@ -236,42 +238,46 @@ export class CanvasComponent implements AfterViewInit {
 
   // trace la grille complète + pixels existants (appelé une fois au gridState)
   private renderGrid(data: GridStatePayload): void {
-    const canvas = this.canvasEl().nativeElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return;
-    }
+    requestAnimationFrame(() => {
+      const canvas = this.canvasEl().nativeElement;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        this.ui.setGameCanvasReady();
+        return;
+      }
 
-    const width = data.width;
-    const height = data.height;
+      const width = data.width;
+      const height = data.height;
 
-    if (data.colors?.length) {
-      this.ui.setColorsFromGrid(data.colors);
-    }
+      if (data.colors?.length) {
+        this.ui.setColorsFromGrid(data.colors);
+      }
 
-    canvas.width = width * this.pixelSize;
-    canvas.height = height * this.pixelSize;
+      canvas.width = width * this.pixelSize;
+      canvas.height = height * this.pixelSize;
 
-    ctx.beginPath();
-    ctx.strokeStyle = '#ddd';
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= width; x += 1) {
-      ctx.moveTo(x * this.pixelSize, 0);
-      ctx.lineTo(x * this.pixelSize, height * this.pixelSize);
-    }
-    for (let y = 0; y <= height; y += 1) {
-      ctx.moveTo(0, y * this.pixelSize);
-      ctx.lineTo(width * this.pixelSize, y * this.pixelSize);
-    }
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= width; x += 1) {
+        ctx.moveTo(x * this.pixelSize, 0);
+        ctx.lineTo(x * this.pixelSize, height * this.pixelSize);
+      }
+      for (let y = 0; y <= height; y += 1) {
+        ctx.moveTo(0, y * this.pixelSize);
+        ctx.lineTo(width * this.pixelSize, y * this.pixelSize);
+      }
+      ctx.stroke();
 
-    for (const [coords, color] of Object.entries(data.pixels)) {
-      const [x, y] = coords.split(',').map((value) => Number(value));
-      ctx.fillStyle = color;
-      ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
-    }
+      for (const [coords, color] of Object.entries(data.pixels)) {
+        const [x, y] = coords.split(',').map((value) => Number(value));
+        ctx.fillStyle = color;
+        ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
+      }
 
-    this.fitGridToViewport();
+      this.fitGridToViewport();
+      this.ui.setGameCanvasReady();
+    });
   }
 
   private fitGridToViewport(): void {

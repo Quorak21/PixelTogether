@@ -73,3 +73,11 @@ export const MANAGER_ABSENT_WARNING_MS = 5 * 1000;
 export const PIXEL_COOLDOWN_MS = 50;
 export const CHAT_COOLDOWN_MS = 500;
 export const VOTE_COOLDOWN_MS = 300;
+
+// Limite globale de salons actifs simultanés
+export const MAX_ACTIVE_EVENTS = 50;
+// Durée maximale d'inactivité avant purge (2 heures)
+export const EVENT_INACTIVITY_TTL_MS = 2 * 60 * 60 * 1000;
+// Fréquence de nettoyage des salons inactifs (5 minutes)
+export const EVENT_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+

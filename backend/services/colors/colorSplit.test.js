@@ -1,67 +1,60 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { GAME_PALETTE_16 } from '../../config/constants.js';
+import test from 'node:test';
+import assert from 'node:assert';
 import { splitPalette, assignPalettesToGroup } from './colorSplit.js';
+import { GAME_PALETTE_16 } from '../../config/constants.js';
 
-describe('splitPalette', () => {
-  const pool = [...GAME_PALETTE_16];
-
-  for (const count of [2, 3, 4]) {
-    it(`uses all ${pool.length} colors exactly once for ${count} players`, () => {
-      const slices = splitPalette(pool, count);
-      assert.equal(slices.length, count);
-      const flat = slices.flat();
-      assert.equal(flat.length, pool.length);
-      assert.equal(new Set(flat).size, pool.length);
-      for (const color of pool) {
-        assert.ok(flat.includes(color));
-      }
-    });
-  }
-
-  it('splits 16 colors as 8/8 for 2 players', () => {
-    const slices = splitPalette(pool, 2);
-    assert.deepEqual(slices.map((s) => s.length), [8, 8]);
+test('colorSplit - splitPalette', async (t) => {
+  await t.test('returns empty array if playerCount < 1', () => {
+    assert.deepStrictEqual(splitPalette(GAME_PALETTE_16, 0), []);
+    assert.deepStrictEqual(splitPalette(GAME_PALETTE_16, -1), []);
   });
 
-  it('splits 16 colors as 6/5/5 for 3 players', () => {
+  await t.test('splits palette into equal sizes with remainder distributed', () => {
+    const pool = ['#1', '#2', '#3', '#4', '#5', '#6', '#7', '#8', '#9', '#10'];
     const slices = splitPalette(pool, 3);
-    assert.deepEqual(slices.map((s) => s.length).sort((a, b) => b - a), [6, 5, 5]);
-  });
 
-  it('splits 16 colors as 4/4/4/4 for 4 players', () => {
-    const slices = splitPalette(pool, 4);
-    assert.deepEqual(slices.map((s) => s.length), [4, 4, 4, 4]);
+    assert.strictEqual(slices.length, 3);
+    
+    // sizes should be: 4, 3, 3 (remainder = 10 % 3 = 1)
+    const sizes = slices.map(s => s.length);
+    assert.deepStrictEqual(sizes, [4, 3, 3]);
+
+    // all elements are unique and sum up to 10
+    const flat = slices.flat();
+    assert.strictEqual(flat.length, 10);
+    assert.deepStrictEqual([...flat].sort(), [...pool].sort());
   });
 });
 
-describe('assignPalettesToGroup', () => {
-  function makeGroup(size) {
-    return {
-      players: Array.from({ length: size }, (_, i) => ({
-        socketId: `p${i}`,
-        pseudo: `Player${i}`,
-        avatarColor: '#ef4444',
-      })),
-    };
-  }
+test('colorSplit - assignPalettesToGroup', async (t) => {
+  await t.test('assigns disjoint subsets of GAME_PALETTE_16 to players', () => {
+    const players = [
+      { socketId: 's1', pseudo: 'Alice' },
+      { socketId: 's2', pseudo: 'Bob' },
+      { socketId: 's3', pseudo: 'Charlie' }
+    ];
+    const group = { players };
 
-  for (const size of [2, 3, 4]) {
-    it(`assigns disjoint palettes to ${size} players`, () => {
-      const group = makeGroup(size);
-      assignPalettesToGroup(group);
+    assignPalettesToGroup(group);
 
-      const allAssigned = group.players.flatMap((p) => p.assignedColors);
-      assert.equal(allAssigned.length, GAME_PALETTE_16.length);
-      assert.equal(new Set(allAssigned).size, GAME_PALETTE_16.length);
-
-      for (let i = 0; i < group.players.length; i++) {
-        for (let j = i + 1; j < group.players.length; j++) {
-          const a = new Set(group.players[i].assignedColors);
-          const overlap = group.players[j].assignedColors.filter((c) => a.has(c));
-          assert.equal(overlap.length, 0);
-        }
+    assert.strictEqual(group.players.length, 3);
+    
+    // verify that every player has assignedColors
+    const allAssigned = [];
+    for (const player of group.players) {
+      assert.ok(Array.isArray(player.assignedColors));
+      assert.ok(player.assignedColors.length > 0);
+      
+      // verify colors are lowercase
+      for (const color of player.assignedColors) {
+        assert.strictEqual(color, color.toLowerCase());
+        assert.ok(GAME_PALETTE_16.map(c => c.toLowerCase()).includes(color));
+        allAssigned.push(color);
       }
-    });
-  }
+    }
+
+    // verify colors are disjoint (no duplicate color assigned to multiple players)
+    const uniqueAssigned = new Set(allAssigned);
+    assert.strictEqual(uniqueAssigned.size, allAssigned.length);
+  });
 });

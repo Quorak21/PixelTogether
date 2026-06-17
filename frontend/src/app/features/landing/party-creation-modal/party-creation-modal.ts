@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import {
   FormArray,
   FormBuilder,
@@ -33,10 +32,11 @@ import {
 } from '../../../core/config/session-config';
 import { GameMode } from '../../../types/entities';
 import { NewGridPayload, NewGridResponse } from '../../../types/socket-payloads';
+import { preloadGameRoutes } from '../../../core/utils/preload-game';
 
 @Component({
   selector: 'app-party-creation-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './party-creation-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -119,6 +119,7 @@ export class PartyCreationModalComponent {
   constructor() {
     effect(() => {
       if (!this.ui.partyCreationOpen()) return;
+      preloadGameRoutes();
       this.applyModeDefaults(this.ui.partyCreationMode());
     });
 

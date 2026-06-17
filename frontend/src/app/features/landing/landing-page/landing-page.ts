@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideCrown, LucideUsers } from '@lucide/angular';
@@ -8,6 +8,7 @@ import { ReconnectService } from '../../../core/services/reconnect.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { PartyCreationModalComponent } from '../party-creation-modal/party-creation-modal';
 import { GameMode } from '../../../types/entities';
+import { preloadGameRoutes } from '../../../core/utils/preload-game';
 
 const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 
@@ -20,7 +21,7 @@ export type InfoModalKind = 'why' | 'docs';
   templateUrl: './landing-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingPageComponent implements OnInit {
+export class LandingPageComponent implements OnInit, OnDestroy {
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -31,6 +32,7 @@ export class LandingPageComponent implements OnInit {
   readonly error = signal('');
   readonly infoModal = signal<InfoModalKind | null>(null);
   readonly isResuming = signal(false);
+  readonly serverMaxCapReached = signal(false);
   readonly hasActiveSession = computed(() => this.sessionToken.hasValidSession());
 
   readonly form = this.fb.nonNullable.group({
@@ -51,8 +53,19 @@ export class LandingPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    preloadGameRoutes();
     void this.tryResumeSession();
+    this.socket.on('serverCapacity', this.onServerCapacity);
   }
+
+  ngOnDestroy(): void {
+    this.socket.off('serverCapacity', this.onServerCapacity);
+  }
+
+  private readonly onServerCapacity = (...args: unknown[]) => {
+    const payload = args[0] as { maxCapReached: boolean } | undefined;
+    this.serverMaxCapReached.set(payload?.maxCapReached ?? false);
+  };
 
   openInfoModal(kind: InfoModalKind): void {
     this.infoModal.set(kind);

@@ -143,7 +143,7 @@ export function handleEndSession(socket, data, callback, deps) {
   }
 
   if (!isManager(event, socket)) {
-    if (typeof callback === 'function') callback({ error: 'Seul le manager peut arrêter la session.' });
+    if (typeof callback === 'function') callback({ error: 'Seul le manager peut terminer la session.' });
     return;
   }
 

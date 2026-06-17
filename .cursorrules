@@ -32,6 +32,6 @@ Suivi projet : **`backlog.md`** (taches en cours + futur features), **`journal.m
 
 - **Styles** : classes Tailwind dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind (`@theme` palette Nord).
 
-- **Tests** : hors scope pour l'instant (ticket **TEST-01** dans `backlog.md`). Ne pas ajouter de `*.spec.ts`, `*.test.js` ni scripts `test` tant que le process n'est pas defini.
+- **Tests** : Couverture unitaire et d'intégration avec `node:test` (backend) et `Vitest` (frontend). Lancer les tests avec `npm run test` dans chaque dossier respectif.
 
 

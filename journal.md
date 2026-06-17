@@ -13,6 +13,16 @@
 
 ## Entrées
 
+- **AUDIT-01** — **Fuite mémoire events abandonnés** : Ajout d'un cap maximal de salons de jeu actifs (50), d'un horodatage de dernière activité sur les salons mis à jour à chaque interaction (création, action socket via middleware, reconnexion), et d'un sweep périodique d'arrière-plan (toutes les 5 minutes) fermant proprement les salons inactifs depuis plus de 2 heures. Côté frontend, désactivation des boutons de création de partie avec affichage d'une bannière d'information si la capacité maximale est atteinte.
+
+- **TEST-01** — **Mise en place du process de tests (Phase 1)** : Configuration de `node:test` sur le backend et de `Vitest` sur le frontend. Ajout de tests unitaires couvrant la logique d'attribution des groupes, le découpage de la palette de couleurs, les règles de validation des modes de jeu, la gestion des sessions/tokens de reconnexion, et l'état réactif de l'UI (signaux et warnings).
+
+- **ARCH-03** — **Simplification du routing** : routes plates dans `app.routes.ts` pour `/` et `/lobby/:eventId`, suppression de `landing.routes.ts` et `lobby.routes.ts` (lazy-load uniquement sur la page jeu `game`).
+
+- **PERF-03** — **Export image correct** : encodage PNG explicite pour les aperçus de grille (fond blanc).
+
+- **PERF-04** — **Transition vers /game** : preload `game.routes` (landing, lobby, modale création) ; signal `gameCanvasLoading` + overlay spinner ; `renderGrid` en rAF.
+
 - **BACK-04** — **Rate-limit events socket** : `isRateLimited` dans `socketGuards.js` ; cooldowns 50/500/300 ms sur `pixelPlaced`, `sendMessage`, `castVote` (ack noop sur vote).
 
 - **BACK-02** — **Validation entrées socket (ACK guards)** : helper `socketGuards.js` (`guardAck`/`ack`) ; protection callback sur `newGrid`, `registerPlayer`/`startGame` et handlers vote — plus de crash si ACK absent.

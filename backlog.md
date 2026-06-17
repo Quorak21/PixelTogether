@@ -1,10 +1,6 @@
 # PixelTogether — Backlog
 
-
-
 **Statut produit** : MVP team building livré (sessions, vote, podium). Ce fichier regroupe tout le travail restant.
-
-
 
 | Fichier | Rôle |
 
@@ -14,51 +10,58 @@
 
 | `journal.md` | Jalons et tâches **terminées** |
 
-
-
 > **Convention tickets** : `ID` — **Titre** : description. Gravité **CRITIQUE → ÉLEVÉ → MOYEN → INFO** pour les tâches en cours. Préfixe **ADD-** pour les futur features. Résolu → retirer d'ici + **une ligne** dans `journal.md`. Jamais de secrets en clair.
-
-
 
 ---
 
-
-
 ## Tâches en cours
-
-
 
 Bugs, risques, dettes et chantiers actifs. Odin y ajoute de manière autonome dès qu'un souci est repéré ; toi aussi quand tu dis « on fera plus tard ».
 
-
-
 ### ÉLEVÉ
 
-
-
-- **PERF-04** — **Transition create/join lente + feedback chargement** : lazy-load du chunk `game-routes` au premier accès ; attente `emitWithAck` avant navigation (création) ; puis `joinRoom` + `gridState` + `renderGrid` (152 lignes canvas 75×75). Pistes : preload module game sur landing, alléger le tracé de grille ; spinner ou état « Chargement… » pendant ack socket + navigation (éviter l'impression de bug).
-
-
+- **AUDIT-02** — **Bug reconnexion manager** : `clearManagerDisconnectTimer` annulé à tort par tout reconnect de joueur.
+  Restreindre l'appel au rôle manager seul dans `reconnect.handlers.js` (L68/L132) pour éviter le blocage de room.
+- **AUDIT-03** — **Shuffle de groupes biaisé** : `sort(() => Math.random() - 0.5)` dans `groupShuffle.js` n'est pas uniforme.
+  Remplacer par un algorithme de Fisher-Yates (Knuth) robuste et uniforme.
+- **AUDIT-04** — **Token coop NaN expiry** : En coop, `sessionDurationMinutes` vaut `null` provoquant un TTL infini (`NaN`).
+  Ajouter un fallback propre à `MAX_PARTY_DURATION_MINUTES` pour éviter une accumulation mémoire de tokens.
+- **AUDIT-05** — **DoS Canvas / Preview CPU** : `updateGroupPreview()` génère un PNG base64 lourd à chaque pixel posé.
+  Debouncer la génération (ex : max 1 fois par 3 secondes par groupe) ou générer à la demande (lobby/vote).
+- **AUDIT-06** — **DoS Chat messages illimités** : `chatMessages` grandit sans limite en RAM.
+  Fixer un plafond strict de messages stockés par groupe (buffer circulaire, ex: max 500).
+- **AUDIT-07** — **Auth Chat & messages** : Pas de check de membership sur `sendMessage` et `getChatMessages`.
+  Vérifier que le socket demandeur appartient bien au groupe ciblé (ou est le manager) avant d'autoriser.
+- **AUDIT-08** — **Validation types/longueurs backend** : Aucun typecheck strict sur payloads socket et pas de max pseudo.
+  Valider le type des objets reçus et plafonner la taille des pseudos/thèmes (ex: 30/100 chars).
+- **AUDIT-09** — **Frontend emitWithAck sans timeout** : Les promises d'ack socket peuvent freeze l'UI indéfiniment si pas de réponse.
+  Ajouter un timeout de 10s avec reject et wrapper tous les appels du front dans des `try/catch` avec message d'erreur.
+- **AUDIT-10** — **Frontend pas de route guards** : Pas de protection sur `/game`, `/lobby` ou `/room`.
+  Ajouter des guards Angular `canActivate` pour empêcher les accès directs sans session/autorisation active.
+- **AUDIT-11** — **Frontend signal hasActiveSession non réactif** : Lit `localStorage` dans un computed sans signal sous-jacent.
+  Utiliser un signal interne dans `SessionTokenService` pour propager dynamiquement l'état de session active.
+- **AUDIT-12** — **Frontend pas de gestion connect_error** : Les coupures serveurs ou échecs initiaux sont silencieux pour l'utilisateur.
+  Écouter `connect_error` sur Socket.IO pour afficher un statut de déconnexion/reconnexion global à l'écran.
 
 ### MOYEN
 
-
-
-- **TEST-01** — **Process de tests** : aucun pipeline aujourd'hui (specs supprimées, pas de scripts `test`). À définir puis implémenter : scripts npm back (`node:test` sur logique pure : shuffle, validation socket) et front (Vitest/Angular), règles agents alignées, première couverture utile, intégration CI — pas de fichiers orphelins sans process.
-
-- **PERF-03** — **Export image correct** : `toDataURL('image/webp')` avec node-canvas retombe en PNG silencieusement. Pour le ZIP souvenir, encoder explicitement (PNG propre ou WebP via `sharp`).
-
-- **ARCH-03** — **Routing sur-dimensionné** : 3 fichiers `*.routes.ts` (manager, lobby, game) pour 1 page chacun → triple indirection + lazy-load inutile sur manager/lobby (~7–9 KB). Simplifier : routes plates dans `app.routes.ts` pour `/` et `/lobby`, lazy-load **uniquement** sur `game/:roomId`.
-
+- **AUDIT-13** — **Broadcast roomClosed global** : `io.emit('roomClosed')` envoie l'event de clôture à tous les serveurs du projet.
+  Cibler uniquement la room de l'event concerné via `io.to(eventId).emit()`.
+- **AUDIT-14** — **Rate-limits incomplets** : Seuls 3 events socket sont protégés.
+  Ajouter des rate-limits sur `newGrid` (create event), `enterWaitingRoom` et `reconnectSession` pour parer aux bots.
+- **AUDIT-15** — **Manque max joueurs compétitif** : Pas de cap pour limiter l'afflux et le nombre de groupes générés.
+  Plafonner le nombre max de joueurs dans l'event compétitif pour préserver la RAM et le CPU.
+- **AUDIT-16** — **WaitingRoomPageComponent god component** : Fichier trop lourd (700+ lignes) centralisant trop de logique.
+  Découper les sous-vues (podium, vote, lobby) et la logique socket Angular en sous-composants dédiés.
+- **AUDIT-17** — **Timers redondants Angular** : 3 `setInterval(1000)` tournent simultanément sur la page game.
+  Centraliser la gestion du temps restant dans `UiStateService` avec un unique timer ou signal.
+- **AUDIT-18** — **State Angular non reset** : Retourner à la landing conserve les infos de la partie précédente.
+  Ajouter un hook de reset global sur l'état du store de session lors d'un retour à la landing.
 
 
 ## Futur features
 
-
-
 Idées et évolutions — pas de priorité imposée, tri libre. Quand une idée devient un chantier concret, la déplacer en **Tâches en cours** (avec un `ID`).
-
-
 
 - **ADD-02** — **Polish podium final** : amélioration UI du podium de fin de partie (@picasso).
 
@@ -108,4 +111,4 @@ Idées et évolutions — pas de priorité imposée, tri libre. Quand une idée 
 
 - **ADD-36** — **Partie sans manager** : en cas d'absence prolongée du manager, ne pas fermer brutalement — enchaînement auto (vote, podium, export ZIP) pour que tous les joueurs puissent récupérer le pack final.
 
-
+- **ADD-36** — **Partie sans manager**: Permettre aux joueurs de quitter officielement la partie avec disclaimer de non-retour possible + purge token. Pareil pour manager, peut a tout moment tout fermer avec disclaimer pas de retour en arrière et non remboursement.

@@ -41,6 +41,17 @@
     </div>
   } @else {
     <div class="flex w-full max-w-3xl flex-col gap-4">
+      @if (serverMaxCapReached()) {
+        <div class="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-5 text-center shadow-lg backdrop-blur-xl">
+          <p class="text-sm font-bold text-amber-300">
+            ⚠️ Le serveur est actuellement complet
+          </p>
+          <p class="mt-1 text-xs text-amber-200/80">
+            La capacité maximale de parties actives simultanées est atteinte. Veuillez patienter qu'un créneau se libère pour créer une partie.
+          </p>
+        </div>
+      }
+
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div
           class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)]">
@@ -57,8 +68,8 @@
           </div>
           <h2 class="text-lg font-bold text-white">Coopératif</h2>
           <p class="text-sm text-landing-muted">2–8 joueurs · une grille</p>
-          <button type="button" (click)="openCreateModal('coop')"
-            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02]">
+          <button type="button" (click)="openCreateModal('coop')" [disabled]="serverMaxCapReached()"
+            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
             Créer une partie coop
           </button>
         </div>
@@ -75,8 +86,8 @@
           </div>
           <h2 class="text-lg font-bold text-white">Compétitif</h2>
           <p class="text-sm text-landing-muted">6+ joueurs · vote & podium</p>
-          <button type="button" (click)="openCreateModal('competitive')"
-            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02]">
+          <button type="button" (click)="openCreateModal('competitive')" [disabled]="serverMaxCapReached()"
+            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
             Créer une partie compétitive
           </button>
         </div>

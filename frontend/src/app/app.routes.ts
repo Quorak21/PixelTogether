@@ -1,21 +1,21 @@
 import { Routes } from '@angular/router';
 import { WaitingRoomPageComponent } from './features/waiting/waiting-room-page/waiting-room-page';
+import { LandingPageComponent } from './features/landing/landing-page/landing-page';
+import { LobbyPageComponent } from './features/lobby/lobby-page/lobby-page';
 
 // parcours : / → /room → /lobby ou /game → retour /room entre sessions
 export const routes: Routes = [
   {
     path: '',
-    loadChildren: () =>
-      import('./features/landing/landing.routes').then((m) => m.LANDING_ROUTES),
+    component: LandingPageComponent,
   },
   {
     path: 'room/:roomId',
     component: WaitingRoomPageComponent,
   },
   {
-    path: 'lobby',
-    loadChildren: () =>
-      import('./features/lobby/lobby.routes').then((m) => m.LOBBY_ROUTES),
+    path: 'lobby/:eventId',
+    component: LobbyPageComponent,
   },
   {
     path: 'game/:eventId/:groupCode',
@@ -27,3 +27,4 @@ export const routes: Routes = [
     redirectTo: '',
   },
 ];
+

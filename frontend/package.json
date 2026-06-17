@@ -6,7 +6,8 @@
     "start": "ng serve",
     "prebuild": "node scripts/generate-environment.mjs",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development"
+    "watch": "ng build --watch --configuration development",
+    "test": "vitest run"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
@@ -28,8 +29,10 @@
     "@angular/cli": "^21.2.6",
     "@angular/compiler-cli": "^21.2.0",
     "@tailwindcss/postcss": "^4.1.18",
+    "jsdom": "^29.1.1",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.18",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^4.1.9"
   }
 }

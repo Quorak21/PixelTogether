@@ -38,6 +38,7 @@ export class UiStateService {
   readonly partyGameMode = signal<GameMode | null>(null);
   readonly joinRoomOpen = signal(false);
   readonly joinRoomError = signal<string | null>(null);
+  readonly gameCanvasLoading = signal(false);
 
   readonly isCoopParty = computed(() => this.partyGameMode() === GAME_MODE_COOP);
   readonly isCompetitiveParty = computed(
@@ -97,6 +98,14 @@ export class UiStateService {
     this.currentGroupCode.set(groupCode ?? null);
     this.waitingMode.set(false);
     this.gameMode.set(true);
+  }
+
+  beginGameCanvasLoading(): void {
+    this.gameCanvasLoading.set(true);
+  }
+
+  setGameCanvasReady(): void {
+    this.gameCanvasLoading.set(false);
   }
 
   setGroupTransition(payload: GroupTransitionPayload | null): void {
@@ -166,6 +175,7 @@ export class UiStateService {
     this.clearGroupTeammates();
     this.colors.set([]);
     this.selectedColor.set('#000000');
+    this.gameCanvasLoading.set(false);
   }
 
   showManagerAbsentWarning(message: string, closesInMs: number): void {
@@ -227,6 +237,7 @@ export class UiStateService {
     this.colors.set([]);
     this.selectedColor.set('#000000');
     this.clearGroupTeammates();
+    this.gameCanvasLoading.set(false);
   }
 
   setSelectedColor(color: string): void {

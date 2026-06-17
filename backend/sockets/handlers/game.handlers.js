@@ -136,8 +136,10 @@ export function registerGameHandlers(socket, deps) {
     }
 
     const message = data.message.trim();
-    const pseudo = getParticipantPseudo(event, socket.id, group);
-    const entry = { socketId: socket.id, pseudo, message };
+    const playerId = socket.data?.playerId;
+    const role = socket.data?.role ?? 'player';
+    const pseudo = getParticipantPseudo(event, socket.id, group, playerId);
+    const entry = { socketId: socket.id, playerId, role, pseudo, message };
     group.chatMessages.push(entry);
 
     const roomName = groupRoomName(eventId, groupCode);

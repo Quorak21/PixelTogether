@@ -12,13 +12,8 @@ import { UiStateService } from '../../core/services/ui-state.service';
 import { SessionTokenService } from '../../core/services/session-token.service';
 import { EndSessionPayload, EndSessionResponse } from '../../types/socket-payloads';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder';
+import { formatRemainingMs } from '../../core/utils/time';
 
-function formatRemainingMs(remainingMs: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
 
 @Component({
   selector: 'app-navbar',

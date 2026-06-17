@@ -14,13 +14,9 @@ import {
 } from '../../../types/socket-payloads';
 import { GroupTransitionModalComponent } from '../../game/group-transition-modal/group-transition-modal';
 import { RoomCardComponent } from '../room-card/room-card';
+import { preloadGameRoutes } from '../../../core/utils/preload-game';
+import { formatRemainingMs } from '../../../core/utils/time';
 
-function formatRemainingMs(remainingMs: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
 
 @Component({
   selector: 'app-lobby-page',
@@ -51,7 +47,7 @@ export class LobbyPageComponent {
     () => this.managerCurrentSession() >= this.managerSessionCount(),
   );
   readonly endSessionButtonLabel = computed(() =>
-    this.isLastSession() ? 'Terminer la partie' : 'Arrêter la session',
+    this.isLastSession() ? 'Terminer la partie' : 'Terminer la session',
   );
   readonly transitionActive = signal(Boolean(this.ui.groupTransition()));
   readonly endSessionConfirmOpen = signal(false);
@@ -92,6 +88,7 @@ export class LobbyPageComponent {
 
     this.loadEventLobby();
     this.bindManagerListeners();
+    preloadGameRoutes();
   }
 
   private async tryReconnectLobby(): Promise<boolean> {
@@ -134,6 +131,7 @@ export class LobbyPageComponent {
   joinGroup(group: EventGroupCard): void {
     this.ui.setRole('manager');
     this.ui.groupLabel.set(group.label);
+    this.ui.beginGameCanvasLoading();
     this.ui.joinGame(group.eventId, group.groupCode);
     void this.router.navigateByUrl(`/game/${group.eventId}/${group.groupCode}`);
   }

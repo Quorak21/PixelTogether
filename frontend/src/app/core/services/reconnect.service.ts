@@ -55,6 +55,7 @@ export class ReconnectService {
     if (!eventId) return false;
 
     if (response.phase === 'game' && response.groupCode && response.gridState) {
+      this.ui.beginGameCanvasLoading();
       this.hydrateGridState(response.gridState);
       this.ui.joinGame(eventId, response.groupCode);
       await this.router.navigateByUrl(`/game/${eventId}/${response.groupCode}`);
