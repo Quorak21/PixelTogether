@@ -19,15 +19,6 @@
 Bugs, risques, dettes et chantiers actifs. Odin y ajoute de manière autonome dès qu'un souci est repéré ; toi aussi quand tu dis « on fera plus tard ».
 
 ### ÉLEVÉ
-
-- **AUDIT-02** — **Bug reconnexion manager** : `clearManagerDisconnectTimer` annulé à tort par tout reconnect de joueur.
-  Restreindre l'appel au rôle manager seul dans `reconnect.handlers.js` (L68/L132) pour éviter le blocage de room.
-- **AUDIT-03** — **Shuffle de groupes biaisé** : `sort(() => Math.random() - 0.5)` dans `groupShuffle.js` n'est pas uniforme.
-  Remplacer par un algorithme de Fisher-Yates (Knuth) robuste et uniforme.
-- **AUDIT-04** — **Token coop NaN expiry** : En coop, `sessionDurationMinutes` vaut `null` provoquant un TTL infini (`NaN`).
-  Ajouter un fallback propre à `MAX_PARTY_DURATION_MINUTES` pour éviter une accumulation mémoire de tokens.
-- **AUDIT-05** — **DoS Canvas / Preview CPU** : `updateGroupPreview()` génère un PNG base64 lourd à chaque pixel posé.
-  Debouncer la génération (ex : max 1 fois par 3 secondes par groupe) ou générer à la demande (lobby/vote).
 - **AUDIT-06** — **DoS Chat messages illimités** : `chatMessages` grandit sans limite en RAM.
   Fixer un plafond strict de messages stockés par groupe (buffer circulaire, ex: max 500).
 - **AUDIT-07** — **Auth Chat & messages** : Pas de check de membership sur `sendMessage` et `getChatMessages`.
@@ -111,4 +102,8 @@ Idées et évolutions — pas de priorité imposée, tri libre. Quand une idée 
 
 - **ADD-36** — **Partie sans manager** : en cas d'absence prolongée du manager, ne pas fermer brutalement — enchaînement auto (vote, podium, export ZIP) pour que tous les joueurs puissent récupérer le pack final.
 
-- **ADD-36** — **Partie sans manager**: Permettre aux joueurs de quitter officielement la partie avec disclaimer de non-retour possible + purge token. Pareil pour manager, peut a tout moment tout fermer avec disclaimer pas de retour en arrière et non remboursement.
+- **ADD-36** — **Joueur peuvent quitter**: Permettre aux joueurs de quitter officielement la partie avec disclaimer de non-retour possible + purge token. Pareil pour manager, peut a tout moment tout fermer avec disclaimer pas de retour en arrière et non remboursement.
+
+- **ADD-37** — **Gestion des erreurs dans le formulaire de création de partie** : améliorer la remontée et l'affichage des erreurs du formulaire lors de la création d'un salon.
+
+- **ADD-38** — **Zoom + vote par cœur sur les œuvres** : pendant la phase de vote, un clic sur une miniature de grille ouvre un zoom (comme le zoom coop existant). Un cœur ❤️ positionné en haut à droite de l'image zoomée permet de voter : clic sur le cœur = +1 vote pour cette œuvre. Le clic direct sur la grille déclenche le zoom, pas le vote — séparation claire des deux actions.

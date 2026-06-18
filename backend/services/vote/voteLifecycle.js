@@ -4,14 +4,22 @@ import { isCoop } from '../event/gameMode.js';
 import { VOTE_COOLDOWN_MS } from '../../config/constants.js';
 import { guardAck, isRateLimited } from '../../sockets/handlers/socketGuards.js';
 
+/**
+ * Récupère les données archivées d'une session passée (dessins, groupes, votes reçus)
+ * à partir de son index `sessionNumber`.
+ */
 export function getArchiveSession(event, sessionNumber) {
   return event.sessionArchive?.find((entry) => entry.sessionNumber === sessionNumber) ?? null;
 }
 
-// copie les groupes dans sessionArchive sans ouvrir de vote (coop)
+/**
+ * Prend un instantané (snapshot) de la session coopérative en cours et l'enregistre
+ * dans l'historique des sessions (`sessionArchive`).
+ * En mode coop, il n'y a pas de vote, on archive juste le dessin pour l'afficher plus tard dans la galerie.
+ */
 export function snapshotSessionArchive(event) {
   const sessionNumber = event.currentSession;
-  const theme = event.themes[sessionNumber - 1] ?? event.name;
+  const theme = event.themes[sessionNumber - 1] ?? event.theme;
 
   const groups = getSortedGroups(event).map(({ groupCode, group }) => ({
     groupCode,
@@ -34,10 +42,14 @@ export function snapshotSessionArchive(event) {
   event.sessionArchive.push({ sessionNumber, theme, groups });
 }
 
-// copie les groupes dans sessionArchive et ouvre activeVote
+/**
+ * Prend un instantané des groupes et dessins de la session compétitive actuelle pour l'archiver
+ * et ouvre immédiatement une session de vote (`event.activeVote`) afin que les joueurs
+ * puissent désigner leur création préférée.
+ */
 export function snapshotSessionForVote(event) {
   const sessionNumber = event.currentSession;
-  const theme = event.themes[sessionNumber - 1] ?? event.name;
+  const theme = event.themes[sessionNumber - 1] ?? event.theme;
 
   const groups = getSortedGroups(event).map(({ groupCode, group }) => ({
     groupCode,
@@ -67,7 +79,11 @@ export function snapshotSessionForVote(event) {
   };
 }
 
-// incrémente voteCount du groupe + cumul par joueur (pour le podium)
+/**
+ * Ajuste les compteurs de vote après qu'un joueur a voté (ou changé d'avis).
+ * Met à jour le nombre total de votes du groupe cible dans l'archive,
+ * et met à jour le cumul de points (`playerVoteTotals`) de chaque dessinateur du groupe pour le classement final.
+ */
 export function applyVoteDelta(event, groupCode, delta) {
   const archive = getArchiveSession(event, event.activeVote.sessionNumber);
   if (!archive) return;
@@ -83,7 +99,10 @@ export function applyVoteDelta(event, groupCode, delta) {
   }
 }
 
-// égalité → groupe au groupIndex le plus bas
+/**
+ * Détermine le groupe gagnant d'une session archivée (celui qui a le plus de votes).
+ * En cas d'égalité, le groupe ayant le plus petit index (`groupIndex`) l'emporte.
+ */
 export function pickWinner(archiveSession) {
   if (!archiveSession?.groups?.length) return null;
 
@@ -98,6 +117,10 @@ export function pickWinner(archiveSession) {
   return winner.groupCode;
 }
 
+/**
+ * Construit le classement des joueurs (podium individuel) basé sur le cumul des votes
+ * obtenus sur leurs dessins tout au long de la partie.
+ */
 export function buildTopPlayers(event, limit = 3) {
   const totals = event.playerVoteTotals ?? {};
   const playerById = new Map(event.players.map((p) => [p.playerId, p]));
@@ -125,6 +148,10 @@ export function buildTopPlayers(event, limit = 3) {
   }));
 }
 
+/**
+ * Construit le classement des plus belles grilles dessinées (podium des grilles)
+ * sur toutes les sessions compétitives confondues.
+ */
 export function buildTopGrids(event, limit = 3) {
   const grids = [];
 
@@ -156,7 +183,11 @@ export function buildTopGrids(event, limit = 3) {
   }));
 }
 
-// pilote l'UI waiting room (boutons manager, grille vote, podium…)
+/**
+ * Détermine le mode d'affichage actuel de la salle d'attente (Waiting Room Mode).
+ * Ce mode dicte l'interface affichée aux clients : liste des joueurs inscrits, 
+ * écran de vote, résultat de vote, podium final ou galerie.
+ */
 export function getWrMode(event) {
   if (isCoop(event)) {
     if (!event.partyStarted) return 'players';
@@ -172,11 +203,17 @@ export function getWrMode(event) {
   return 'players';
 }
 
+/**
+ * Vérifie s'il s'agit du tout dernier vote de la partie (dernière session).
+ */
 export function isLastVote(event) {
   if (!event.activeVote) return false;
   return event.activeVote.sessionNumber >= event.sessionCount;
 }
 
+/**
+ * Liste les candidats (groupes et images associées) pour le vote de la session compétitive active.
+ */
 export function buildVoteCandidates(event) {
   if (!event.activeVote) return [];
 
@@ -192,6 +229,10 @@ export function buildVoteCandidates(event) {
   }));
 }
 
+/**
+ * Récupère le dessin de la dernière session coopérative pour l'afficher en résultat.
+ * Comme il n'y a qu'un seul groupe en coop, on prend le premier groupe.
+ */
 export function buildSessionResultGrid(event) {
   const archive = event.sessionArchive?.[event.sessionArchive.length - 1];
   const group = archive?.groups?.[0];
@@ -206,6 +247,10 @@ export function buildSessionResultGrid(event) {
   };
 }
 
+/**
+ * Récupère l'intégralité des dessins archivés depuis le début de la partie.
+ * Principalement utilisé pour la galerie de fin de partie coopérative.
+ */
 export function buildGalleryGrids(event) {
   const grids = [];
 
@@ -226,6 +271,10 @@ export function buildGalleryGrids(event) {
   return grids;
 }
 
+/**
+ * Construit l'état détaillé des données de vote en fonction de la phase actuelle de la salle d'attente.
+ * Retourne des structures spécifiques si l'on est au stade du podium, de la galerie, d'un vote en cours ou clos.
+ */
 export function buildVoteFields(event, playerId) {
   const wrMode = getWrMode(event);
 
@@ -295,6 +344,9 @@ export function buildVoteFields(event, playerId) {
   };
 }
 
+/**
+ * Indique si un utilisateur (joueur ou manager enregistré) a le droit de participer au vote.
+ */
 export function canParticipateInVote(event, playerId) {
   if (playerId === event.managerPlayerId) {
     return Boolean(event.managerProfile);
@@ -302,7 +354,11 @@ export function canParticipateInVote(event, playerId) {
   return event.players.some((p) => p.playerId === playerId);
 }
 
-// change de vote autorisé — delta appliqué sur l'ancien choix si besoin
+/**
+ * Enregistre le vote d'un joueur pour une œuvre (code groupe).
+ * Si le joueur avait déjà voté pour une autre œuvre, son ancien vote est retiré 
+ * et le nouveau est appliqué (mise à jour des scores via applyVoteDelta).
+ */
 export function castVote(event, playerId, groupCode) {
   if (event.status !== 'waiting' || !event.activeVote || event.activeVote.status !== 'open') {
     return { error: 'Le vote n\'est pas ouvert.' };
@@ -339,6 +395,9 @@ export function castVote(event, playerId, groupCode) {
   return { ok: true };
 }
 
+/**
+ * Ferme officiellement les votes de la session en cours et détermine le vainqueur.
+ */
 export function closeVote(event) {
   if (!event.activeVote || event.activeVote.status !== 'open') {
     return { error: 'Aucun vote en cours.' };
@@ -351,6 +410,10 @@ export function closeVote(event) {
   return { ok: true };
 }
 
+/**
+ * Handler Socket.io appelé lorsqu'un joueur vote.
+ * Enregistre le vote et notifie l'ensemble des clients du nouvel état des votes.
+ */
 export function handleCastVote(socket, data, callback, deps) {
   if (!guardAck(callback)) return;
   const { io, store } = deps;
@@ -386,6 +449,9 @@ export function handleCastVote(socket, data, callback, deps) {
   callback(votePayloadFor(event, playerId));
 }
 
+/**
+ * Helper générant le payload des données de vote pour un joueur spécifique.
+ */
 function votePayloadFor(event, playerId) {
   return {
     eventId: event.id,
@@ -393,7 +459,11 @@ function votePayloadFor(event, playerId) {
   };
 }
 
-// chaque client reçoit son myVote + wrMode (pas un broadcast identique)
+/**
+ * Diffuse la mise à jour des votes à tous les joueurs connectés.
+ * Les informations envoyées à chaque joueur sont personnalisées (notamment pour indiquer
+ * son propre choix de vote via `myVote`).
+ */
 function emitVoteStateUpdated(io, event) {
   const recipients = [
     { playerId: event.managerPlayerId, socketId: event.manager },
@@ -408,6 +478,9 @@ function emitVoteStateUpdated(io, event) {
   }
 }
 
+/**
+ * Handler Socket.io permettant au manager de clôturer le vote de la session compétitive active.
+ */
 export function handleCloseVote(socket, data, callback, deps) {
   if (!guardAck(callback)) return;
   const { io, store } = deps;
@@ -437,7 +510,10 @@ export function handleCloseVote(socket, data, callback, deps) {
   callback(votePayloadFor(event, event.managerPlayerId));
 }
 
-// réservé au dernier vote — active le mode podium
+/**
+ * Bascule l'événement sur l'affichage des résultats finaux (podiums).
+ * Réservé exclusivement au manager après la clôture du tout dernier vote.
+ */
 export function openResults(event) {
   if (!event.activeVote || event.activeVote.status !== 'closed') {
     return { error: 'Le vote n\'est pas terminé.' };
@@ -455,6 +531,9 @@ export function openResults(event) {
   return { ok: true };
 }
 
+/**
+ * Handler Socket.io permettant au manager d'initier l'affichage du podium de fin.
+ */
 export function handleShowResults(socket, data, callback, deps) {
   if (!guardAck(callback)) return;
   const { io, store } = deps;
@@ -484,7 +563,10 @@ export function handleShowResults(socket, data, callback, deps) {
   callback(votePayloadFor(event, event.managerPlayerId));
 }
 
-// ordre imposé : closeVote → showResults → endParty (sinon erreur)
+/**
+ * Handler Socket.io permettant au manager de clore définitivement la partie.
+ * Déclenche la destruction de la partie en mémoire et déconnecte les sockets liés.
+ */
 export function handleEndParty(socket, data, callback, deps) {
   if (!guardAck(callback)) return;
   const { io, store, lifecycle } = deps;

@@ -28,9 +28,22 @@
             }
             <div class="flex flex-wrap justify-center gap-6">
               @for (mate of transition.teammates; track mate.socketId) {
+                @let isTeammateManager = 'managerPlayerId' in transition && !!transition.managerPlayerId && mate.playerId === transition.managerPlayerId;
                 <div class="flex min-w-[5rem] flex-col items-center gap-2">
+                  <!-- Couronne affichée au-dessus de l'avatar si c'est le manager -->
+                  @if (isTeammateManager) {
+                    <span class="text-xl leading-none" title="Manager">👑</span>
+                  } @else {
+                    <span class="invisible text-xl leading-none">👑</span>
+                  }
                   <app-avatar-placeholder [color]="mate.avatarColor" size="lg" />
-                  <span class="text-center text-base font-semibold text-white">{{ mate.pseudo }}</span>
+                  <!-- Pseudo en doré pour le manager, blanc pour les autres -->
+                  <span
+                    class="text-center text-base font-semibold"
+                    [class.text-amber-400]="isTeammateManager"
+                    [class.font-bold]="isTeammateManager"
+                    [class.text-white]="!isTeammateManager"
+                  >{{ mate.pseudo }}</span>
                   <div class="flex max-w-[6rem] flex-wrap justify-center gap-1">
                     @for (color of mate.colors; track color) {
                       <span

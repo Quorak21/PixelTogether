@@ -8,7 +8,10 @@ import {
 } from '../../types/entities';
 import { GAME_MODE_COOP, GAME_MODE_COMPETITIVE } from '../config/session-config';
 
-// état client cross-route (navbar, transitions) — pas de NgRx, signals suffisent
+/**
+ * Service centralisant l'état UI et le contexte de jeu actif pour toute l'application.
+ * Utilise les Signals réactifs d'Angular pour propager les changements d'état simplement et sans boilerplate.
+ */
 @Injectable({ providedIn: 'root' })
 export class UiStateService {
   readonly waitingMode = signal(false);
@@ -24,6 +27,8 @@ export class UiStateService {
   readonly sessionCount = signal(1);
   readonly currentSession = signal(1);
   readonly partyStarted = signal(false);
+  
+  /** Libellé calculé pour afficher l'état d'avancement des manches (ex: "Session 2/5"). */
   readonly sessionLabel = computed(
     () => `Session ${this.currentSession()}/${this.sessionCount()}`,
   );
@@ -40,27 +45,41 @@ export class UiStateService {
   readonly joinRoomError = signal<string | null>(null);
   readonly gameCanvasLoading = signal(false);
 
+  /** Indique si le salon actif est configuré en mode Coopératif. */
   readonly isCoopParty = computed(() => this.partyGameMode() === GAME_MODE_COOP);
+
+  /** Indique si le salon actif est configuré en mode Compétitif. */
   readonly isCompetitiveParty = computed(
     () => !this.partyGameMode() || this.partyGameMode() === GAME_MODE_COMPETITIVE,
   );
 
+  /** Libellé textuel correspondant au mode de jeu du salon. */
   readonly partyModeLabel = computed(() => {
     if (this.partyGameMode() === GAME_MODE_COOP) return 'Coopératif';
     if (this.partyGameMode() === GAME_MODE_COMPETITIVE) return 'Compétitif';
     return '';
   });
 
+  /**
+   * Ouvre la popup de création de partie avec le mode de jeu pré-sélectionné.
+   * 
+   * @param mode - Le mode de jeu ('coop' ou 'competitive').
+   */
   openPartyCreation(mode: GameMode): void {
     this.partyCreationMode.set(mode);
     this.partyCreationOpen.set(true);
   }
 
+  /**
+   * Modifie le mode de jeu actuel du salon actif.
+   * 
+   * @param mode - Le mode de jeu ou null pour réinitialiser.
+   */
   setPartyGameMode(mode: GameMode | null): void {
     this.partyGameMode.set(mode);
   }
 
-  /** Popup globale : manager absent, fermeture imminente. */
+  /** Signal contenant l'alerte d'absence du manager avec le compte à rebours de fermeture. */
   readonly managerAbsentWarning = signal<{ message: string; secondsLeft: number } | null>(null);
 
   private managerAbsentCountdownId: ReturnType<typeof setInterval> | null = null;
@@ -69,7 +88,11 @@ export class UiStateService {
   readonly colors = signal<string[]>([]);
   readonly groupTeammates = signal<GroupPlayer[]>([]);
 
-  // bascule en mode WR, reset le groupCode
+  /**
+   * Configure l'UI pour entrer dans la salle d'attente d'une partie.
+   * 
+   * @param eventId - L'identifiant de la partie.
+   */
   joinWaitingRoom(eventId: string): void {
     this.currentEventId.set(eventId);
     this.currentRoomId.set(eventId);
@@ -78,7 +101,11 @@ export class UiStateService {
     this.gameMode.set(false);
   }
 
-  /** Fin de session : retour WR sans effacer mode de partie ni rôle manager. */
+  /**
+   * Réinitialise le contexte du canvas et repasse l'UI en mode Salle d'attente (manche suivante).
+   * 
+   * @param eventId - L'identifiant de la partie.
+   */
   leaveCanvasForWaitingRoom(eventId: string): void {
     this.currentEventId.set(eventId);
     this.currentRoomId.set(eventId);
@@ -92,6 +119,12 @@ export class UiStateService {
     this.clearGroupTransition();
   }
 
+  /**
+   * Configure l'UI pour entrer dans la manche de dessin active d'un groupe.
+   * 
+   * @param eventId - L'identifiant de la partie.
+   * @param groupCode - Le code du groupe assigné pour la manche (optionnel en coop).
+   */
   joinGame(eventId: string, groupCode?: string): void {
     this.currentEventId.set(eventId);
     this.currentRoomId.set(groupCode ? `${eventId}/${groupCode}` : eventId);
@@ -100,30 +133,47 @@ export class UiStateService {
     this.gameMode.set(true);
   }
 
+  /** Activateur du loader visuel pendant le chargement initial du canvas de jeu. */
   beginGameCanvasLoading(): void {
     this.gameCanvasLoading.set(true);
   }
 
+  /** Désactive le loader visuel une fois le canvas prêt à l'emploi. */
   setGameCanvasReady(): void {
     this.gameCanvasLoading.set(false);
   }
 
+  /**
+   * Enregistre les métadonnées de la transition de groupe à afficher (modal de changement d'équipe).
+   */
   setGroupTransition(payload: GroupTransitionPayload | null): void {
     this.groupTransition.set(payload);
   }
 
+  /**
+   * Efface la transition de groupe.
+   */
   clearGroupTransition(): void {
     this.groupTransition.set(null);
   }
 
+  /**
+   * Enregistre le timestamp de fin de la manche en cours.
+   */
   setSessionEndsAt(timestamp: number | null | undefined): void {
     this.sessionEndsAt.set(timestamp ?? null);
   }
 
+  /**
+   * Réinitialise le timer de fin de session.
+   */
   clearSessionEndsAt(): void {
     this.sessionEndsAt.set(null);
   }
 
+  /**
+   * Configure les informations générales sur les manches (nombre total et index courant).
+   */
   setSessionMeta(
     sessionCount: number,
     currentSession: number,
@@ -136,35 +186,45 @@ export class UiStateService {
     }
   }
 
+  /**
+   * Réinitialise les informations de manches.
+   */
   clearSessionMeta(): void {
     this.sessionCount.set(1);
     this.currentSession.set(1);
     this.partyStarted.set(false);
   }
 
+  /** Définit le rôle de l'utilisateur (player / manager). */
   setRole(role: ParticipantRole): void {
     this.currentRole.set(role);
   }
 
+  /** Définit le pseudo et l'avatar du joueur courant. */
   setCurrentProfile(profile: PlayerProfile): void {
     this.currentProfile.set(profile);
   }
 
+  /** Efface le profil du joueur. */
   clearCurrentProfile(): void {
     this.currentProfile.set(null);
   }
 
+  /** Enregistre la liste des joueurs coéquipiers du groupe. */
   setGroupTeammates(teammates: GroupPlayer[]): void {
     this.groupTeammates.set(teammates);
   }
 
+  /** Vide la liste des coéquipiers du groupe. */
   clearGroupTeammates(): void {
     this.groupTeammates.set([]);
   }
 
   /**
-   * Quitte la vue d'un groupe (spectateur / joueur) sans quitter la partie.
-   * Efface uniquement les pseudos coéquipiers et le contexte canvas.
+   * Quitte la vue d'un groupe spécifique pour un spectateur ou joueur sans pour autant quitter la partie globale.
+   * Réinitialise les paramètres de manche spécifiques.
+   * 
+   * @param eventId - L'ID de la partie.
    */
   leaveGroupView(eventId: string): void {
     this.gameMode.set(false);
@@ -178,6 +238,13 @@ export class UiStateService {
     this.gameCanvasLoading.set(false);
   }
 
+  /**
+   * Affiche l'alerte temporaire signalant que le manager s'est déconnecté.
+   * Lance un intervalle régulier pour décompter le temps restant en secondes.
+   * 
+   * @param message - Le message d'alerte à afficher.
+   * @param closesInMs - Le temps restant avant fermeture en millisecondes.
+   */
   showManagerAbsentWarning(message: string, closesInMs: number): void {
     this.clearManagerAbsentWarning();
     const secondsLeft = Math.max(1, Math.ceil(closesInMs / 1000));
@@ -194,6 +261,9 @@ export class UiStateService {
     }, 1000);
   }
 
+  /**
+   * Supprime l'intervalle et l'alerte d'absence du manager.
+   */
   clearManagerAbsentWarning(): void {
     if (this.managerAbsentCountdownId !== null) {
       clearInterval(this.managerAbsentCountdownId);
@@ -202,6 +272,9 @@ export class UiStateService {
     this.managerAbsentWarning.set(null);
   }
 
+  /**
+   * Réinitialise totalement l'état de l'UI et redirige hors de la salle d'attente.
+   */
   exitWaitingRoom(): void {
     this.currentRoomId.set(null);
     this.currentEventId.set(null);
@@ -219,6 +292,9 @@ export class UiStateService {
     this.clearGroupTeammates();
   }
 
+  /**
+   * Réinitialise totalement l'état de l'UI et redirige hors de la partie active (retour accueil).
+   */
   exitGame(): void {
     this.currentRoomId.set(null);
     this.currentEventId.set(null);
@@ -240,11 +316,18 @@ export class UiStateService {
     this.gameCanvasLoading.set(false);
   }
 
+  /** Définit la couleur de dessin sélectionnée. */
   setSelectedColor(color: string): void {
     this.selectedColor.set(color);
   }
 
-  // palette reçue du serveur (joinGroup) — garde selectedColor si encore valide
+  /**
+   * Charge la palette de couleurs depuis la grille de dessin.
+   * Conserve la sélection courante si elle fait toujours partie de la nouvelle palette,
+   * sinon sélectionne la première par défaut.
+   * 
+   * @param gridColors - Le tableau des couleurs disponibles.
+   */
   setColorsFromGrid(gridColors: string[]): void {
     this.colors.set([...gridColors]);
 
@@ -253,7 +336,11 @@ export class UiStateService {
     }
   }
 
-  // palette depuis gameStarted, avant que le canvas ait rejoint le groupe
+  /**
+   * Prépare la palette lors de la transition, avant que le canvas n'ait rejoint le groupe.
+   * 
+   * @param myColors - Les couleurs assignées.
+   */
   setColorsFromTransition(myColors: string[]): void {
     if (!myColors.length) {
       return;

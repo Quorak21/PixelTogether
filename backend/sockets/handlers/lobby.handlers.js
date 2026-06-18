@@ -14,6 +14,10 @@ import { GAME_MODE_COOP, GAME_MODE_COMPETITIVE } from '../../config/constants.js
 import { guardAck } from './socketGuards.js';
 
 // création partie + vue lobby manager + arrêt session anticipé
+
+/**
+ * Enregistre les handlers de gestion du Lobby (menu manager, création d'événement, arrêt forcé de session).
+ */
 export function registerLobbyHandlers(socket, deps) {
   const { io, store, constants, payloads } = deps;
   const { activeEvents, normalizeEventId } = store;
@@ -30,6 +34,7 @@ export function registerLobbyHandlers(socket, deps) {
   } = constants;
   const { buildEventLobbyPayload } = payloads;
 
+  // Récupère l'état complet du lobby (réservé au manager de la partie)
   socket.on('getEventLobby', (data, callback) => {
     const eventId = normalizeEventId(data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
@@ -57,7 +62,8 @@ export function registerLobbyHandlers(socket, deps) {
     if (typeof callback === 'function') callback(payload);
   });
 
-  socket.on('newGrid', (data, callback) => { // nom historique — crée un Event, pas une grille
+  // Création d'une nouvelle partie (New Grid / Event)
+  socket.on('newGrid', (data, callback) => {
     if (!guardAck(callback)) return;
     const existingToken = typeof data?.token === 'string' ? data.token.trim() : '';
     if (existingToken && validateToken(existingToken)) {
@@ -82,8 +88,6 @@ export function registerLobbyHandlers(socket, deps) {
     if (!gameMode) {
       return callback({ error: 'Mode de jeu invalide.' });
     }
-
-    const managerParticipates = gameMode === GAME_MODE_COOP;
 
     let sessionDurationMinutes = null;
     if (gameMode === GAME_MODE_COMPETITIVE) {
@@ -163,10 +167,9 @@ export function registerLobbyHandlers(socket, deps) {
       manager: socket.id,
       managerPlayerId,
       partyName,
-      name: firstTheme,
+      theme: firstTheme,
       themes,
       gameMode,
-      managerParticipates,
       sessionCount,
       currentSession: 1,
       sessionDurationMinutes,
@@ -206,7 +209,6 @@ export function registerLobbyHandlers(socket, deps) {
       theme: firstTheme,
       name: firstTheme,
       gameMode,
-      managerParticipates,
       role: 'manager',
       playerId: managerPlayerId,
       token: issued.token,
@@ -214,6 +216,7 @@ export function registerLobbyHandlers(socket, deps) {
     });
   });
 
+  // Permet au manager d'interrompre une session de dessin en cours avant le timer
   socket.on('endSession', (data, callback) => {
     handleEndSession(socket, data, callback, deps);
   });

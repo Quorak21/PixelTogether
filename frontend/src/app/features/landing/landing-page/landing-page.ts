@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LucideCrown, LucideUsers } from '@lucide/angular';
+import { LucideCrown, LucideUsers, LucidePalette } from '@lucide/angular';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
 import { ReconnectService } from '../../../core/services/reconnect.service';
@@ -17,7 +17,7 @@ export type InfoModalKind = 'why' | 'docs';
 // entrée app : reprise auto si token valide, sinon join / création
 @Component({
   selector: 'app-landing-page',
-  imports: [PartyCreationModalComponent, ReactiveFormsModule, LucideCrown, LucideUsers],
+  imports: [PartyCreationModalComponent, ReactiveFormsModule, LucideCrown, LucideUsers, LucidePalette],
   templateUrl: './landing-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

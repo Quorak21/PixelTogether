@@ -4,6 +4,7 @@ import { buildSessionEndedPayload } from '../event/payloads.js';
 import { snapshotSessionForVote, snapshotSessionArchive } from '../vote/voteLifecycle.js';
 import { isManager } from '../event/participants.js';
 import { isCoop } from '../event/gameMode.js';
+import { flushAllEventPreviews } from '../grid/preview.js';
 
 export function clearSessionTimer(event) {
   if (event._sessionTimer) {
@@ -108,6 +109,7 @@ export function emitSessionEnded(io, event) {
 // fin auto (timer) ou manuelle (endSession) — archive, vote, bump session si pas la dernière
 export function finishCurrentSession(io, event) {
   clearSessionTimer(event);
+  flushAllEventPreviews(event);
 
   const isLastSession = event.currentSession >= event.sessionCount;
 

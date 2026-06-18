@@ -24,7 +24,8 @@
 
       <!-- Description épurée -->
       <p class="max-w-xl text-base leading-relaxed text-landing-muted md:text-lg">
-        Partagez vos ressources pour créer les plus belles œuvres que votre équipe ait jamais connues&nbsp;!
+        Unissez vos ressources. Créez sans limites.<br>
+        Partagez vos assets, libérez votre créativité.
       </p>
     </div>
 
@@ -40,7 +41,7 @@
       </p>
     </div>
   } @else {
-    <div class="flex w-full max-w-3xl flex-col gap-4">
+    <div class="flex w-full max-w-3xl flex-col gap-2">
       @if (serverMaxCapReached()) {
         <div class="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-5 text-center shadow-lg backdrop-blur-xl">
           <p class="text-sm font-bold text-amber-300">
@@ -52,22 +53,32 @@
         </div>
       }
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div
           class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)]">
-          <div class="flex w-full items-start justify-between">
+          <div class="flex w-full items-center justify-center">
             <div
               class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-violet/20 text-brand-violet transition-all duration-300 group-hover:scale-110">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
+              <svg lucidePalette class="h-7 w-7" aria-hidden="true"></svg>
             </div>
-            <span
-              class="inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full border border-white/20 text-xs font-bold text-landing-muted"
-              title="Petit groupe sur une seule grille. Pas de vote : le manager peut jouer avec l'équipe.">?</span>
           </div>
-          <h2 class="text-lg font-bold text-white">Coopératif</h2>
-          <p class="text-sm text-landing-muted">2–8 joueurs · une grille</p>
+          <h2 class="font-display text-xl font-black text-white uppercase">Coopératif</h2>
+          
+          <div class="flex flex-wrap justify-center gap-2 my-2.5">
+            <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-3 py-1 text-xs font-semibold text-brand-violet">
+              3-8 joueurs (Manager-joueur)
+            </span>
+            <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-3 py-1 text-xs font-semibold text-brand-violet">
+              1 grille en commun
+            </span>
+            <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-3 py-1 text-xs font-semibold text-brand-violet">
+              Sans limite de temps
+            </span>
+            <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-3 py-1 text-xs font-semibold text-brand-violet">
+              4 sessions max
+            </span>
+          </div>
+          
           <button type="button" (click)="openCreateModal('coop')" [disabled]="serverMaxCapReached()"
             class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
             Créer une partie coop
@@ -76,16 +87,28 @@
 
         <div
           class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-coral/30 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(244,63,94,0.15)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-coral/50">
-          <div class="flex w-full items-start justify-between">
+          <div class="flex w-full items-center justify-center">
             <div class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-coral/20 text-brand-coral group-hover:scale-110 transition-all">
               <svg lucideCrown class="h-7 w-7" aria-hidden="true"></svg>
             </div>
-            <span
-              class="inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full border border-white/20 text-xs font-bold text-landing-muted"
-              title="Équipes en compétition, vote entre créations, min. 6 joueurs. Manager spectateur.">?</span>
           </div>
-          <h2 class="text-lg font-bold text-white">Compétitif</h2>
-          <p class="text-sm text-landing-muted">6+ joueurs · vote & podium</p>
+          <h2 class="font-display text-xl font-black text-white uppercase">Compétitif</h2>
+          
+          <div class="flex flex-wrap justify-center gap-2 my-2.5">
+            <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-3 py-1 text-xs font-semibold text-brand-coral">
+              Min. 6 joueurs (groupes aléatoires)
+            </span>
+            <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-3 py-1 text-xs font-semibold text-brand-coral">
+              Vote & classement
+            </span>
+            <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-3 py-1 text-xs font-semibold text-brand-coral">
+              Limite de temps
+            </span>
+            <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-3 py-1 text-xs font-semibold text-brand-coral">
+              8 sessions max
+            </span>
+          </div>
+          
           <button type="button" (click)="openCreateModal('competitive')" [disabled]="serverMaxCapReached()"
             class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
             Créer une partie compétitive

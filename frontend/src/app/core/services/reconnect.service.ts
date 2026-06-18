@@ -10,7 +10,10 @@ import {
 } from '../../types/socket-payloads';
 import { GridStatePayload } from '../../types/entities';
 
-/** Centralise l'appel reconnectSession et la navigation selon la phase. */
+/** 
+ * Service centralisant les demandes de reconnexion de session et l'orientation
+ * de la navigation en fonction de la phase de jeu courante.
+ */
 @Injectable({ providedIn: 'root' })
 export class ReconnectService {
   private readonly socket = inject(SocketService);
@@ -18,6 +21,13 @@ export class ReconnectService {
   private readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
 
+  /**
+   * Tente de rétablir la session de jeu active auprès du backend.
+   * Lit le jeton local, valide s'il n'est pas expiré et interroge le serveur via 'reconnectSession'.
+   * En cas de réussite, met à jour les informations locales de session.
+   * 
+   * @returns La réponse du serveur en cas de succès, ou null si la session n'est plus valable.
+   */
   async reconnect(): Promise<ReconnectSessionResponse | null> {
     const session = this.sessionToken.read();
     if (!session || this.sessionToken.isExpired(session)) {
@@ -49,7 +59,13 @@ export class ReconnectService {
     return response;
   }
 
-  /** Applique l'état UI et navigue vers la route adaptée à la phase. */
+  /**
+   * Applique l'état de l'interface utilisateur reçu du serveur
+   * et redirige l'utilisateur vers la route adaptée à la phase de jeu actuelle.
+   * 
+   * @param response - La réponse de reconnexion renvoyée par le serveur.
+   * @returns true si la navigation a pu être déterminée et effectuée, sinon false.
+   */
   async resumeAndNavigate(response: ReconnectSessionResponse): Promise<boolean> {
     const eventId = response.eventId;
     if (!eventId) return false;
@@ -78,6 +94,11 @@ export class ReconnectService {
     return false;
   }
 
+  /**
+   * Hydrate l'état de la salle d'attente (Waiting Room) dans l'UI.
+   * 
+   * @param state - L'état de la salle d'attente renvoyé par le backend.
+   */
   hydrateWaitingRoom(state: WaitingRoomStatePayload): void {
     this.ui.setRole(state.role);
     this.ui.partyName.set(state.partyName);
@@ -110,6 +131,11 @@ export class ReconnectService {
     }
   }
 
+  /**
+   * Hydrate l'état du dessin et de la grille dans l'UI pour la manche en cours.
+   * 
+   * @param data - L'état de la grille renvoyé par le backend.
+   */
   hydrateGridState(data: GridStatePayload): void {
     this.ui.setRole(data.role);
     if (data.gameMode) {
@@ -120,6 +146,9 @@ export class ReconnectService {
     this.ui.groupLabel.set(data.groupLabel);
     this.ui.setSessionEndsAt(data.sessionEndsAt);
     this.ui.setGroupTeammates(data.teammates ?? []);
+    if (data.sessionCount !== undefined && data.currentSession !== undefined) {
+      this.ui.setSessionMeta(data.sessionCount, data.currentSession, true);
+    }
     const managerPlays = data.gameMode === 'coop' && data.role === 'manager';
     if ((data.role === 'player' || managerPlays) && data.colors.length) {
       this.ui.setColorsFromGrid(data.colors);
@@ -127,7 +156,11 @@ export class ReconnectService {
     this.syncSelfProfileFromTeammates(data.teammates ?? []);
   }
 
-  /** Restaure le pseudo/avatar du joueur courant depuis la liste coéquipiers. */
+  /**
+   * Restaure le pseudo et l'avatar du joueur courant à partir de la liste des coéquipiers du groupe.
+   * 
+   * @param teammates - La liste des coéquipiers du groupe.
+   */
   syncSelfProfileFromTeammates(teammates: GridStatePayload['teammates']): void {
     const playerId = this.sessionToken.read()?.playerId;
     const me = teammates.find(
@@ -138,6 +171,12 @@ export class ReconnectService {
     }
   }
 
+  /**
+   * Hydrate l'état de l'écran d'accueil du manager (Lobby) dans l'UI.
+   * 
+   * @param response - L'état de lobby renvoyé par le backend.
+   * @param eventId - L'identifiant unique de l'événement.
+   */
   hydrateLobbyState(
     response: NonNullable<ReconnectSessionResponse['lobbyState']>,
     eventId: string,
@@ -152,6 +191,11 @@ export class ReconnectService {
     }
   }
 
+  /**
+   * Sauvegarde le jeton de session depuis les données de la salle d'attente.
+   * 
+   * @param state - L'état actuel de la salle d'attente.
+   */
   saveFromWaitingRoom(state: WaitingRoomStatePayload): void {
     if (!state.token || !state.playerId || !state.expiresAt) return;
     this.sessionToken.save({
@@ -164,6 +208,11 @@ export class ReconnectService {
     });
   }
 
+  /**
+   * Sauvegarde le jeton de session lors de la création d'un nouveau salon par le manager.
+   * 
+   * @param response - La réponse de création de grille renvoyée par le backend.
+   */
   saveFromNewGrid(response: {
     id?: string;
     role?: string;

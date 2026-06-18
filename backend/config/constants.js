@@ -69,10 +69,13 @@ export const MANAGER_DISCONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 // popup d'avertissement envoyé ce délai avant la fermeture
 export const MANAGER_ABSENT_WARNING_MS = 5 * 1000;
 
-// throttling socket par event (BACK-04) — serveur only
+// throttling socket par event
 export const PIXEL_COOLDOWN_MS = 50;
 export const CHAT_COOLDOWN_MS = 500;
 export const VOTE_COOLDOWN_MS = 300;
+
+// Throttling de la génération des aperçus de groupe
+export const PREVIEW_THROTTLE_MS = 1000;
 
 // Limite globale de salons actifs simultanés
 export const MAX_ACTIVE_EVENTS = 50;

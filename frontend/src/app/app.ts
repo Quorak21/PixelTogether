@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/navbar/navbar';
 import { FooterComponent } from './shared/footer/footer';
 import { SocketService } from './core/services/socket.service';
 import { UiStateService } from './core/services/ui-state.service';
 import { SessionTokenService } from './core/services/session-token.service';
+import { LucideMonitor } from '@lucide/angular';
 
 interface ManagerAbsentWarningPayload {
   eventId?: string;
@@ -15,7 +16,7 @@ interface ManagerAbsentWarningPayload {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent, FooterComponent],
+  imports: [RouterOutlet, NavbarComponent, FooterComponent, LucideMonitor],
   templateUrl: './app.html',
   host: { class: 'block h-dvh' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +28,12 @@ export class App {
   private readonly sessionToken = inject(SessionTokenService);
   private readonly destroyRef = inject(DestroyRef);
 
+  // Signal indiquant si l'appareil est un mobile ou une tablette non supportés
+  readonly isUnsupportedDevice = signal(false);
+
   constructor() {
+    this.isUnsupportedDevice.set(this.checkDeviceSupport());
+
     const onWarning = (payload: ManagerAbsentWarningPayload) => {
       this.ui.showManagerAbsentWarning(
         payload.message,
@@ -51,5 +57,29 @@ export class App {
       this.socket.off('managerAbsent', onAbsent as (...args: unknown[]) => void);
       this.ui.clearManagerAbsentWarning();
     });
+  }
+
+  /**
+   * Vérifie si le joueur tente de se connecter depuis un smartphone ou une tablette.
+   * On cible spécifiquement les User Agents mobiles ainsi que les iPad récents sous iPadOS,
+   * sans impacter les ordinateurs (même tactiles) ou le simple redimensionnement de fenêtre.
+   *
+   * @returns true si l'appareil est un mobile ou une tablette non supporté, false sinon.
+   */
+  private checkDeviceSupport(): boolean {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false;
+    }
+
+    const userAgent = navigator.userAgent || '';
+    
+    // Détection classique des smartphones et tablettes via le User Agent
+    const isMobileOrTabletUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+
+    // Cas particulier des iPads sous iOS 13+ qui se font passer pour des Mac dans le User Agent
+    // mais possèdent un écran tactile multipoint (maxTouchPoints > 1)
+    const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+    return isMobileOrTabletUA || isIPadOS;
   }
 }

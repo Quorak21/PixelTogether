@@ -1,4 +1,12 @@
-// tailles de groupes équilibrées (min 2, max 4) — réduit numGroups si besoin
+/**
+ * Calcule des tailles de groupes équilibrées pour répartir les joueurs.
+ * L'objectif est d'avoir des groupes de 2 à 4 joueurs pour favoriser la coopération.
+ * Si le nombre total de joueurs est impair ou ne se divise pas par 4, l'algorithme
+ * tente d'ajuster le nombre de groupes pour que tout le monde ait une équipe équilibrée.
+ * 
+ * @param {number} playerCount - Le nombre total de joueurs.
+ * @returns {number[]} Un tableau contenant la taille de chaque groupe triée par ordre décroissant (ex: [3, 3, 2]).
+ */
 export function computeGroupSizes(playerCount) {
   if (playerCount < 2) {
     return [];
@@ -33,11 +41,29 @@ export function computeGroupSizes(playerCount) {
   return sizes.sort((a, b) => b - a);
 }
 
+/**
+ * Mélange aléatoirement les éléments d'un tableau.
+ * C'est une implémentation simple utilisant l'algorithme de Fisher-Yates.
+ * 
+ * @param {Array} items - Le tableau à mélanger.
+ * @returns {Array} Une copie mélangée du tableau d'origine.
+ */
 export function shuffleArray(items) {
-  return [...items].sort(() => Math.random() - 0.5);
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
-// shuffle puis découpe selon computeGroupSizes
+/**
+ * Mélange les joueurs puis les découpe en sous-groupes selon les tailles calculées par computeGroupSizes.
+ * Cette fonction est principalement appelée au démarrage d'une session de dessin compétitive.
+ * 
+ * @param {Object[]} players - La liste des joueurs à répartir.
+ * @returns {Object[][]} Un tableau de groupes, chaque groupe étant un tableau de joueurs.
+ */
 export function splitIntoGroups(players) {
   const sizes = computeGroupSizes(players.length);
   const shuffled = shuffleArray(players);

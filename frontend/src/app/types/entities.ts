@@ -124,6 +124,8 @@ export interface GridStatePayload {
   role: ParticipantRole;
   teammates: GroupPlayer[];
   sessionEndsAt?: number | null;
+  sessionCount?: number;
+  currentSession?: number;
 }
 
 // push fin de session — renvoie tout le monde en WR avec wrMode voting
@@ -147,13 +149,14 @@ export interface GroupTransitionPlayerPayload {
   partyName: string;
   theme: string;
   gameMode?: GameMode;
-  managerParticipates?: boolean;
   sessionCount: number;
   currentSession: number;
   sessionEndsAt?: number | null;
   role: 'player' | 'manager';
   myColors: string[];
   teammates: GroupPlayer[];
+  /** Identifiant stable du manager — utilisé en coop pour le distinguer visuellement parmi les coéquipiers. */
+  managerPlayerId?: string;
 }
 
 export interface GroupTransitionManagerPayload {
@@ -161,7 +164,6 @@ export interface GroupTransitionManagerPayload {
   partyName: string;
   theme: string;
   gameMode?: GameMode;
-  managerParticipates?: boolean;
   sessionCount: number;
   currentSession: number;
   sessionEndsAt?: number | null;

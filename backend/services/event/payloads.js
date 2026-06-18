@@ -91,7 +91,7 @@ export function buildWaitingRoomState(event, socketId, playerId = null) {
   };
 }
 
-/** État canvas pour reconnexion ou joinGroup. */
+/** État du canvas (pixels, couleurs, etc.) renvoyé pour la reconnexion ou joinGroup, avec les infos de session pour la nav bar. */
 export function buildGridStatePayload(event, groupCode, socket, gridSize) {
   const group = event.groups[groupCode];
   if (!group) return null;
@@ -120,6 +120,8 @@ export function buildGridStatePayload(event, groupCode, socket, gridSize) {
     role: isManagerSocket ? 'manager' : 'player',
     teammates: group.players.map(toGroupPlayer),
     sessionEndsAt: event.sessionEndsAt ?? null,
+    sessionCount: event.sessionCount,
+    currentSession: event.currentSession,
   };
 }
 

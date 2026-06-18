@@ -15,11 +15,7 @@
           <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
         </span>
         <span class="truncate text-sm font-bold text-white/95">
-          @if (ui.isCoopParty()) {
-            Animateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Discussion' }}</span>
-          } @else {
-            Spectateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Groupe' }}</span>
-          }
+          Spectateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Groupe' }}</span>
         </span>
       </div>
 

@@ -16,6 +16,10 @@ import {
 import { isCoop } from '../../services/event/gameMode.js';
 import { getSortedGroups } from '../../store/eventStore.js';
 
+/**
+ * Détermine la phase de jeu actuelle en fonction de l'état du salon et du rôle du joueur.
+ * Cela permet de rediriger le joueur sur le bon écran lors de sa reconnexion (jeu, vote, podium, salle d'attente...).
+ */
 function resolvePhase(event, role) {
   if (event.status === 'started') {
     if (isCoop(event)) {
@@ -34,6 +38,10 @@ function resolvePhase(event, role) {
   return 'waiting';
 }
 
+/**
+ * Helper injectant les données de session nécessaires (token, date d'expiration)
+ * dans le payload d'état retourné au client.
+ */
 function attachSessionFields(state, session) {
   return {
     ...state,
@@ -43,7 +51,11 @@ function attachSessionFields(state, session) {
   };
 }
 
-/** Applique une reconnexion : remap socket, join rooms, retourne phase + état. */
+/**
+ * Gère la reconnexion d'un joueur ou du manager via son token de session.
+ * Met à jour son socket, ses abonnements aux rooms Socket.io et retourne l'état actuel
+ * de la partie correspondant à la phase résolue.
+ */
 export function handleReconnectSession(socket, data, callback, deps) {
   const { store, constants, payloads } = deps;
   const { activeEvents, groupRoomName } = store;
@@ -65,7 +77,9 @@ export function handleReconnectSession(socket, data, callback, deps) {
 
   remapSocket(event, session.playerId, socket.id);
   setSessionConnected(session.playerId, true, socket.id);
-  clearManagerDisconnectTimer(event);
+  if (session.role === 'manager') {
+    clearManagerDisconnectTimer(event);
+  }
   event.lastActivityAt = Date.now();
 
   socket.data.playerId = session.playerId;
@@ -115,7 +129,11 @@ export function handleReconnectSession(socket, data, callback, deps) {
   return callback(response);
 }
 
-/** Reconnexion ou entrée WR avec token existant pour cet event. */
+/**
+ * Gère l'entrée initiale d'un joueur dans la salle d'attente (Waiting Room).
+ * Si le joueur a déjà un token pour cet événement, il se reconnecte à sa session existante.
+ * Sinon, une nouvelle session de reconnexion lui est délivrée.
+ */
 export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
   const { payloads } = deps;
   const { buildWaitingRoomState } = payloads;
@@ -130,7 +148,9 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
     if (session && session.eventId === eventId) {
       remapSocket(event, session.playerId, socket.id);
       setSessionConnected(session.playerId, true, socket.id);
-      clearManagerDisconnectTimer(event);
+      if (session.role === 'manager') {
+        clearManagerDisconnectTimer(event);
+      }
       event.lastActivityAt = Date.now();
 
       socket.data.playerId = session.playerId;
@@ -171,6 +191,9 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
   return { state };
 }
 
+/**
+ * Enregistre le handler d'écoute sur le message `reconnectSession`.
+ */
 export function registerReconnectHandlers(socket, deps) {
   socket.on('reconnectSession', (data, callback) => {
     if (typeof callback !== 'function') return;

@@ -1,14 +1,22 @@
 import crypto from 'crypto';
-import { RECONNECT_MARGIN_MINUTES } from '../../config/constants.js';
+import { RECONNECT_MARGIN_MINUTES, MAX_PARTY_DURATION_MINUTES } from '../../config/constants.js';
 
 // Index global : playerId → session ; token → { playerId, eventId }
 export const playerSessions = {};
 export const tokenIndex = {};
 
-/** Durée estimée de la partie + marge de reconnexion. */
+/**
+ * Calcule la date d'expiration estimée de la session d'un joueur.
+ * Elle est égale à la durée théorique de la partie (nombre de sessions * durée d'une session)
+ * à laquelle on ajoute une marge supplémentaire de sécurité (RECONNECT_MARGIN_MINUTES).
+ * Si la durée d'une session n'est pas définie (cas du mode coopératif), on utilise par défaut
+ * le double de la durée maximale d'une partie (MAX_PARTY_DURATION_MINUTES * 2) pour être large
+ * et éviter une accumulation mémoire infinie de jetons.
+ */
 export function computeExpiresAt(event) {
+  const duration = event.sessionDurationMinutes || (MAX_PARTY_DURATION_MINUTES * 2);
   const totalMinutes =
-    event.sessionCount * event.sessionDurationMinutes + RECONNECT_MARGIN_MINUTES;
+    event.sessionCount * duration + RECONNECT_MARGIN_MINUTES;
   return Date.now() + totalMinutes * 60_000;
 }
 

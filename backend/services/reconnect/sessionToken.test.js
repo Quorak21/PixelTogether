@@ -14,7 +14,7 @@ import {
   playerSessions,
   tokenIndex,
 } from './sessionToken.js';
-import { RECONNECT_MARGIN_MINUTES } from '../../config/constants.js';
+import { RECONNECT_MARGIN_MINUTES, MAX_PARTY_DURATION_MINUTES } from '../../config/constants.js';
 
 function clearGlobals() {
   for (const k of Object.keys(playerSessions)) delete playerSessions[k];
@@ -28,6 +28,16 @@ test('sessionToken - computeExpiresAt', () => {
   const now = Date.now();
   
   // difference should be very close to expectedDiff (within 100ms)
+  const actualDiff = expiresAt - now;
+  assert.ok(Math.abs(actualDiff - expectedDiff) < 100);
+});
+
+test('sessionToken - computeExpiresAt with null/undefined duration fallback (coop)', () => {
+  const event = { sessionCount: 2, sessionDurationMinutes: null };
+  const expiresAt = computeExpiresAt(event);
+  const expectedDiff = (2 * (MAX_PARTY_DURATION_MINUTES * 2) + RECONNECT_MARGIN_MINUTES) * 60_000;
+  const now = Date.now();
+  
   const actualDiff = expiresAt - now;
   assert.ok(Math.abs(actualDiff - expectedDiff) < 100);
 });

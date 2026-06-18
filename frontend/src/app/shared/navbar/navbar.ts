@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   computed,
   inject,
   signal,
@@ -12,7 +11,6 @@ import { UiStateService } from '../../core/services/ui-state.service';
 import { SessionTokenService } from '../../core/services/session-token.service';
 import { EndSessionPayload, EndSessionResponse } from '../../types/socket-payloads';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder';
-import { formatRemainingMs } from '../../core/utils/time';
 
 
 @Component({
@@ -25,20 +23,7 @@ export class NavbarComponent {
   private readonly socket = inject(SocketService);
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly sessionToken = inject(SessionTokenService);
-
-  private readonly now = signal(Date.now());
-
-  // décompte basé sur sessionEndsAt serveur (inclut la marge transition au lancement)
-  readonly sessionTimerLabel = computed(() => {
-    if (this.ui.isCoopParty()) return null;
-    const endsAt = this.ui.sessionEndsAt();
-    if (endsAt === null) {
-      return null;
-    }
-    return formatRemainingMs(endsAt - this.now());
-  });
 
   readonly otherTeammates = computed(() => {
     if (!this.ui.gameMode() || this.ui.isCoopParty()) {
@@ -67,15 +52,7 @@ export class NavbarComponent {
   readonly isEndingSession = signal(false);
   readonly endSessionError = signal('');
 
-  constructor() {
-    const interval = window.setInterval(() => {
-      this.now.set(Date.now());
-    }, 1000);
-
-    this.destroyRef.onDestroy(() => {
-      window.clearInterval(interval);
-    });
-  }
+  constructor() {}
 
   // sortie contextuelle : WR = quitter la partie ; en jeu manager = retour lobby sans couper la session
   handleExitToLobby(): void {

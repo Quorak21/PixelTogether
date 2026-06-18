@@ -44,7 +44,6 @@ export interface NewGridPayload {
   sessionCount: number;
   themes: string[];
   gameMode: GameMode;
-  managerParticipates?: boolean;
   sessionDurationMinutes?: number;
   token?: string;
 }

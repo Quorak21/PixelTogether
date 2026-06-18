@@ -77,7 +77,7 @@ export function registerGameHandlers(socket, deps) {
     constants;
   const { findPlayerGroup, findPlayerGroupByPlayerId, getParticipantPseudo, isManager } = participants;
   const { toPublicPlayer, toChatMessage } = payloads;
-  const { updateGroupPreview } = preview;
+  const { scheduleGroupPreviewUpdate } = preview;
 
   socket.on('joinGroup', (data) => handleJoinGroup(socket, data, deps));
 
@@ -223,12 +223,7 @@ export function registerGameHandlers(socket, deps) {
 
     const roomName = groupRoomName(eventId, groupCode);
     io.to(roomName).emit('drawPixel', { x: data.x, y: data.y, color, eventId, groupCode });
-    updateGroupPreview(eventId, groupCode); // preview pour lobby manager + vote
-    io.to(eventId).emit('groupPreviewUpdated', {
-      eventId,
-      groupCode,
-      image: group.image,
-    });
+    scheduleGroupPreviewUpdate(io, eventId, groupCode); // preview throttée pour lobby manager
   });
 
   socket.on('exitGame', (data) => {

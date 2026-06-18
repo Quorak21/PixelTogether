@@ -10,7 +10,16 @@ import * as preview from '../services/grid/preview.js';
 import * as lifecycle from '../services/event/lifecycle.js';
 import { registerSocketHandlers } from '../sockets/register.js';
 
-// pas de routes REST — Express sert juste de shell HTTP + CORS pour Socket.io
+/**
+ * Crée le serveur de l'application.
+ * Configure Express pour gérer les requêtes HTTP de base et le CORS.
+ * Instancie le serveur Socket.io pour la communication bidirectionnelle temps réel.
+ * Prépare et injecte l'ensemble des dépendances (`deps`) dans les handlers de sockets.
+ * Démarre enfin un sweep d'inactivité périodique (garbage collector) pour nettoyer les salons fantômes.
+ * 
+ * @returns {http.Server} Le serveur HTTP configuré et prêt à écouter.
+ * 
+ */
 export function createServer() {
   const allowedOrigins = [
     'http://localhost:4200',

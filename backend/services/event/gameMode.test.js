@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert';
 import {
   isCoop,
-  isCompetitive,
   parseGameMode,
   validateSessionCountForMode,
   validateStartPlayerCount,
@@ -10,16 +9,10 @@ import {
 } from './gameMode.js';
 import { GAME_MODE_COOP, GAME_MODE_COMPETITIVE } from '../../config/constants.js';
 
-test('gameMode - isCoop & isCompetitive', async (t) => {
+test('gameMode - isCoop', async (t) => {
   await t.test('detects coop correctly', () => {
     assert.strictEqual(isCoop({ gameMode: GAME_MODE_COOP }), true);
     assert.strictEqual(isCoop({ gameMode: GAME_MODE_COMPETITIVE }), false);
-  });
-
-  await t.test('detects competitive correctly', () => {
-    assert.strictEqual(isCompetitive({ gameMode: GAME_MODE_COMPETITIVE }), true);
-    assert.strictEqual(isCompetitive({ gameMode: GAME_MODE_COOP }), false);
-    assert.strictEqual(isCompetitive({}), true); // default is competitive
   });
 });
 

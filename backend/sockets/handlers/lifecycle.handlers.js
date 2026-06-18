@@ -6,11 +6,16 @@ import {
   isManager,
 } from '../../services/event/participants.js';
 
+/**
+ * Enregistre les handlers de gestion du cycle de vie de la connexion socket
+ * (fermeture manuelle de salon par le manager ou déconnexion inattendue d'un client).
+ */
 export function registerLifecycleHandlers(socket, deps) {
   const { io, store, lifecycle } = deps;
   const { activeEvents, normalizeEventId } = store;
   const { closeEvent } = lifecycle;
 
+  // Fermeture manuelle immédiate de la room par le manager
   socket.on('closeRoom', (data) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
@@ -20,6 +25,7 @@ export function registerLifecycleHandlers(socket, deps) {
     socket.leave(eventId);
   });
 
+  // Déconnexion inattendue d'un client (perte réseau, fermeture d'onglet)
   socket.on('disconnect', () => {
     for (const eventId in activeEvents) {
       const event = activeEvents[eventId];

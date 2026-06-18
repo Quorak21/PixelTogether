@@ -13,6 +13,14 @@
 
 ## Entrées
 
+- **AUDIT-05** — **DoS Canvas / Preview CPU** : Mise en place d'un système de throttle de 1000 ms (configurable via `PREVIEW_THROTTLE_MS` dans `constants.js`) sur la mise à jour et la diffusion de la preview PNG de grille de dessin de chaque groupe. Ajout d'une fonction `flushAllEventPreviews` dans `preview.js` appelée au terme de chaque session (dans `finishCurrentSession`) pour s'assurer que les snapshots d'archive ou de vote incluent tous les pixels dessinés sans omission. Création de tests unitaires complets dans `preview.test.js`.
+
+- **AUDIT-04** — **Token coop NaN expiry** : Ajout d'un fallback à `MAX_PARTY_DURATION_MINUTES * 2` lorsque `sessionDurationMinutes` vaut `null` (mode coopératif) lors du calcul d'expiration du token de reconnexion dans `computeExpiresAt`, évitant ainsi un TTL infini (`NaN`) et l'accumulation mémoire des jetons ; tests unitaires ajoutés et validés.
+
+- **AUDIT-03** — **Shuffle de groupes biaisé** : `shuffleArray` dans `groupShuffle.js` remplacé par Fisher-Yates sur une copie du tableau (plus de `sort(() => Math.random() - 0.5)` ni de mutation de l'original) ; tests `groupShuffle` verts.
+
+- **AUDIT-02** — **Bug reconnexion manager** : Restreint l'appel à `clearManagerDisconnectTimer` aux seules sessions ayant le rôle `'manager'` lors d'une reconnexion ou de l'entrée dans la salle d'attente (dans `reconnect.handlers.js`), évitant ainsi l'annulation erronée du minuteur d'absence du manager par les joueurs.
+
 - **AUDIT-01** — **Fuite mémoire events abandonnés** : Ajout d'un cap maximal de salons de jeu actifs (50), d'un horodatage de dernière activité sur les salons mis à jour à chaque interaction (création, action socket via middleware, reconnexion), et d'un sweep périodique d'arrière-plan (toutes les 5 minutes) fermant proprement les salons inactifs depuis plus de 2 heures. Côté frontend, désactivation des boutons de création de partie avec affichage d'une bannière d'information si la capacité maximale est atteinte.
 
 - **TEST-01** — **Mise en place du process de tests (Phase 1)** : Configuration de `node:test` sur le backend et de `Vitest` sur le frontend. Ajout de tests unitaires couvrant la logique d'attribution des groupes, le découpage de la palette de couleurs, les règles de validation des modes de jeu, la gestion des sessions/tokens de reconnexion, et l'état réactif de l'UI (signaux et warnings).

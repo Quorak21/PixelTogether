@@ -26,6 +26,12 @@ import {
 import { guardAck } from './socketGuards.js';
 
 // entrée WR, inscription, startGame, vote — tout ce qui se passe hors canvas
+
+/**
+ * Enregistre tous les handlers relatifs aux interactions dans la salle d'attente (Waiting Room).
+ * Gère l'entrée en salle d'attente, l'enregistrement des profils (pseudo, avatar),
+ * le démarrage du jeu par le manager, les votes, et le départ des joueurs.
+ */
 export function registerWaitingRoomHandlers(socket, deps) {
   const { io, store, constants, payloads, lifecycle } = deps;
   const { activeEvents, normalizeEventId } = store;
@@ -33,6 +39,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
   const { buildWaitingRoomState, toPublicPlayer } = payloads;
   const { emitGameStarted } = lifecycle;
 
+  // Demande d'accès à la salle d'attente
   socket.on('enterWaitingRoom', (data, callback) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     if (!eventId) {
@@ -70,6 +77,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
     if (typeof callback === 'function') callback({ ...state });
   });
 
+  // Enregistrement final du profil du joueur (pseudo + couleur avatar)
   socket.on('registerPlayer', (data, callback) => {
     if (!guardAck(callback)) return;
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
@@ -132,6 +140,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
     callback({ ...state });
   });
 
+  // Démarrage effectif du jeu (manager uniquement)
   socket.on('startGame', (data, callback) => {
     if (!guardAck(callback)) return;
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
@@ -167,7 +176,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
     event.activeVote = null;
     event.coopWrMode = null;
     event.partyStarted = true;
-    event.name = event.themes[event.currentSession - 1];
+    event.theme = event.themes[event.currentSession - 1];
     event.status = 'started';
     beginSession(event, deps);
     if (!isCoop(event)) {
@@ -177,22 +186,27 @@ export function registerWaitingRoomHandlers(socket, deps) {
     callback({ eventId, status: 'started' });
   });
 
+  // Vote pour une œuvre
   socket.on('castVote', (data, callback) => {
     handleCastVote(socket, data, callback, deps);
   });
 
+  // Clôture des votes
   socket.on('closeVote', (data, callback) => {
     handleCloseVote(socket, data, callback, deps);
   });
 
+  // Affichage du podium final
   socket.on('showResults', (data, callback) => {
     handleShowResults(socket, data, callback, deps);
   });
 
+  // Clôture définitive de l'événement
   socket.on('endParty', (data, callback) => {
     handleEndParty(socket, data, callback, deps);
   });
 
+  // Quitter volontairement la salle d'attente (joueur uniquement)
   socket.on('leaveWaitingRoom', (data) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;

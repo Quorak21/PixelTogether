@@ -1,6 +1,5 @@
 import {
   GAME_MODE_COOP,
-  GAME_MODE_COMPETITIVE,
   GAME_MODES,
   COOP_GUESTS_MIN,
   COOP_GUESTS_MAX,
@@ -11,19 +10,36 @@ import {
   COMPETITIVE_SESSION_COUNT_MAX,
 } from '../../config/constants.js';
 
+/**
+ * Vérifie si l'événement est configuré en mode coopératif.
+ * 
+ * @param {Object} event - L'événement (partie) à inspecter.
+ * @returns {boolean} true si le mode est coopératif.
+ */
 export function isCoop(event) {
   return event.gameMode === GAME_MODE_COOP;
 }
 
-export function isCompetitive(event) {
-  return !event.gameMode || event.gameMode === GAME_MODE_COMPETITIVE;
-}
-
+/**
+ * Normalise et valide la chaîne représentant le mode de jeu reçue du client.
+ * Si le mode n'est pas reconnu, retourne compétitif par défaut.
+ * 
+ * @param {any} raw - Donnée brute reçue.
+ * @returns {string|null} Le mode normalisé ou null si incorrect.
+ */
 export function parseGameMode(raw) {
-  const mode = typeof raw === 'string' ? raw.trim() : GAME_MODE_COMPETITIVE;
+  const mode = typeof raw === 'string' ? raw.trim() : 'competitive';
   return GAME_MODES.includes(mode) ? mode : null;
 }
 
+/**
+ * Valide le nombre de sessions configuré pour une partie selon le mode de jeu choisi.
+ * Le mode coopératif et compétitif ont des limites min/max différentes.
+ * 
+ * @param {string} gameMode - Le mode de jeu ('coop' ou 'competitive').
+ * @param {number} sessionCount - Le nombre de sessions souhaité.
+ * @returns {Object|null} Un objet `{ error: string }` en cas d'erreur, sinon `null`.
+ */
 export function validateSessionCountForMode(gameMode, sessionCount) {
   if (gameMode === GAME_MODE_COOP) {
     if (sessionCount < COOP_SESSION_COUNT_MIN || sessionCount > COOP_SESSION_COUNT_MAX) {
@@ -42,6 +58,14 @@ export function validateSessionCountForMode(gameMode, sessionCount) {
   return null;
 }
 
+/**
+ * Valide le nombre de joueurs requis pour démarrer la partie selon le mode de jeu.
+ * Coop requiert un minimum de 2 invités (donc 3 personnes sur la grille avec le manager).
+ * Compétitif requiert au moins 6 joueurs.
+ * 
+ * @param {Object} event - L'événement à démarrer.
+ * @returns {Object|null} Un objet d'erreur ou `null` si tout est valide.
+ */
 export function validateStartPlayerCount(event) {
   const count = event.players.length;
 
@@ -61,6 +85,12 @@ export function validateStartPlayerCount(event) {
   return null;
 }
 
+/**
+ * Empêche de nouveaux invités de rejoindre la partie coop si elle est déjà pleine.
+ * 
+ * @param {Object} event - L'événement.
+ * @returns {Object|null} Objet d'erreur ou `null`.
+ */
 export function validateGuestRegistration(event) {
   if (!isCoop(event)) return null;
 

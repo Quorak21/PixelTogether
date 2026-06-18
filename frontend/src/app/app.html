@@ -1,16 +1,68 @@
-<div class="flex h-screen flex-col overflow-hidden bg-[#0F172A]">
-  <header class="flex-none z-50">
-    <app-navbar />
-  </header>
+@if (isUnsupportedDevice()) {
+  <!-- Écran magnifique d'avertissement mobile -->
+  <div class="relative flex min-h-screen flex-col items-center justify-center bg-[#0F172A] px-6 py-12 text-center text-white select-none overflow-hidden">
+    <!-- Fond lumineux pulsant esthétique (mesh pulse et gradients) -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_-20%,rgba(99,102,241,0.15),transparent)] pointer-events-none z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_600px_at_50%_120%,rgba(244,63,94,0.1),transparent)] pointer-events-none z-0 animate-mesh-pulse"></div>
 
-  <main class="flex-1 relative overflow-hidden">
-    <router-outlet />
-  </main>
+    <div class="z-10 max-w-md w-full flex flex-col items-center gap-6 animate-scale-up">
+      <!-- Conteneur d'icône premium avec glow et verre dépoli -->
+      <div class="relative flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-950/60 border border-slate-800/80 shadow-2xl backdrop-blur-md overflow-hidden group">
+        <!-- Glow gradient discret en arrière-plan -->
+        <div class="absolute inset-0 bg-gradient-to-tr from-brand-violet/20 to-brand-coral/20 opacity-70"></div>
+        <svg lucideMonitor class="w-9 h-9 text-brand-violet animate-pulse" aria-hidden="true"></svg>
+      </div>
 
-  <footer class="flex-none z-40">
-    <app-footer />
-  </footer>
-</div>
+      <!-- Badge de statut style pilule de design premium -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold tracking-wider uppercase text-indigo-400">
+        <span>Desktop Recommandé</span>
+      </div>
+
+      <!-- Titre principal avec dégradé texte -->
+      <div class="space-y-2">
+        <h1 class="text-3xl font-extrabold tracking-tight font-display bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+          PixelTogether
+        </h1>
+        <h2 class="text-lg font-medium text-slate-300">
+          L'aventure vous attend sur grand écran
+        </h2>
+      </div>
+
+      <!-- Description textuelle -->
+      <div class="space-y-4 text-landing-muted leading-relaxed text-sm">
+        <p>
+          PixelTogether est un espace de dessin collaboratif et interactif en temps réel. Pour vous offrir la meilleure expérience possible, il est optimisé pour les interfaces clavier/souris et les grands écrans.
+        </p>
+        <p class="text-slate-400">
+          Les contrôles tactiles sur smartphones et tablettes ne sont pas encore optimisés. Rejoignez la partie depuis votre ordinateur !
+        </p>
+      </div>
+
+      <!-- Séparateur horizontal stylisé -->
+      <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent my-2"></div>
+
+      <!-- Sous-badge rassurant -->
+      <div class="inline-flex items-center gap-2 text-xs text-landing-muted/70 bg-slate-900/40 px-3 py-1.5 rounded-lg border border-slate-800/40">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+        <span>Version mobile en cours de réflexion 🚀</span>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="flex h-screen flex-col overflow-hidden bg-[#0F172A]">
+    <header class="flex-none z-50">
+      <app-navbar />
+    </header>
+
+    <main class="flex-1 relative overflow-hidden">
+      <router-outlet />
+    </main>
+
+    <footer class="flex-none z-40">
+      <app-footer />
+    </footer>
+  </div>
+}
 
 @if (ui.managerAbsentWarning(); as warning) {
 <div
