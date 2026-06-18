@@ -57,7 +57,10 @@ export const SESSION_TRANSITION_SECONDS = 10;
 export const LABEL_MIN = 3;
 export const LABEL_MAX = 30;
 export const LABEL_REGEX = /^.{3,30}$/s;
-export const PSEUDO_REGEX = LABEL_REGEX;
+
+export const PSEUDO_MIN = 3;
+export const PSEUDO_MAX = 20;
+export const PSEUDO_REGEX = /^.{3,20}$/s;
 
 export const PIXEL_COLOR_REGEX = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 export const MESSAGE_REGEX = /^.{1,300}$/;
@@ -73,6 +76,7 @@ export const MANAGER_ABSENT_WARNING_MS = 5 * 1000;
 export const PIXEL_COOLDOWN_MS = 50;
 export const CHAT_COOLDOWN_MS = 500;
 export const VOTE_COOLDOWN_MS = 300;
+export const CHAT_MAX_MESSAGES = 750;
 
 // Throttling de la génération des aperçus de groupe
 export const PREVIEW_THROTTLE_MS = 1000;

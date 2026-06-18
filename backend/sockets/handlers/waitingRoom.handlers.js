@@ -35,7 +35,7 @@ import { guardAck } from './socketGuards.js';
 export function registerWaitingRoomHandlers(socket, deps) {
   const { io, store, constants, payloads, lifecycle } = deps;
   const { activeEvents, normalizeEventId } = store;
-  const { LABEL_MIN, LABEL_MAX, PSEUDO_REGEX } = constants;
+  const { PSEUDO_MIN, PSEUDO_MAX, PSEUDO_REGEX } = constants;
   const { buildWaitingRoomState, toPublicPlayer } = payloads;
   const { emitGameStarted } = lifecycle;
 
@@ -103,7 +103,7 @@ export function registerWaitingRoomHandlers(socket, deps) {
     const pseudo = typeof data?.pseudo === 'string' ? data.pseudo.trim() : '';
     if (!PSEUDO_REGEX.test(pseudo)) {
       return callback({
-        error: `Le pseudo doit contenir entre ${LABEL_MIN} et ${LABEL_MAX} caractères.`,
+        error: `Le pseudo doit contenir entre ${PSEUDO_MIN} et ${PSEUDO_MAX} caractères.`,
       });
     }
 

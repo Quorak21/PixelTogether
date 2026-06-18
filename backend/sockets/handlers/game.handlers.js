@@ -73,7 +73,7 @@ export function registerGameHandlers(socket, deps) {
     groupRoomName,
     getGroup,
   } = store;
-  const { GRID_SIZE, PIXEL_COLOR_REGEX, MESSAGE_REGEX, PIXEL_COOLDOWN_MS, CHAT_COOLDOWN_MS } =
+  const { GRID_SIZE, PIXEL_COLOR_REGEX, MESSAGE_REGEX, PIXEL_COOLDOWN_MS, CHAT_COOLDOWN_MS, CHAT_MAX_MESSAGES } =
     constants;
   const { findPlayerGroup, findPlayerGroupByPlayerId, getParticipantPseudo, isManager } = participants;
   const { toPublicPlayer, toChatMessage } = payloads;
@@ -129,6 +129,15 @@ export function registerGameHandlers(socket, deps) {
 
     if (!event || !group) return;
 
+    // Vérification de sécurité : le socket doit appartenir au groupe ou être le manager de la partie.
+    const manager = isManager(event, socket);
+    const playerId = socket.data?.playerId;
+    const isMember = group.players.some(
+      (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
+    );
+
+    if (!manager && !isMember) return;
+
     if (isRateLimited(socket, 'sendMessage', CHAT_COOLDOWN_MS)) return;
 
     if (!data.message || typeof data.message !== 'string' || !MESSAGE_REGEX.test(data.message)) {
@@ -136,11 +145,13 @@ export function registerGameHandlers(socket, deps) {
     }
 
     const message = data.message.trim();
-    const playerId = socket.data?.playerId;
     const role = socket.data?.role ?? 'player';
     const pseudo = getParticipantPseudo(event, socket.id, group, playerId);
     const entry = { socketId: socket.id, playerId, role, pseudo, message };
     group.chatMessages.push(entry);
+    if (group.chatMessages.length > CHAT_MAX_MESSAGES) {
+      group.chatMessages.shift();
+    }
 
     const roomName = groupRoomName(eventId, groupCode);
     io.to(roomName).emit('receiveMessage', toChatMessage(event, group, entry));
@@ -151,7 +162,16 @@ export function registerGameHandlers(socket, deps) {
     const groupCode = normalizeGroupCode(data?.groupCode);
     const event = eventId ? activeEvents[eventId] : null;
     const group = getGroup(event, groupCode);
-    if (!group) return;
+    if (!event || !group) return;
+
+    // Vérification de sécurité : le socket doit appartenir au groupe ou être le manager de la partie.
+    const manager = isManager(event, socket);
+    const playerId = socket.data?.playerId;
+    const isMember = group.players.some(
+      (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
+    );
+
+    if (!manager && !isMember) return;
 
     socket.emit(
       'chatMessages',

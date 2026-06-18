@@ -24,7 +24,7 @@ export class OnboardingModalComponent {
   readonly isSubmitting = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    pseudo: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+    pseudo: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
   });
 
   selectColor(color: string): void {

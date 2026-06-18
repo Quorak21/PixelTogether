@@ -15,7 +15,6 @@ import { registerReconnectHandlers } from './handlers/reconnect.handlers.js';
  * 
  * @param {Object} io - L'instance serveur Socket.io globale.
  * @param {Object} deps - Le sac de dépendances partagé (store, constants, etc.).
- *   registerGameHandlers(), registerLifecycleHandlers() pour brancher les messages spécifiques.
  */
 export function registerSocketHandlers(io, deps) {
   io.on('connection', (socket) => {
@@ -24,6 +23,21 @@ export function registerSocketHandlers(io, deps) {
     // Diffusion initiale de la capacité du serveur au client connecté
     const maxCapReached = Object.keys(deps.store.activeEvents).length >= deps.constants.MAX_ACTIVE_EVENTS;
     socket.emit('serverCapacity', { maxCapReached });
+
+    // Validation globale des payloads : bloque tout message custom sans objet valide
+    socket.use(([event, data, callback], next) => {
+      if (['disconnect', 'disconnecting', 'error'].includes(event)) {
+        return next();
+      }
+
+      if (!data || typeof data !== 'object') {
+        if (typeof callback === 'function') {
+          return callback({ error: 'Format de requête invalide.' });
+        }
+        return;
+      }
+      next();
+    });
 
     // Intercepteur d'activité : met à jour lastActivityAt à chaque paquet reçu pour un événement lié
     socket.use((packet, next) => {
@@ -44,4 +58,3 @@ export function registerSocketHandlers(io, deps) {
     registerLifecycleHandlers(socket, deps);
   });
 }
-
