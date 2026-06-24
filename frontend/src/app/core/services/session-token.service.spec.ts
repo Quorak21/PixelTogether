@@ -133,4 +133,47 @@ describe('SessionTokenService', () => {
       expiresAt: 10000,
     });
   });
+
+  it('should set hasSessionSignal to true after save() with a valid session', () => {
+    const data: SessionTokenData = {
+      token: 'tok123',
+      playerId: 'p1',
+      role: 'player',
+      eventId: 'evt1',
+      groupCode: 'g1',
+      expiresAt: Date.now() + 10000,
+    };
+
+    service.save(data);
+    expect(service.hasSessionSignal()).toBe(true);
+  });
+
+  it('should set hasSessionSignal to false after clear()', () => {
+    const data: SessionTokenData = {
+      token: 'tok123',
+      playerId: 'p1',
+      role: 'player',
+      eventId: 'evt1',
+      groupCode: 'g1',
+      expiresAt: Date.now() + 10000,
+    };
+
+    service.save(data);
+    service.clear();
+    expect(service.hasSessionSignal()).toBe(false);
+  });
+
+  it('should set hasSessionSignal to false after save() with an expired session', () => {
+    const data: SessionTokenData = {
+      token: 'tok123',
+      playerId: 'p1',
+      role: 'player',
+      eventId: 'evt1',
+      groupCode: 'g1',
+      expiresAt: Date.now() - 10000,
+    };
+
+    service.save(data);
+    expect(service.hasSessionSignal()).toBe(false);
+  });
 });

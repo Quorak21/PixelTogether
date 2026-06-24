@@ -1,6 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { getApiUrl } from '../config/runtime-config';
+
+export type ConnectionStatus = 'connected' | 'connecting' | 'reconnecting';
 
 /**
  * Service gérant la connexion Socket.io unique pour toute l'application.
@@ -10,21 +12,45 @@ import { getApiUrl } from '../config/runtime-config';
 export class SocketService {
   private readonly apiUrl = getApiUrl();
   private readonly socket: Socket = io(this.apiUrl, { autoConnect: true });
+  private hasConnectedOnce = false;
 
   /** Signal réactif indiquant si le socket est actuellement connecté au backend. */
   readonly isConnected = signal(this.socket.connected);
+
+  /** Statut de connexion pour l'affichage global (connect_error, disconnect, connect). */
+  readonly connectionStatus = signal<ConnectionStatus>(
+    this.socket.connected ? 'connected' : 'connecting',
+  );
+
+  /** Message utilisateur dérivé du statut de connexion. */
+  readonly connectionMessage = computed(() => {
+    switch (this.connectionStatus()) {
+      case 'connecting':
+        return 'Connexion au serveur en cours…';
+      case 'reconnecting':
+        return 'Connexion perdue. Reconnexion en cours…';
+      default:
+        return '';
+    }
+  });
   
   /** Signal contenant l'identifiant unique du socket (socket.id) de cette session. */
   readonly socketId = signal<string | undefined>(this.socket.id);
 
   constructor() {
     this.socket.on('connect', () => {
+      this.hasConnectedOnce = true;
       this.isConnected.set(true);
+      this.connectionStatus.set('connected');
       this.socketId.set(this.socket.id);
     });
     this.socket.on('disconnect', () => {
       this.isConnected.set(false);
+      this.connectionStatus.set('reconnecting');
       this.socketId.set(undefined);
+    });
+    this.socket.on('connect_error', () => {
+      this.connectionStatus.set(this.hasConnectedOnce ? 'reconnecting' : 'connecting');
     });
     this.socket.on('connected', (payload: { socketId: string }) => {
       this.socketId.set(payload.socketId);
@@ -63,8 +89,14 @@ export class SocketService {
    * @returns Une promesse contenant la réponse du serveur.
    */
   emitWithAck<TPayload, TResponse>(event: string, payload: TPayload): Promise<TResponse> {
-    return new Promise<TResponse>((resolve) => {
-      this.socket.emit(event, payload, (response: TResponse) => resolve(response));
+    return new Promise<TResponse>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Pas de réponse du serveur pour "${event}" après 10s`));
+      }, 10_000);
+      this.socket.emit(event, payload, (response: TResponse) => {
+        clearTimeout(timeout);
+        resolve(response);
+      });
     });
   }
 

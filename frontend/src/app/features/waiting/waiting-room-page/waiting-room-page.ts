@@ -255,14 +255,17 @@ export class WaitingRoomPageComponent {
 
   constructor() {
     const id = this.roomId();
-    if (!id) {
-      void this.router.navigateByUrl('/');
-      return;
-    }
-
     this.ui.joinWaitingRoom(id);
     void this.enterRoom(id);
     this.bindSocketListeners();
+
+    this.reconnect.setWaitingRoomResyncHandler((state) => {
+      this.reconnect.saveFromWaitingRoom(state);
+      this.applyState(state);
+    });
+    this.destroyRef.onDestroy(() => {
+      this.reconnect.setWaitingRoomResyncHandler(null);
+    });
   }
 
   openInvite(): void {
@@ -293,10 +296,17 @@ export class WaitingRoomPageComponent {
     this.isClosingVote.set(true);
     this.voteError.set('');
 
-    const response = await this.socket.emitWithAck<CloseVotePayload, VoteStateUpdatedPayload>(
-      'closeVote',
-      { roomId: this.roomId() },
-    );
+    let response: VoteStateUpdatedPayload;
+    try {
+      response = await this.socket.emitWithAck<CloseVotePayload, VoteStateUpdatedPayload>(
+        'closeVote',
+        { roomId: this.roomId() },
+      );
+    } catch {
+      this.isClosingVote.set(false);
+      this.voteError.set('Une erreur est survenue. Veuillez réessayer.');
+      return;
+    }
 
     this.isClosingVote.set(false);
 
@@ -316,10 +326,17 @@ export class WaitingRoomPageComponent {
     this.isShowingResults.set(true);
     this.partyError.set('');
 
-    const response = await this.socket.emitWithAck<ShowResultsPayload, VoteStateUpdatedPayload>(
-      'showResults',
-      { roomId: this.roomId() },
-    );
+    let response: VoteStateUpdatedPayload;
+    try {
+      response = await this.socket.emitWithAck<ShowResultsPayload, VoteStateUpdatedPayload>(
+        'showResults',
+        { roomId: this.roomId() },
+      );
+    } catch {
+      this.isShowingResults.set(false);
+      this.partyError.set('Une erreur est survenue. Veuillez réessayer.');
+      return;
+    }
 
     this.isShowingResults.set(false);
 
@@ -339,10 +356,17 @@ export class WaitingRoomPageComponent {
     this.isEndingParty.set(true);
     this.partyError.set('');
 
-    const response = await this.socket.emitWithAck<EndPartyPayload, EndPartyResponse>(
-      'endParty',
-      { roomId: this.roomId() },
-    );
+    let response: EndPartyResponse;
+    try {
+      response = await this.socket.emitWithAck<EndPartyPayload, EndPartyResponse>(
+        'endParty',
+        { roomId: this.roomId() },
+      );
+    } catch {
+      this.isEndingParty.set(false);
+      this.partyError.set('Une erreur est survenue. Veuillez réessayer.');
+      return;
+    }
 
     this.isEndingParty.set(false);
 
@@ -358,10 +382,16 @@ export class WaitingRoomPageComponent {
 
     this.voteError.set('');
 
-    const response = await this.socket.emitWithAck<CastVotePayload, VoteStateUpdatedPayload>(
-      'castVote',
-      { roomId: this.roomId(), groupCode },
-    );
+    let response: VoteStateUpdatedPayload;
+    try {
+      response = await this.socket.emitWithAck<CastVotePayload, VoteStateUpdatedPayload>(
+        'castVote',
+        { roomId: this.roomId(), groupCode },
+      );
+    } catch {
+      this.voteError.set('Une erreur est survenue. Veuillez réessayer.');
+      return;
+    }
 
     if (response.error) {
       this.voteError.set(response.error);
@@ -386,14 +416,21 @@ export class WaitingRoomPageComponent {
   async handleRegister(profile: { pseudo: string; avatarColor: string }): Promise<void> {
     this.onboardingError.set('');
 
-    const response = await this.socket.emitWithAck<RegisterPlayerPayload, RegisterPlayerResponse>(
-      'registerPlayer',
-      {
-        roomId: this.roomId(),
-        pseudo: profile.pseudo,
-        avatarColor: profile.avatarColor,
-      },
-    );
+    let response: RegisterPlayerResponse;
+    try {
+      response = await this.socket.emitWithAck<RegisterPlayerPayload, RegisterPlayerResponse>(
+        'registerPlayer',
+        {
+          roomId: this.roomId(),
+          pseudo: profile.pseudo,
+          avatarColor: profile.avatarColor,
+        },
+      );
+    } catch {
+      this.onboardingError.set('Une erreur est survenue. Veuillez réessayer.');
+      this.onboardingModal()?.resetSubmitting();
+      return;
+    }
 
     this.onboardingModal()?.resetSubmitting();
 
@@ -418,9 +455,16 @@ export class WaitingRoomPageComponent {
     this.isStarting.set(true);
     this.startError.set('');
 
-    const response = await this.socket.emitWithAck<StartGamePayload, StartGameResponse>('startGame', {
-      roomId: this.roomId(),
-    });
+    let response: StartGameResponse;
+    try {
+      response = await this.socket.emitWithAck<StartGamePayload, StartGameResponse>('startGame', {
+        roomId: this.roomId(),
+      });
+    } catch {
+      this.isStarting.set(false);
+      this.startError.set('Une erreur est survenue. Veuillez réessayer.');
+      return;
+    }
 
     if (response.error) {
       this.startError.set(response.error);
@@ -455,10 +499,19 @@ export class WaitingRoomPageComponent {
       }
     }
 
-    const response = await this.socket.emitWithAck<EnterWaitingRoomPayload, WaitingRoomStatePayload>(
-      'enterWaitingRoom',
-      { roomId, token: session?.token },
-    );
+    let response: WaitingRoomStatePayload;
+    try {
+      response = await this.socket.emitWithAck<EnterWaitingRoomPayload, WaitingRoomStatePayload>(
+        'enterWaitingRoom',
+        { roomId, token: session?.token },
+      );
+    } catch {
+      this.isLoading.set(false);
+      this.ui.exitWaitingRoom();
+      this.pageError.set('Une erreur est survenue. Veuillez réessayer.');
+      void this.router.navigateByUrl('/');
+      return;
+    }
 
     this.isLoading.set(false);
 

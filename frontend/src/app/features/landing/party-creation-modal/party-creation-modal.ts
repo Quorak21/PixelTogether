@@ -169,7 +169,14 @@ export class PartyCreationModalComponent {
       payload.sessionDurationMinutes = this.form.controls.sessionDurationMinutes.value;
     }
 
-    const response = await this.socket.emitWithAck<NewGridPayload, NewGridResponse>('newGrid', payload);
+    let response: NewGridResponse;
+    try {
+      response = await this.socket.emitWithAck<NewGridPayload, NewGridResponse>('newGrid', payload);
+    } catch {
+      this.error.set('Une erreur est survenue. Veuillez réessayer.');
+      this.isSubmitting.set(false);
+      return;
+    }
 
     if (response.error || !response.id || response.role !== 'manager') {
       this.error.set(response.error ?? 'Erreur lors de la création de la partie.');

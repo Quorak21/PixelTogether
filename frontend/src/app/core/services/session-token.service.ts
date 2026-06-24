@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { ParticipantRole } from '../../types/entities';
 
 const STORAGE_KEY = 'pxl-session';
@@ -17,7 +17,9 @@ export interface SessionTokenData {
 
 @Injectable({ providedIn: 'root' })
 export class SessionTokenService {
-  
+  private readonly _hasValidSession = signal<boolean>(this.hasValidSession());
+  readonly hasSessionSignal = this._hasValidSession.asReadonly();
+
   /**
    * Sauvegarde les données de session du joueur dans le localStorage.
    * 
@@ -25,6 +27,7 @@ export class SessionTokenService {
    */
   save(data: SessionTokenData): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    this._hasValidSession.set(this.hasValidSession());
   }
 
   /**
@@ -48,6 +51,7 @@ export class SessionTokenService {
    */
   clear(): void {
     localStorage.removeItem(STORAGE_KEY);
+    this._hasValidSession.set(false);
   }
 
   /**

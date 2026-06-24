@@ -71,11 +71,6 @@ export class GamePageComponent {
     const eventId = this.eventId();
     const groupCode = this.groupCode();
 
-    if (!eventId || !groupCode) {
-      void this.router.navigateByUrl('/');
-      return;
-    }
-
     this.ui.currentEventId.set(eventId);
     this.ui.currentGroupCode.set(groupCode);
     this.ui.joinGame(eventId, groupCode);

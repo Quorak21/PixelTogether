@@ -49,7 +49,7 @@
         }
       </div>
     }
-    @if ((ui.waitingMode() || (ui.gameMode() && !ui.isCoopParty())) && ui.currentProfile(); as profile) {
+    @if ((ui.waitingMode() || ui.gameMode()) && ui.currentProfile(); as profile) {
       <div class="flex min-w-0 items-center gap-2">
         <app-avatar-placeholder [color]="profile.avatarColor" size="sm" />
         <span class="max-w-36 truncate text-sm font-semibold text-landing-muted">{{ profile.pseudo }}</span>

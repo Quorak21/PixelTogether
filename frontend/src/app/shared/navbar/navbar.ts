@@ -130,13 +130,19 @@ export class NavbarComponent {
     this.isEndingSession.set(true);
     this.endSessionError.set('');
 
-    const response = await this.socket.emitWithAck<EndSessionPayload, EndSessionResponse>('endSession', {
-      eventId,
-    });
+    try {
+      const response = await this.socket.emitWithAck<EndSessionPayload, EndSessionResponse>('endSession', {
+        eventId,
+      });
 
-    if (response.error) {
-      this.endSessionError.set(response.error);
+      if (response.error) {
+        this.endSessionError.set(response.error);
+        this.isEndingSession.set(false);
+        return;
+      }
+    } catch {
       this.isEndingSession.set(false);
+      this.endSessionError.set('Une erreur est survenue. Veuillez réessayer.');
       return;
     }
 

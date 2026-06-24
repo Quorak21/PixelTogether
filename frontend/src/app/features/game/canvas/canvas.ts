@@ -102,6 +102,7 @@ export class CanvasComponent implements AfterViewInit {
 
     this.destroyRef.onDestroy(() => {
       this.ui.setGameCanvasReady();
+      this.reconnect.setGridResyncHandler(null);
       this.socket.off('joinRoomError', onJoinRoomError as (...args: unknown[]) => void);
       this.socket.off('gridState', onGridState as (...args: unknown[]) => void);
       this.socket.off('drawPixel', onDrawPixel as (...args: unknown[]) => void);
@@ -111,6 +112,8 @@ export class CanvasComponent implements AfterViewInit {
     });
 
     void this.bootstrapCanvas();
+
+    this.reconnect.setGridResyncHandler((data) => this.renderGrid(data));
   }
 
   /** Reconnexion token puis joinGroup si nécessaire. */

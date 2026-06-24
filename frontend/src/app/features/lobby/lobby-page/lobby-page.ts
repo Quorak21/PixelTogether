@@ -81,14 +81,14 @@ export class LobbyPageComponent {
       window.clearInterval(interval);
     });
 
-    if (!this.eventId()) {
-      void this.router.navigateByUrl('/');
-      return;
-    }
-
     this.loadEventLobby();
     this.bindManagerListeners();
     preloadGameRoutes();
+
+    this.reconnect.setLobbyResyncHandler((state) => this.applyLobbyState(state));
+    this.destroyRef.onDestroy(() => {
+      this.reconnect.setLobbyResyncHandler(null);
+    });
   }
 
   private async tryReconnectLobby(): Promise<boolean> {
@@ -159,13 +159,19 @@ export class LobbyPageComponent {
     this.isEndingSession.set(true);
     this.endSessionError.set('');
 
-    const response = await this.socket.emitWithAck<EndSessionPayload, EndSessionResponse>('endSession', {
-      eventId,
-    });
+    try {
+      const response = await this.socket.emitWithAck<EndSessionPayload, EndSessionResponse>('endSession', {
+        eventId,
+      });
 
-    if (response.error) {
-      this.endSessionError.set(response.error);
+      if (response.error) {
+        this.endSessionError.set(response.error);
+        this.isEndingSession.set(false);
+        return;
+      }
+    } catch {
       this.isEndingSession.set(false);
+      this.endSessionError.set('Une erreur est survenue. Veuillez réessayer.');
       return;
     }
 
@@ -193,6 +199,11 @@ export class LobbyPageComponent {
             return;
           }
           this.applyLobbyState(response);
+        })
+        .catch(() => {
+          this.sessionToken.clear();
+          this.ui.exitGame();
+          void this.router.navigateByUrl('/');
         });
     });
   }

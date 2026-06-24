@@ -23,7 +23,7 @@ interface ManagerAbsentWarningPayload {
 })
 export class App {
   readonly ui = inject(UiStateService);
-  private readonly socket = inject(SocketService);
+  readonly socket = inject(SocketService);
   private readonly router = inject(Router);
   private readonly sessionToken = inject(SessionTokenService);
   private readonly destroyRef = inject(DestroyRef);

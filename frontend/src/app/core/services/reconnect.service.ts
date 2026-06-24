@@ -7,6 +7,7 @@ import {
   ReconnectSessionPayload,
   ReconnectSessionResponse,
   WaitingRoomStatePayload,
+  EventLobbyStatePayload,
 } from '../../types/socket-payloads';
 import { GridStatePayload } from '../../types/entities';
 
@@ -21,24 +22,60 @@ export class ReconnectService {
   private readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
 
+  private hadTransportDisconnect = false;
+  private resyncInFlight = false;
+  private gridResyncHandler: ((data: GridStatePayload) => void) | null = null;
+  private waitingRoomResyncHandler: ((state: WaitingRoomStatePayload) => void) | null = null;
+  private lobbyResyncHandler: ((state: EventLobbyStatePayload) => void) | null = null;
+
+  constructor() {
+    this.socket.on('disconnect', () => {
+      this.hadTransportDisconnect = true;
+    });
+    this.socket.on('connect', () => {
+      void this.handleTransportReconnect();
+    });
+  }
+
+  setGridResyncHandler(handler: ((data: GridStatePayload) => void) | null): void {
+    this.gridResyncHandler = handler;
+  }
+
+  setWaitingRoomResyncHandler(handler: ((state: WaitingRoomStatePayload) => void) | null): void {
+    this.waitingRoomResyncHandler = handler;
+  }
+
+  setLobbyResyncHandler(handler: ((state: EventLobbyStatePayload) => void) | null): void {
+    this.lobbyResyncHandler = handler;
+  }
+
   /**
    * Tente de rétablir la session de jeu active auprès du backend.
    * Lit le jeton local, valide s'il n'est pas expiré et interroge le serveur via 'reconnectSession'.
    * En cas de réussite, met à jour les informations locales de session.
    * 
+   * @param options.keepSessionOnNetworkError - Conserve le token si l'ack échoue (resync transport).
    * @returns La réponse du serveur en cas de succès, ou null si la session n'est plus valable.
    */
-  async reconnect(): Promise<ReconnectSessionResponse | null> {
+  async reconnect(options?: { keepSessionOnNetworkError?: boolean }): Promise<ReconnectSessionResponse | null> {
     const session = this.sessionToken.read();
     if (!session || this.sessionToken.isExpired(session)) {
       if (session) this.sessionToken.clear();
       return null;
     }
 
-    const response = await this.socket.emitWithAck<ReconnectSessionPayload, ReconnectSessionResponse>(
-      'reconnectSession',
-      { token: session.token },
-    );
+    let response: ReconnectSessionResponse;
+    try {
+      response = await this.socket.emitWithAck<ReconnectSessionPayload, ReconnectSessionResponse>(
+        'reconnectSession',
+        { token: session.token },
+      );
+    } catch {
+      if (!options?.keepSessionOnNetworkError) {
+        this.sessionToken.clear();
+      }
+      return null;
+    }
 
     if (response.error === 'PARTY_GONE' || response.error) {
       if (response.error === 'PARTY_GONE') {
@@ -57,6 +94,108 @@ export class ReconnectService {
     });
 
     return response;
+  }
+
+  private async handleTransportReconnect(): Promise<void> {
+    if (!this.hadTransportDisconnect) {
+      return;
+    }
+    this.hadTransportDisconnect = false;
+
+    if (!this.sessionToken.hasValidSession() || this.resyncInFlight) {
+      return;
+    }
+
+    this.resyncInFlight = true;
+    try {
+      await this.applyTransportResync();
+    } finally {
+      this.resyncInFlight = false;
+    }
+  }
+
+  private async applyTransportResync(): Promise<void> {
+    const response = await this.reconnect({ keepSessionOnNetworkError: true });
+    if (!response) {
+      if (!this.sessionToken.hasValidSession() && this.isPartyRoute()) {
+        await this.navigateToLandingAfterPartyGone();
+      }
+      return;
+    }
+
+    const url = this.router.url.split('?')[0];
+    const session = this.sessionToken.read();
+
+    if (response.phase === 'game' && response.gridState && response.groupCode) {
+      const gameRoute = this.parseGameRoute(url);
+      if (
+        gameRoute &&
+        this.idsMatch(gameRoute.eventId, response.eventId) &&
+        this.idsMatch(gameRoute.groupCode, response.groupCode)
+      ) {
+        this.hydrateGridState(response.gridState);
+        this.gridResyncHandler?.(response.gridState);
+        return;
+      }
+    }
+
+    if (response.phase === 'lobby' && response.lobbyState && response.eventId) {
+      const gameRoute = this.parseGameRoute(url);
+      if (gameRoute && session?.role === 'manager' && this.idsMatch(gameRoute.eventId, response.eventId)) {
+        this.hydrateLobbyState(response.lobbyState, response.eventId);
+        this.socket.emit('joinGroup', {
+          eventId: gameRoute.eventId,
+          groupCode: gameRoute.groupCode,
+        });
+        return;
+      }
+
+      const lobbyEventId = this.parseLobbyRoute(url);
+      if (lobbyEventId && this.idsMatch(lobbyEventId, response.eventId)) {
+        this.hydrateLobbyState(response.lobbyState, response.eventId);
+        this.lobbyResyncHandler?.(response.lobbyState as EventLobbyStatePayload);
+        return;
+      }
+    }
+
+    if (response.waitingRoomState && response.eventId) {
+      const roomId = this.parseWaitingRoomRoute(url);
+      if (roomId && this.idsMatch(roomId, response.eventId)) {
+        this.hydrateWaitingRoom(response.waitingRoomState);
+        this.waitingRoomResyncHandler?.(response.waitingRoomState);
+        return;
+      }
+    }
+
+    await this.resumeAndNavigate(response);
+  }
+
+  private isPartyRoute(): boolean {
+    return /^\/(room|lobby|game)\//i.test(this.router.url.split('?')[0]);
+  }
+
+  private async navigateToLandingAfterPartyGone(): Promise<void> {
+    this.ui.exitWaitingRoom();
+    this.ui.exitGame();
+    await this.router.navigateByUrl('/');
+  }
+
+  private parseGameRoute(url: string): { eventId: string; groupCode: string } | null {
+    const match = url.match(/^\/game\/([^/]+)\/([^/]+)/i);
+    if (!match) return null;
+    return { eventId: match[1], groupCode: match[2] };
+  }
+
+  private parseLobbyRoute(url: string): string | null {
+    return url.match(/^\/lobby\/([^/]+)/i)?.[1] ?? null;
+  }
+
+  private parseWaitingRoomRoute(url: string): string | null {
+    return url.match(/^\/room\/([^/]+)/i)?.[1] ?? null;
+  }
+
+  private idsMatch(a: string | undefined, b: string | undefined): boolean {
+    return Boolean(a && b && a.toUpperCase() === b.toUpperCase());
   }
 
   /**

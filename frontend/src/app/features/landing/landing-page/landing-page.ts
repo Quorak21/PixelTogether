@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideCrown, LucideUsers, LucidePalette } from '@lucide/angular';
@@ -33,7 +33,7 @@ export class LandingPageComponent implements OnInit, OnDestroy {
   readonly infoModal = signal<InfoModalKind | null>(null);
   readonly isResuming = signal(false);
   readonly serverMaxCapReached = signal(false);
-  readonly hasActiveSession = computed(() => this.sessionToken.hasValidSession());
+  readonly hasActiveSession = this.sessionToken.hasSessionSignal;
 
   readonly form = this.fb.nonNullable.group({
     code: [

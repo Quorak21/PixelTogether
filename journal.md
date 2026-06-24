@@ -13,6 +13,18 @@
 
 ## Entrées
 
+- **AUDIT-13** — **Broadcast roomClosed global** : `closeEvent` cible désormais la room Socket.io de la partie via `io.to(eventId).emit('roomClosed')` au lieu d'un broadcast global. Test unitaire `lifecycle.test.js`.
+
+- **AUDIT-19** — **Resync applicative après reconnexion socket** : Au `connect` post-coupure, `ReconnectService` rappelle `reconnectSession` (token conservé si erreur réseau transitoire), resync in-place sur game/room/lobby via handlers enregistrés, `joinGroup` pour manager spectateur, navigation si phase changée ou `PARTY_GONE`. 6 tests, 38 tests verts au total.
+
+- **AUDIT-12** — **Frontend gestion connect_error** : Signal `connectionStatus` (`connecting` / `reconnecting` / `connected`) et `connectionMessage` dans `SocketService` avec écoute de `connect_error`, `disconnect` et `connect`. Bannière globale non bloquante dans `app.html`. 7 tests unitaires, 32 tests verts au total.
+
+- **AUDIT-11** — **Frontend signal hasActiveSession non réactif** : Ajout d'un signal `_hasValidSession` dans `SessionTokenService` mis à jour dans `save()`/`clear()`, exposé en readonly `hasSessionSignal`. Remplacement du `computed` cassé dans `landing-page.ts`. 3 nouveaux tests, 25 tests verts au total.
+
+- **AUDIT-10** — **Route guards Angular** : `sessionGuard` sur `/lobby` et `/game` (session valide + match `eventId`/`groupCode`, manager spectateur exempté du match `groupCode`). `roomGuard` sur `/room` (join sans session autorisé ; si session, match `roomId`). Comparaisons normalisées en uppercase. 8 tests Vitest. Constructeurs simplifiés dans WR, lobby et game.
+
+- **AUDIT-09** — **Frontend emitWithAck sans timeout** : Ajout d'un timeout de 10s avec reject dans `SocketService.emitWithAck()`. Wrapper des 11 appels frontend dans des `try/catch` avec message d'erreur générique et reset des signaux bloquants. Tous les tests passent.
+
 - **AUDIT-08** — **Validation types/longueurs backend** : Mise en place d'un middleware global (`socket.use` dans `register.js`) qui intercepte et rejette (avec une réponse d'erreur le cas échéant) tout paquet Socket.io dont le payload principal n'est pas un objet non nul. Séparation des expressions régulières pour les pseudos et les thèmes dans `constants.js` : la longueur maximale des pseudos a été ramenée à 20 caractères tandis que celle des thèmes a été maintenue à 30. Mise à jour de la validation et des messages d'erreur dans `waitingRoom.handlers.js`. Côté frontend, limitation de la longueur du pseudo à 20 caractères dans les validateurs de `onboarding-modal.ts` et dans l'attribut HTML `maxlength` de `onboarding-modal.html`. Création de tests d'intégration complets dans `validation.test.js`.
 
 - **AUDIT-07** — **Auth Chat & messages** : Ajout de vérifications de sécurité dans les écouteurs d'événements socket `sendMessage` et `getChatMessages` (dans `game.handlers.js`). Le serveur vérifie désormais que le socket appartient au groupe ciblé ou est le manager de la partie avant d'autoriser l'envoi ou la récupération des messages de chat. Création de tests unitaires complets validant les autorisations pour les membres, les managers et le rejet pour les intrus dans `chat.test.js`.

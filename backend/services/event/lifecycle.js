@@ -112,7 +112,7 @@ export function emitGameStarted(io, event) {
 /**
  * Ferme et détruit complètement une partie (teardown).
  * Nettoie les timers en cours, purge les sessions de reconnexion actives du salon,
- * diffuse l'événement de fermeture globale `roomClosed` avec les images finales des groupes
+ * diffuse l'événement de fermeture du salon `roomClosed` avec les images finales des groupes
  * et libère de la place sur le serveur.
  * 
  * @param {Object} io - L'instance du serveur Socket.io.
@@ -127,7 +127,7 @@ export function closeEvent(io, eventId) {
   purgeEventSessions(event);
 
   const images = getEventGroupImages(event);
-  io.emit('roomClosed', { roomId: eventId, eventId, image: images });
+  io.to(eventId).emit('roomClosed', { roomId: eventId, eventId, image: images });
   delete activeEvents[eventId];
 
   io.emit('serverCapacity', { maxCapReached: Object.keys(activeEvents).length >= MAX_ACTIVE_EVENTS });

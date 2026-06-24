@@ -18,20 +18,16 @@
 
 Bugs, risques, dettes et chantiers actifs. Odin y ajoute de manière autonome dès qu'un souci est repéré ; toi aussi quand tu dis « on fera plus tard ».
 
+### CRITIQUE
+
+Aucune tâche critique pour le moment
+
 ### ÉLEVÉ
-- **AUDIT-09** — **Frontend emitWithAck sans timeout** : Les promises d'ack socket peuvent freeze l'UI indéfiniment si pas de réponse.
-  Ajouter un timeout de 10s avec reject et wrapper tous les appels du front dans des `try/catch` avec message d'erreur.
-- **AUDIT-10** — **Frontend pas de route guards** : Pas de protection sur `/game`, `/lobby` ou `/room`.
-  Ajouter des guards Angular `canActivate` pour empêcher les accès directs sans session/autorisation active.
-- **AUDIT-11** — **Frontend signal hasActiveSession non réactif** : Lit `localStorage` dans un computed sans signal sous-jacent.
-  Utiliser un signal interne dans `SessionTokenService` pour propager dynamiquement l'état de session active.
-- **AUDIT-12** — **Frontend pas de gestion connect_error** : Les coupures serveurs ou échecs initiaux sont silencieux pour l'utilisateur.
-  Écouter `connect_error` sur Socket.IO pour afficher un statut de déconnexion/reconnexion global à l'écran.
+
+Aucune tâche élevée pour le moment
 
 ### MOYEN
 
-- **AUDIT-13** — **Broadcast roomClosed global** : `io.emit('roomClosed')` envoie l'event de clôture à tous les serveurs du projet.
-  Cibler uniquement la room de l'event concerné via `io.to(eventId).emit()`.
 - **AUDIT-16** — **Découpage WaitingRoomPageComponent en 3 états/composants** : Fichier trop lourd (700+ lignes).
   Séparer en trois composants ou états distincts : un composant "Waiting Room" pour le rassemblement initial des joueurs au tout début, un composant "Transition Room" pour les phases intermédiaires (votes, résultats de sessions intermédiaires), et un composant "Final Room" pour la fin de la partie (podiums et résultats finaux). Adapter également le backend pour la cohérence (ex: découper `waitingRoom.handlers.js` en modules de handlers dédiés par phase).
 - **AUDIT-17** — **Timers redondants Angular** : 3 `setInterval(1000)` tournent simultanément sur la page game.
@@ -59,6 +55,8 @@ Idées et évolutions — pas de priorité imposée, tri libre. Quand une idée 
 - **ADD-08** — **Chat waiting room** : chat commun en salle d'attente (manager + joueurs en attente des derniers arrivants).
 
 - **ADD-10** — **Indicateur « en train d'écrire »** : sur la barre joueurs.
+
+- **ADD-39** — **Popover membres du groupe (navbar)** : à côté du pseudo du joueur, un bouton « groupe » affiche au survol un panneau listant tous les membres du groupe (avatar + pseudo). Fermeture automatique dès que le curseur quitte le bouton et le panneau (plus de hover) (@picasso UI, @alex logique).
 
 - **ADD-12** — **Grille décorative waiting room** : grille décorative mais fonctionnelle en fond de salle d'attente.
 
