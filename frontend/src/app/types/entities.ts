@@ -6,11 +6,12 @@ export type RoomStatus = 'waiting' | 'started'; // started = session canvas en c
 
 export type GameMode = 'coop' | 'competitive';
 
-export type WrMode = 'players' | 'voting' | 'voteResult' | 'podium' | 'sessionResult' | 'gallery';
+export type WrMode = 'players' | 'voting' | 'tieBreak' | 'voteResult' | 'podium' | 'sessionResult' | 'gallery';
 
 export type ReconnectPhase =
   | 'waiting'
   | 'voting'
+  | 'tieBreak'
   | 'voteResult'
   | 'podium'
   | 'sessionResult'

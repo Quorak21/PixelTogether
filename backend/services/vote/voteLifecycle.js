@@ -78,6 +78,7 @@ export function snapshotSessionForVote(event) {
     status: 'open',
     votes: {},
     winnerGroupCode: null,
+    tiedGroupCodes: null,
   };
 }
 
@@ -102,21 +103,24 @@ export function applyVoteDelta(event, groupCode, delta) {
 }
 
 /**
- * Détermine le groupe gagnant d'une session archivée (celui qui a le plus de votes).
- * En cas d'égalité, le groupe ayant le plus petit index (`groupIndex`) l'emporte.
+ * Retourne tous les groupes ex æquo en tête du scrutin (score `voteCount` maximal).
+ * Tableau vide si l'archive est absente ou sans groupe.
+ */
+export function findTiedTopGroups(archiveSession) {
+  if (!archiveSession?.groups?.length) return [];
+
+  const maxVotes = Math.max(...archiveSession.groups.map((g) => g.voteCount));
+  return archiveSession.groups.filter((g) => g.voteCount === maxVotes);
+}
+
+/**
+ * Détermine le groupe gagnant d'une session archivée lorsqu'il est unique.
+ * Retourne `null` en cas d'égalité — le départage manager prend le relais.
  */
 export function pickWinner(archiveSession) {
-  if (!archiveSession?.groups?.length) return null;
-
-  let winner = archiveSession.groups[0];
-  for (const group of archiveSession.groups) {
-    if (group.voteCount > winner.voteCount) {
-      winner = group;
-    } else if (group.voteCount === winner.voteCount && group.groupIndex < winner.groupIndex) {
-      winner = group;
-    }
-  }
-  return winner.groupCode;
+  const tied = findTiedTopGroups(archiveSession);
+  if (tied.length !== 1) return null;
+  return tied[0].groupCode;
 }
 
 /**
@@ -214,7 +218,12 @@ export function buildVoteCandidates(event) {
   const archive = getArchiveSession(event, event.activeVote.sessionNumber);
   if (!archive) return [];
 
-  return archive.groups.map((g) => ({
+  const groups =
+    event.activeVote.status === 'tiebreak'
+      ? archive.groups.filter((g) => event.activeVote.tiedGroupCodes?.includes(g.groupCode))
+      : archive.groups;
+
+  return groups.map((g) => ({
     groupCode: g.groupCode,
     groupIndex: g.groupIndex,
     label: g.label,
@@ -321,7 +330,10 @@ export function buildVoteFields(event, playerId) {
     };
   }
 
-  const voteCandidates = wrMode === 'voting' || wrMode === 'voteResult' ? buildVoteCandidates(event) : [];
+  const voteCandidates =
+    wrMode === 'voting' || wrMode === 'tieBreak' || wrMode === 'voteResult'
+      ? buildVoteCandidates(event)
+      : [];
   const myVote = playerId ? (event.activeVote?.votes?.[playerId] ?? null) : null;
   const winnerGroupCode = event.activeVote?.winnerGroupCode ?? null;
   const winnerCandidate =
@@ -342,9 +354,14 @@ export function buildVoteFields(event, playerId) {
 }
 
 /**
- * Indique si un utilisateur (joueur ou manager enregistré) a le droit de participer au vote.
+ * Indique si un utilisateur a le droit de voter dans la phase active.
+ * En départage (`tiebreak`), seul le manager enregistré peut trancher.
  */
 export function canParticipateInVote(event, playerId) {
+  if (event.activeVote?.status === 'tiebreak') {
+    return playerId === event.managerPlayerId && Boolean(event.managerProfile);
+  }
+
   if (playerId === event.managerPlayerId) {
     return Boolean(event.managerProfile);
   }
@@ -353,11 +370,16 @@ export function canParticipateInVote(event, playerId) {
 
 /**
  * Enregistre le vote d'un joueur pour une œuvre (code groupe).
- * Si le joueur avait déjà voté pour une autre œuvre, son ancien vote est retiré 
- * et le nouveau est appliqué (mise à jour des scores via applyVoteDelta).
+ * En vote normal : mise à jour des scores via `applyVoteDelta`.
+ * En départage (`tiebreak`) : +1 vote pour le groupe choisi (podium / résultat cohérents).
  */
 export function castVote(event, playerId, groupCode) {
-  if (event.status !== 'waiting' || !event.activeVote || event.activeVote.status !== 'open') {
+  if (event.status !== 'waiting' || !event.activeVote) {
+    return { error: 'Le vote n\'est pas ouvert.' };
+  }
+
+  const { status } = event.activeVote;
+  if (status !== 'open' && status !== 'tiebreak') {
     return { error: 'Le vote n\'est pas ouvert.' };
   }
 
@@ -368,6 +390,16 @@ export function castVote(event, playerId, groupCode) {
   const archive = getArchiveSession(event, event.activeVote.sessionNumber);
   if (!archive) {
     return { error: 'Session de vote introuvable.' };
+  }
+
+  if (status === 'tiebreak') {
+    if (!event.activeVote.tiedGroupCodes?.includes(groupCode)) {
+      return { error: 'Œuvre invalide.' };
+    }
+    applyVoteDelta(event, groupCode, 1);
+    event.activeVote.winnerGroupCode = groupCode;
+    event.activeVote.status = 'closed';
+    return { ok: true };
   }
 
   const target = archive.groups.find((g) => g.groupCode === groupCode);
@@ -393,7 +425,8 @@ export function castVote(event, playerId, groupCode) {
 }
 
 /**
- * Ferme officiellement les votes de la session en cours et détermine le vainqueur.
+ * Clôture le vote normal : gagnant unique → résultat immédiat ;
+ * égalité → phase `tiebreak` (grilles ex æquo, départage par le manager).
  */
 export function closeVote(event) {
   if (!event.activeVote || event.activeVote.status !== 'open') {
@@ -401,9 +434,17 @@ export function closeVote(event) {
   }
 
   const archive = getArchiveSession(event, event.activeVote.sessionNumber);
-  event.activeVote.status = 'closed';
-  event.activeVote.winnerGroupCode = pickWinner(archive);
+  const tied = findTiedTopGroups(archive);
 
+  if (tied.length > 1) {
+    event.activeVote.status = 'tiebreak';
+    event.activeVote.tiedGroupCodes = tied.map((g) => g.groupCode);
+    event.activeVote.votes = {};
+    return { ok: true };
+  }
+
+  event.activeVote.status = 'closed';
+  event.activeVote.winnerGroupCode = tied[0]?.groupCode ?? null;
   return { ok: true };
 }
 

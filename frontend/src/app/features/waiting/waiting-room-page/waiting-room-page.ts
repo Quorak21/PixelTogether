@@ -4,6 +4,7 @@ import {
   DestroyRef,
   HostListener,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -59,6 +60,7 @@ import { FinalRoomComponent } from '../final-room/final-room';
 import { resolveWrPhase } from '../wr-phase';
 import { GridPixelSplashComponent } from '../../../shared/grid-pixel-splash/grid-pixel-splash';
 import { ChatboxComponent } from '../../../shared/chatbox/chatbox';
+import { fireVoteWinnerConfetti } from '../../../core/utils/confetti-burst';
 
 @Component({
   selector: 'app-waiting-room-page',
@@ -87,6 +89,9 @@ export class WaitingRoomPageComponent {
   private readonly router = inject(Router);
 
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Évite de relancer les confettis tant qu'on reste sur voteResult. */
+  private previousWrMode: WrMode = 'players';
 
   private readonly onboardingModal = viewChild(OnboardingModalComponent);
 
@@ -205,7 +210,10 @@ export class WaitingRoomPageComponent {
     switch (this.wrMode()) {
       case 'voting':
         return 'Votez pour votre dessin préféré !';
+      case 'tieBreak':
+        return 'Égalité — le manager tranche !';
       case 'voteResult':
+        return 'Le gagnant de la session !';
       case 'sessionResult':
         return 'Le dessin de la session';
       case 'gallery':
@@ -229,7 +237,7 @@ export class WaitingRoomPageComponent {
     return 'Votre manager vous a préparé un super thème !';
   });
   readonly waitingSubtitle = computed(() => {
-    if (this.wrMode() === 'voting') {
+    if (this.wrMode() === 'voting' || this.wrMode() === 'tieBreak') {
       return '';
     }
     if (this.wrMode() === 'gallery') {
@@ -256,6 +264,14 @@ export class WaitingRoomPageComponent {
     });
     this.destroyRef.onDestroy(() => {
       this.reconnect.setWaitingRoomResyncHandler(null);
+    });
+
+    effect(() => {
+      const mode = this.wrMode();
+      if (mode === 'voteResult' && this.previousWrMode !== 'voteResult') {
+        fireVoteWinnerConfetti();
+      }
+      this.previousWrMode = mode;
     });
   }
 
@@ -367,7 +383,8 @@ export class WaitingRoomPageComponent {
   }
 
   async handleVote(groupCode: string): Promise<void> {
-    if (this.wrMode() !== 'voting') {
+    const mode = this.wrMode();
+    if (mode !== 'voting' && mode !== 'tieBreak') {
       return;
     }
 

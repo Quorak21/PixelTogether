@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-36** — **Égalité sur les votes** : en cas d'égalité au 1er tour, phase `tieBreak` — grilles ex æquo visibles pour tous, seul le manager tranche (1 clic), sans impact sur le podium individuel.
+
 - **AUDIT-30** — **Flush previews à la clôture** : `flushAllEventPreviews` appelé dans `closeEvent` avant `getEventGroupImages`.
 
 - **AUDIT-29** — **CI tests avant déploiement** : workflow unifié `ci.yml` (backend `node:test` + frontend Vitest sur push/PR) ; gate `needs` avant build/push Docker Hub ; suppression de `docker-build.yml`.

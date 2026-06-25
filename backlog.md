@@ -34,7 +34,6 @@ Pas de tâches info pour le moment
 
 Fonctionnalités indispensables et prioritaires pour la V1.
 
-- **ADD-36** — **Égalité sur les votes** : en cas d'égalité, le manager décide du gagnant.
 - **ADD-37** — **Export ZIP fin de partie** : export de toutes les grilles par le manager, avant `endParty`.
 - **ADD-38** — **Annonces chat présence** : annonce quand le manager rejoint/quitte la room (idem joueurs ayant fini).
 - **ADD-39** — **Chrono navbar coloré** : le chrono de la navbar change de couleur quand le temps baisse.
@@ -50,7 +49,7 @@ Fonctionnalités indispensables et prioritaires pour la V1.
 - **ADD-49** — **Gestion des erreurs dans le formulaire de création de partie** : améliorer la remontée et l'affichage des erreurs du formulaire lors de la création d'un salon.
 - **ADD-50** — **Zoom + vote par cœur sur les œuvres** : pendant la phase de vote, un clic sur une miniature de grille ouvre un zoom (comme le zoom coop existant). Un cœur ❤️ positionné en haut à droite de l'image zoomée permet de voter : clic sur le cœur = +1 vote pour cette œuvre. Le clic direct sur la grille déclenche le zoom, pas le vote — séparation claire des deux actions.
 - **ADD-51** — **Amélioration de la documentation sur landing page** : Améliorer la documentation et les textes explicatifs sur la page d'accueil pour guider les utilisateurs.
-
+- UI => Sur le podium, plutot qu'ecrire session + theme en dessous. Mettre juste le theme
 
 ## FF
 

@@ -25,6 +25,26 @@ export const COMPETITIVE_SESSION_COUNT_MAX = 8;
 /** Plafond d'invités inscrits par salon (tous modes) — miroir backend/config/constants.js */
 export const EVENT_PLAYERS_MAX = 40;
 
+/** Palette de dessin (16 couleurs) — miroir backend/config/constants.js `GAME_PALETTE_16`. */
+export const GAME_PALETTE_16 = [
+  '#000000',
+  '#6b4423',
+  '#38b764',
+  '#f4b41b',
+  '#ffffff',
+  '#e53b44',
+  '#f18d2d',
+  '#a3a7c2',
+  '#3e8948',
+  '#215d5e',
+  '#f7e26b',
+  '#b13e53',
+  '#29366f',
+  '#3b5dc9',
+  '#41a6f6',
+  '#ef7d57',
+] as const;
+
 export const SESSION_COUNT_DEFAULT = 3;
 
 export function totalPlayDurationMinutes(

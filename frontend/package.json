@@ -20,6 +20,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@lucide/angular": "^1.17.0",
+    "canvas-confetti": "^1.9.4",
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.8.3",
     "tslib": "^2.3.0"
@@ -29,6 +30,7 @@
     "@angular/cli": "^21.2.6",
     "@angular/compiler-cli": "^21.2.0",
     "@tailwindcss/postcss": "^4.1.18",
+    "@types/canvas-confetti": "^1.9.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.18",

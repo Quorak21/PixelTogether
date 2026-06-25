@@ -29,6 +29,7 @@ export class TransitionRoomComponent {
   readonly myVote = input<string | null>(null);
   readonly winner = input<TransitionWinner | null>(null);
   readonly winnerImage = input<string | null>(null);
+  readonly sessionTheme = input('');
   readonly sessionResultGrid = input<GalleryGrid | null>(null);
   readonly isManager = input(false);
   readonly isCoop = input(false);

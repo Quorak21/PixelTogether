@@ -23,6 +23,14 @@ test('getWrMode and resolveReconnectPhase stay aligned on WR phases', () => {
   assert.strictEqual(getWrMode(voting), 'voting');
   assert.strictEqual(resolveReconnectPhase(voting, 'player'), 'voting');
 
+  const tieBreak = {
+    ...base,
+    partyStarted: true,
+    activeVote: { status: 'tiebreak', sessionNumber: 1 },
+  };
+  assert.strictEqual(getWrMode(tieBreak), 'tieBreak');
+  assert.strictEqual(resolveReconnectPhase(tieBreak, 'player'), 'tieBreak');
+
   const podium = {
     ...base,
     partyStarted: true,

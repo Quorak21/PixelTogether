@@ -103,7 +103,7 @@ export class LobbyPageComponent {
       return true;
     }
 
-    if (response.phase === 'game' || response.phase === 'waiting' || response.phase === 'voting') {
+    if (response.phase === 'game' || response.phase === 'waiting' || response.phase === 'voting' || response.phase === 'tieBreak' || response.phase === 'voteResult') {
       await this.reconnect.resumeAndNavigate(response);
       return true;
     }

@@ -14,6 +14,7 @@ export function getWrMode(event) {
   if (event.showingResults) return 'podium';
   if (!event.partyStarted) return 'players';
   if (event.activeVote?.status === 'open') return 'voting';
+  if (event.activeVote?.status === 'tiebreak') return 'tieBreak';
   if (event.activeVote?.status === 'closed') return 'voteResult';
   return 'players';
 }

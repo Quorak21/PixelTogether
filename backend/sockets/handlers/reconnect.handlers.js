@@ -93,7 +93,7 @@ export function handleReconnectSession(socket, data, callback, deps) {
     response.gridState = buildGridStatePayload(event, groupCode, socket, GRID_SIZE);
   } else if (phase === 'lobby') {
     response.lobbyState = buildEventLobbyPayload(event);
-  } else if (phase === 'sessionResult' || phase === 'gallery' || phase === 'waiting' || phase === 'voting' || phase === 'voteResult' || phase === 'podium') {
+  } else if (phase === 'sessionResult' || phase === 'gallery' || phase === 'waiting' || phase === 'voting' || phase === 'tieBreak' || phase === 'voteResult' || phase === 'podium') {
     response.waitingRoomState = attachSessionFields(
       buildWaitingRoomState(event, socket.id, session.playerId),
       session,

@@ -12,6 +12,7 @@ describe('resolveWrPhase', () => {
 
   it('routes vote phases to transition', () => {
     expect(resolveWrPhase('voting', true)).toBe('transition');
+    expect(resolveWrPhase('tieBreak', true)).toBe('transition');
     expect(resolveWrPhase('voteResult', true)).toBe('transition');
     expect(resolveWrPhase('sessionResult', true)).toBe('transition');
   });

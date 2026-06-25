@@ -1,26 +1,11 @@
+import { GAME_PALETTE_16 } from '../../core/config/session-config';
+
 /** Must stay in sync with `before:bg-[length:20px_20px]` on landing/waiting/lobby pages. */
 export const CELL_SIZE = 20;
 
 export const COVERAGE = 0.006;
 
-export const PIXEL_SPLASH_COLORS = [
-  '#000000',
-  '#6b4423',
-  '#38b764',
-  '#f4b41b',
-  '#ffffff',
-  '#e53b44',
-  '#f18d2d',
-  '#a3a7c2',
-  '#3e8948',
-  '#215d5e',
-  '#f7e26b',
-  '#b13e53',
-  '#29366f',
-  '#3b5dc9',
-  '#41a6f6',
-  '#ef7d57',
-] as const;
+export const PIXEL_SPLASH_COLORS = GAME_PALETTE_16;
 
 export interface GridCell {
   col: number;

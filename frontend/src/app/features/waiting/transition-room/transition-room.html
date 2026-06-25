@@ -45,37 +45,115 @@
   }
 }
 
+@if (wrMode() === 'tieBreak') {
+  <div class="mb-4 text-center">
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning">
+      Égalité ! Le manager choisit le gagnant.
+    </span>
+    @if (!isManager()) {
+      <p class="mt-2 text-sm text-landing-muted">Les grilles ex æquo sont affichées ci-dessous — seul le manager peut trancher.</p>
+    }
+  </div>
+
+  @if (voteCandidates().length === 0) {
+    <p class="py-8 text-center text-landing-muted">Chargement des grilles ex æquo…</p>
+  } @else {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (candidate of voteCandidates(); track candidate.groupCode) {
+        @if (isManager()) {
+          <button
+            type="button"
+            class="overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40 text-left transition-all hover:scale-[1.02] hover:border-brand-violet"
+            (click)="vote.emit(candidate.groupCode)"
+          >
+            <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60">
+              @if (candidate.image) {
+                <img [src]="candidate.image" [alt]="candidate.label" class="h-[90%] w-[90%] object-contain" />
+              } @else {
+                <span class="text-5xl opacity-30">▦</span>
+              }
+            </div>
+            <div class="flex flex-col gap-1 p-3">
+              <h3 class="font-bold text-white">{{ candidate.label }}</h3>
+              <p class="text-sm text-landing-muted">
+                {{ candidate.voteCount }} vote{{ candidate.voteCount > 1 ? 's' : '' }} (égalité)
+              </p>
+            </div>
+          </button>
+        } @else {
+          <div class="overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40">
+            <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60">
+              @if (candidate.image) {
+                <img [src]="candidate.image" [alt]="candidate.label" class="h-[90%] w-[90%] object-contain" />
+              } @else {
+                <span class="text-5xl opacity-30">▦</span>
+              }
+            </div>
+            <div class="flex flex-col gap-1 p-3">
+              <h3 class="font-bold text-white">{{ candidate.label }}</h3>
+              <p class="text-sm text-landing-muted">
+                {{ candidate.voteCount }} vote{{ candidate.voteCount > 1 ? 's' : '' }} (égalité)
+              </p>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (isManager() && voteError()) {
+    <p class="mt-4 text-center text-sm text-red-400">{{ voteError() }}</p>
+  }
+}
+
 @if (wrMode() === 'voteResult') {
-  <div class="mx-auto flex max-w-md flex-col items-center justify-center gap-4 py-4">
+  <div class="mx-auto flex max-w-lg flex-col items-center justify-center gap-5 py-4 animate-fade-in">
     @if (winner(); as w) {
+      <div class="select-none space-y-2 text-center">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-warning shadow-[0_0_20px_-4px] shadow-warning/30">
+          🏆 Gagnant de la session
+        </span>
+        @if (sessionTheme()) {
+          <p class="text-sm text-landing-muted">
+            Thème : <span class="font-semibold text-white">{{ sessionTheme() }}</span>
+          </p>
+        }
+        <p class="text-sm text-landing-muted">Félicitations à l'équipe !</p>
+      </div>
+
       <div
-        class="group w-full cursor-zoom-in overflow-hidden rounded-xl border border-white/10 bg-slate-900/40 p-4 shadow-lg backdrop-blur-xl transition-all hover:border-brand-violet/50"
+        class="group relative w-full cursor-zoom-in overflow-hidden rounded-2xl border-2 border-warning/40 bg-gradient-to-b from-warning/10 via-slate-900/50 to-slate-900/40 p-4 shadow-[0_0_40px_-8px] shadow-warning/25 backdrop-blur-xl transition-all duration-300 hover:border-warning/60 hover:shadow-warning/35 animate-scale-up"
         (click)="onEnlarge(w.image ?? winnerImage(), 'Gagnant : ' + w.label, w.players)"
       >
-        <div class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border border-white/5 bg-slate-950/60 p-4">
+        <div class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-warning/20 bg-slate-950/70 p-4">
+          <div class="pointer-events-none absolute inset-0 bg-radial-gradient from-warning/15 via-transparent to-transparent opacity-80"></div>
+
           @if (w.image ?? winnerImage()) {
             <img
               [src]="w.image ?? winnerImage()"
               [alt]="w.label"
-              class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-102"
+              class="relative z-[1] max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
               style="image-rendering: pixelated; image-rendering: crisp-edges;"
             />
-            <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[1px] transition-opacity duration-300 group-hover:opacity-100">
-              <div class="flex h-12 w-12 transform items-center justify-center rounded-full bg-brand-violet/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-100 scale-90">
+            <div class="absolute inset-0 z-[2] flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[1px] transition-opacity duration-300 group-hover:opacity-100">
+              <div class="flex h-12 w-12 transform items-center justify-center rounded-full bg-warning/90 text-slate-950 shadow-lg transition-transform duration-300 group-hover:scale-100 scale-90">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM10.5 7.5v6m3-3h-6" />
                 </svg>
               </div>
             </div>
           } @else {
-            <span class="text-6xl opacity-30">▦</span>
+            <span class="relative z-[1] text-6xl opacity-30">▦</span>
           }
         </div>
-        <div class="flex flex-col items-center gap-1 p-4 text-center">
-          <h3 class="text-2xl font-black text-white">{{ w.label }}</h3>
-          <p class="text-landing-muted">
+
+        <div class="flex flex-col items-center gap-2 p-4 text-center">
+          <h3 class="font-display text-3xl font-black tracking-tight text-white">
+            {{ w.label }}
+          </h3>
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/60 px-3 py-1 text-sm font-semibold text-white">
             {{ w.voteCount }} vote{{ w.voteCount > 1 ? 's' : '' }}
-          </p>
+          </span>
         </div>
       </div>
     } @else {

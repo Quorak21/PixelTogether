@@ -22,8 +22,8 @@ export function registerSessionPhaseHandlers(socket, deps) {
       return callback({ error: 'Seul le manager peut démarrer la partie.' });
     }
 
-    if (event.activeVote?.status === 'open') {
-      return callback({ error: 'Clôturez le vote avant de démarrer la session.' });
+    if (event.activeVote?.status === 'open' || event.activeVote?.status === 'tiebreak') {
+      return callback({ error: 'Terminez le vote avant de démarrer la session.' });
     }
 
     if (!event.managerProfile) {
