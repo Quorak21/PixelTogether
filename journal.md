@@ -13,6 +13,24 @@
 
 ## Entrées
 
+- **AUDIT-30** — **Flush previews à la clôture** : `flushAllEventPreviews` appelé dans `closeEvent` avant `getEventGroupImages`.
+
+- **AUDIT-29** — **CI tests avant déploiement** : workflow unifié `ci.yml` (backend `node:test` + frontend Vitest sur push/PR) ; gate `needs` avant build/push Docker Hub ; suppression de `docker-build.yml`.
+
+- **AUDIT-22** — **Plafond 40 joueurs par salon** : `EVENT_PLAYERS_MAX` back/front ; blocage `registerPlayer` et nouvel `enterWaitingRoom` ; message rouge en waiting room quand la salle est pleine.
+
+- **AUDIT-20** — **Double-start startGame** : claim synchrone `status`/`partyStarted` dans `session.handlers.js` avant effets de bord ; test double appel `startGame` (2e ack rejeté, un seul shuffle).
+
+- **ADD-02** — **Polish podium final** : refonte visuelle complète de la phase podium (dessins et joueurs) sous forme de colonnes physiques fixes de trois rangs avec badges or/argent/bronze ; transmission et affichage de la liste des joueurs contributeurs avec pastilles colorées lors du zoom sur un dessin (du podium ou de la galerie).
+
+- **ADD-08** — **Chat Global WR** : chat partie sur WR (toutes phases) via `chatbox` existant (`scope: 'party'`, titre Global) ; handlers `sendMessage`/`getChatMessages` étendus ; reset à `finishCurrentSession` et `openResults` ; sidebar WR.
+
+- **ADD-12** — **Grille décorative waiting room** : abandonné — ratio complexité/utilité trop faible pour une attente courte ; ADD-33 (fond décoratif) + chat WR (ADD-08) suffisent.
+
+- **ADD-33** — **Background landing pixels** : canvas overlay `GridPixelSplashComponent` (~3 % de cellules colorées aléatoirement sur la grille CSS 20×20) en fond de landing et waiting room ; nouveau tirage à chaque visite.
+
+- **AUDIT-16** — **Découpage Waiting Room en 3 phases** : `WaitingRoomComponent`, `TransitionRoomComponent`, `FinalRoomComponent` (présentationnels input/output) ; orchestrateur `WaitingRoomPageComponent` garde sockets et état ; `resolveWrPhase` + tests ; backend handlers découpés par phase (`waitingRoom/`) et `getWrMode` / `resolveReconnectPhase` unifiés dans `wrPhase.js`.
+
 - **AUDIT-13** — **Broadcast roomClosed global** : `closeEvent` cible désormais la room Socket.io de la partie via `io.to(eventId).emit('roomClosed')` au lieu d'un broadcast global. Test unitaire `lifecycle.test.js`.
 
 - **AUDIT-19** — **Resync applicative après reconnexion socket** : Au `connect` post-coupure, `ReconnectService` rappelle `reconnectSession` (token conservé si erreur réseau transitoire), resync in-place sur game/room/lobby via handlers enregistrés, `joinGroup` pour manager spectateur, navigation si phase changée ou `PARTY_GONE`. 6 tests, 38 tests verts au total.

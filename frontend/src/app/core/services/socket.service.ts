@@ -102,12 +102,14 @@ export class SocketService {
 
   /**
    * Enregistre un écouteur sur un événement socket spécifique.
-   * 
+   *
    * @param event - Le nom de l'événement à écouter.
    * @param handler - La fonction callback exécutée à la réception de l'événement.
+   * @returns Fonction pour désabonner ce handler (à passer à `destroyRef.onDestroy`).
    */
-  on<TPayload>(event: string, handler: (payload: TPayload) => void): void {
+  on<TPayload>(event: string, handler: (payload: TPayload) => void): () => void {
     this.socket.on(event, handler);
+    return () => this.off(event, handler as (...args: unknown[]) => void);
   }
 
   /**

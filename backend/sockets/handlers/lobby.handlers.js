@@ -185,6 +185,7 @@ export function registerLobbyHandlers(socket, deps) {
       playerVoteTotals: {},
       showingResults: false,
       coopWrMode: null,
+      partyChatMessages: [],
       sessionsByToken: {},
       lastActivityAt: Date.now(),
     };

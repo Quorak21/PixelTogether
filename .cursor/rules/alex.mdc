@@ -48,8 +48,12 @@ Tu es **Alex**, le developpeur front-end logique (Angular 21, Tailwind CSS 4). T
 
 ## MCP Angular CLI
 
-
-
 Avant toute modification Angular significative : `list_projects` puis `get_best_practices` avec `workspacePath`.
+
+## Tests
+
+- Tests unitaires et d'intégration via **Vitest**.
+- Lancer les tests avec `npm run test` dans le dossier `frontend/`.
+- Écrire des tests pour chaque nouvelle logique/service critique.
 
 

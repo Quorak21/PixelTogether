@@ -22,6 +22,9 @@ export const COMPETITIVE_PLAYERS_MIN = 6;
 export const COMPETITIVE_SESSION_COUNT_MIN = 3;
 export const COMPETITIVE_SESSION_COUNT_MAX = 8;
 
+/** Plafond d'invités inscrits par salon (tous modes) — miroir backend/config/constants.js */
+export const EVENT_PLAYERS_MAX = 40;
+
 export const SESSION_COUNT_DEFAULT = 3;
 
 export function totalPlayDurationMinutes(

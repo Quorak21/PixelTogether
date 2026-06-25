@@ -7,6 +7,11 @@ import { UiStateService } from './core/services/ui-state.service';
 import { SessionTokenService } from './core/services/session-token.service';
 import { LucideMonitor } from '@lucide/angular';
 
+interface RoomLifecyclePayload {
+  eventId?: string;
+  roomId?: string;
+}
+
 interface ManagerAbsentWarningPayload {
   eventId?: string;
   roomId?: string;
@@ -49,12 +54,26 @@ export class App {
       void this.router.navigateByUrl('/');
     };
 
+    const onRoomClosed = (payload: RoomLifecyclePayload) => {
+      const closedId = payload.eventId ?? payload.roomId;
+      const session = this.sessionToken.read();
+      if (!closedId || !session) return;
+      if (session.eventId.toUpperCase() !== closedId.toUpperCase()) return;
+
+      this.sessionToken.clear();
+      this.ui.exitWaitingRoom();
+      this.ui.exitGame();
+      void this.router.navigateByUrl('/');
+    };
+
     this.socket.on<ManagerAbsentWarningPayload>('managerAbsentWarning', onWarning);
     this.socket.on('managerAbsent', onAbsent);
+    this.socket.on<RoomLifecyclePayload>('roomClosed', onRoomClosed);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('managerAbsentWarning', onWarning as (...args: unknown[]) => void);
       this.socket.off('managerAbsent', onAbsent as (...args: unknown[]) => void);
+      this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
       this.ui.clearManagerAbsentWarning();
     });
   }

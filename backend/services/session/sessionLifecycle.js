@@ -5,6 +5,7 @@ import { snapshotSessionForVote, snapshotSessionArchive } from '../vote/voteLife
 import { isManager } from '../event/participants.js';
 import { isCoop } from '../event/gameMode.js';
 import { flushAllEventPreviews } from '../grid/preview.js';
+import { clearPartyChat } from '../chat/partyChat.js';
 
 export function clearSessionTimer(event) {
   if (event._sessionTimer) {
@@ -122,6 +123,7 @@ export function finishCurrentSession(io, event) {
   }
 
   dissolveSessionGroups(event);
+  clearPartyChat(io, event);
 
   if (!isLastSession) {
     event.currentSession += 1;

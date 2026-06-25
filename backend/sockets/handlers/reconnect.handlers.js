@@ -1,9 +1,6 @@
-import crypto from 'crypto';
 import {
   validateToken,
-  issueSession,
   purgePlayerSession,
-  hasActiveSessionOnOtherEvent,
   updateSessionGroupCode,
   setSessionConnected,
 } from '../../services/reconnect/sessionToken.js';
@@ -11,32 +8,9 @@ import {
   remapSocket,
   clearManagerDisconnectTimer,
   findPlayerGroupByPlayerId,
-  resolvePlayerId,
-} from '../../services/event/participants.js';
-import { isCoop } from '../../services/event/gameMode.js';
+} from '../../services/event/participants.js';import { isCoop } from '../../services/event/gameMode.js';
 import { getSortedGroups } from '../../store/eventStore.js';
-
-/**
- * Détermine la phase de jeu actuelle en fonction de l'état du salon et du rôle du joueur.
- * Cela permet de rediriger le joueur sur le bon écran lors de sa reconnexion (jeu, vote, podium, salle d'attente...).
- */
-function resolvePhase(event, role) {
-  if (event.status === 'started') {
-    if (isCoop(event)) {
-      return 'game';
-    }
-    return role === 'manager' ? 'lobby' : 'game';
-  }
-  if (isCoop(event)) {
-    if (event.coopWrMode === 'gallery') return 'gallery';
-    if (event.coopWrMode === 'sessionResult') return 'sessionResult';
-    return 'waiting';
-  }
-  if (event.showingResults) return 'podium';
-  if (event.activeVote?.status === 'open') return 'voting';
-  if (event.activeVote?.status === 'closed') return 'voteResult';
-  return 'waiting';
-}
+import { resolveReconnectPhase } from '../../services/event/wrPhase.js';
 
 /**
  * Helper injectant les données de session nécessaires (token, date d'expiration)
@@ -88,7 +62,7 @@ export function handleReconnectSession(socket, data, callback, deps) {
 
   socket.join(session.eventId);
 
-  const phase = resolvePhase(event, session.role);
+  const phase = resolveReconnectPhase(event, session.role);
   const response = {
     phase,
     eventId: session.eventId,
@@ -127,68 +101,6 @@ export function handleReconnectSession(socket, data, callback, deps) {
   }
 
   return callback(response);
-}
-
-/**
- * Gère l'entrée initiale d'un joueur dans la salle d'attente (Waiting Room).
- * Si le joueur a déjà un token pour cet événement, il se reconnecte à sa session existante.
- * Sinon, une nouvelle session de reconnexion lui est délivrée.
- */
-export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
-  const { payloads } = deps;
-  const { buildWaitingRoomState } = payloads;
-  const token = typeof data?.token === 'string' ? data.token.trim() : '';
-
-  if (token) {
-    if (hasActiveSessionOnOtherEvent(token, eventId)) {
-      return { error: 'Vous êtes déjà dans une autre partie.' };
-    }
-
-    const session = validateToken(token);
-    if (session && session.eventId === eventId) {
-      remapSocket(event, session.playerId, socket.id);
-      setSessionConnected(session.playerId, true, socket.id);
-      if (session.role === 'manager') {
-        clearManagerDisconnectTimer(event);
-      }
-      event.lastActivityAt = Date.now();
-
-      socket.data.playerId = session.playerId;
-      socket.data.role = session.role;
-      socket.data.eventId = eventId;
-      socket.join(eventId);
-
-      const state = attachSessionFields(
-        buildWaitingRoomState(event, socket.id, session.playerId),
-        session,
-      );
-      return { state };
-    }
-  }
-
-  if (token && validateToken(token)) {
-    return { error: 'Vous êtes déjà dans une autre partie.' };
-  }
-
-  const playerId = crypto.randomUUID();
-  const issued = issueSession(event, {
-    playerId,
-    role: 'player',
-    socketId: socket.id,
-  });
-  event.lastActivityAt = Date.now();
-
-  socket.data.playerId = playerId;
-  socket.data.role = 'player';
-  socket.data.eventId = eventId;
-  socket.join(eventId);
-
-  const state = {
-    ...buildWaitingRoomState(event, socket.id, playerId),
-    ...issued,
-  };
-
-  return { state };
 }
 
 /**

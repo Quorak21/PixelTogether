@@ -63,17 +63,6 @@ export class CanvasComponent implements AfterViewInit {
       this.renderGrid(data);
     };
     const onDrawPixel = (data: { x: number; y: number; color: string }) => this.drawSinglePixel(data);
-    const onRoomClosed = (data: { eventId?: string; roomId?: string }) => {
-      const closedId = data.eventId ?? data.roomId;
-      if (closedId === this.eventId()) {
-        this.sessionToken.clear();
-        this.ui.exitGame();
-        void this.router.navigateByUrl('/');
-      }
-    };
-    const onManagerAbsent = (_data: { eventId?: string; roomId?: string }) => {
-      // navigation gérée globalement par app.ts
-    };
     const onSessionEnded = (payload: SessionEndedPayload) => {
       if (payload.eventId !== this.eventId()) {
         return;
@@ -96,8 +85,6 @@ export class CanvasComponent implements AfterViewInit {
     this.socket.on<{ error: string }>('joinRoomError', onJoinRoomError);
     this.socket.on<GridStatePayload>('gridState', onGridState);
     this.socket.on<{ x: number; y: number; color: string }>('drawPixel', onDrawPixel);
-    this.socket.on<{ eventId?: string; roomId?: string }>('roomClosed', onRoomClosed);
-    this.socket.on<{ eventId?: string; roomId?: string }>('managerAbsent', onManagerAbsent);
     this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
 
     this.destroyRef.onDestroy(() => {
@@ -106,8 +93,6 @@ export class CanvasComponent implements AfterViewInit {
       this.socket.off('joinRoomError', onJoinRoomError as (...args: unknown[]) => void);
       this.socket.off('gridState', onGridState as (...args: unknown[]) => void);
       this.socket.off('drawPixel', onDrawPixel as (...args: unknown[]) => void);
-      this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
-      this.socket.off('managerAbsent', onManagerAbsent as (...args: unknown[]) => void);
       this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
     });
 

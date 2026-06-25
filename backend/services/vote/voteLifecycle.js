@@ -1,8 +1,10 @@
 import { getSortedGroups } from '../../store/eventStore.js';
 import { getParticipantRole, isManager } from '../event/participants.js';
 import { isCoop } from '../event/gameMode.js';
+import { getWrMode as resolveWrMode } from '../event/wrPhase.js';
 import { VOTE_COOLDOWN_MS } from '../../config/constants.js';
 import { guardAck, isRateLimited } from '../../sockets/handlers/socketGuards.js';
+import { clearPartyChat } from '../chat/partyChat.js';
 
 /**
  * Récupère les données archivées d'une session passée (dessins, groupes, votes reçus)
@@ -118,8 +120,8 @@ export function pickWinner(archiveSession) {
 }
 
 /**
- * Construit le classement des joueurs (podium individuel) basé sur le cumul des votes
- * obtenus sur leurs dessins tout au long de la partie.
+ * Construit le classement des joueurs (podium individuel ou liste élargie) basé sur le cumul
+ * des votes obtenus sur leurs dessins tout au long de la partie.
  */
 export function buildTopPlayers(event, limit = 3) {
   const totals = event.playerVoteTotals ?? {};
@@ -151,6 +153,7 @@ export function buildTopPlayers(event, limit = 3) {
 /**
  * Construit le classement des plus belles grilles dessinées (podium des grilles)
  * sur toutes les sessions compétitives confondues.
+ * Chaque entrée contient également le thème de sa session associée pour l'affichage.
  */
 export function buildTopGrids(event, limit = 3) {
   const grids = [];
@@ -164,6 +167,8 @@ export function buildTopGrids(event, limit = 3) {
         label: `${group.label} — Session ${session.sessionNumber}`,
         image: group.image ?? null,
         voteCount: group.voteCount,
+        players: group.players ?? [],
+        theme: session.theme,
       });
     }
   }
@@ -180,27 +185,16 @@ export function buildTopGrids(event, limit = 3) {
     label: entry.label,
     image: entry.image,
     voteCount: entry.voteCount,
+    players: entry.players,
+    theme: entry.theme,
   }));
 }
 
 /**
  * Détermine le mode d'affichage actuel de la salle d'attente (Waiting Room Mode).
- * Ce mode dicte l'interface affichée aux clients : liste des joueurs inscrits, 
- * écran de vote, résultat de vote, podium final ou galerie.
  */
 export function getWrMode(event) {
-  if (isCoop(event)) {
-    if (!event.partyStarted) return 'players';
-    if (event.coopWrMode === 'gallery') return 'gallery';
-    if (event.coopWrMode === 'sessionResult') return 'sessionResult';
-    return 'players';
-  }
-
-  if (event.showingResults) return 'podium';
-  if (!event.partyStarted) return 'players';
-  if (event.activeVote?.status === 'open') return 'voting';
-  if (event.activeVote?.status === 'closed') return 'voteResult';
-  return 'players';
+  return resolveWrMode(event);
 }
 
 /**
@@ -226,6 +220,7 @@ export function buildVoteCandidates(event) {
     label: g.label,
     image: g.image,
     voteCount: g.voteCount,
+    players: g.players ?? [],
   }));
 }
 
@@ -244,6 +239,7 @@ export function buildSessionResultGrid(event) {
     label: group.label,
     image: group.image,
     groupCode: group.groupCode,
+    players: group.players ?? [],
   };
 }
 
@@ -264,6 +260,7 @@ export function buildGalleryGrids(event) {
           : group.label,
         image: group.image ?? null,
         groupCode: group.groupCode,
+        players: group.players ?? [],
       });
     }
   }
@@ -317,7 +314,7 @@ export function buildVoteFields(event, playerId) {
       winnerGroupCode: null,
       winnerImage: null,
       isLastVote: true,
-      topPlayers: buildTopPlayers(event),
+      topPlayers: buildTopPlayers(event, 10),
       topGrids: buildTopGrids(event),
       sessionResultGrid: null,
       galleryGrids: [],
@@ -559,6 +556,7 @@ export function handleShowResults(socket, data, callback, deps) {
     return callback({ error: result.error });
   }
 
+  clearPartyChat(io, event);
   emitVoteStateUpdated(io, event);
   callback(votePayloadFor(event, event.managerPlayerId));
 }

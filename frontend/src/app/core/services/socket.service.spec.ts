@@ -9,7 +9,16 @@ const mockSocket = {
     handlers[event] ??= [];
     handlers[event].push(handler);
   }),
-  off: vi.fn(),
+  off: vi.fn((event: string, handler?: (...args: unknown[]) => void) => {
+    if (!handlers[event]) {
+      return;
+    }
+    if (handler) {
+      handlers[event] = handlers[event].filter((entry) => entry !== handler);
+      return;
+    }
+    delete handlers[event];
+  }),
   emit: vi.fn(),
 };
 
@@ -91,6 +100,19 @@ describe('SocketService', () => {
 
     expect(service.connectionStatus()).toBe('reconnecting');
     expect(service.connectionMessage()).toBe('Connexion perdue. Reconnexion en cours…');
+  });
+
+  it('on() returns an unsubscribe function', () => {
+    const handler = vi.fn();
+    const unsub = service.on('customEvent', handler);
+
+    emitSocketEvent('customEvent', { ok: true });
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    unsub();
+    emitSocketEvent('customEvent', { ok: true });
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(mockSocket.off).toHaveBeenCalledWith('customEvent', handler);
   });
 
   it('should return to connected after successful reconnect', () => {

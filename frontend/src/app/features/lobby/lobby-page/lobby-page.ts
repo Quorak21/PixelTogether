@@ -242,29 +242,12 @@ export class LobbyPageComponent {
       void this.router.navigateByUrl(`/room/${payload.eventId}`);
     };
 
-    const onRoomClosed = (data: { eventId?: string; roomId?: string }) => {
-      const closedId = data.eventId ?? data.roomId;
-      if (closedId === eventId) {
-        this.sessionToken.clear();
-        this.ui.exitGame();
-        void this.router.navigateByUrl('/');
-      }
-    };
-
-    const onManagerAbsent = (_data: { eventId?: string; roomId?: string }) => {
-      // navigation gérée globalement par app.ts
-    };
-
     this.socket.on<GroupPreviewUpdatedPayload>('groupPreviewUpdated', onPreviewUpdated);
     this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
-    this.socket.on<{ eventId?: string; roomId?: string }>('roomClosed', onRoomClosed);
-    this.socket.on<{ eventId?: string; roomId?: string }>('managerAbsent', onManagerAbsent);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('groupPreviewUpdated', onPreviewUpdated as (...args: unknown[]) => void);
       this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
-      this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
-      this.socket.off('managerAbsent', onManagerAbsent as (...args: unknown[]) => void);
     });
   }
 }

@@ -1,5 +1,6 @@
 import { getSortedGroups } from '../../store/eventStore.js';
 import { isCoop } from '../../services/event/gameMode.js';
+import { canAccessPartyChat } from '../../services/chat/partyChat.js';
 import { isRateLimited } from './socketGuards.js';
 
 // rejoint la room socket du groupe et renvoie gridState (pixels + couleurs assignées)
@@ -79,6 +80,16 @@ export function registerGameHandlers(socket, deps) {
   const { toPublicPlayer, toChatMessage } = payloads;
   const { scheduleGroupPreviewUpdate } = preview;
 
+  function appendPartyMessage(event, entry) {
+    if (!event.partyChatMessages) {
+      event.partyChatMessages = [];
+    }
+    event.partyChatMessages.push(entry);
+    if (event.partyChatMessages.length > CHAT_MAX_MESSAGES) {
+      event.partyChatMessages.shift();
+    }
+  }
+
   socket.on('joinGroup', (data) => handleJoinGroup(socket, data, deps));
 
   socket.on('joinRoom', (data) => { // raccourci joueur : auto-resolve son groupe assigné
@@ -123,11 +134,31 @@ export function registerGameHandlers(socket, deps) {
 
   socket.on('sendMessage', (data) => {
     const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
-    const groupCode = normalizeGroupCode(data?.groupCode);
     const event = eventId ? activeEvents[eventId] : null;
+    if (!event) return;
+
+    if (data?.scope === 'party') {
+      if (!canAccessPartyChat(event, socket)) return;
+      if (isRateLimited(socket, 'sendMessage', CHAT_COOLDOWN_MS)) return;
+      if (!data.message || typeof data.message !== 'string' || !MESSAGE_REGEX.test(data.message)) {
+        return;
+      }
+
+      const playerId = socket.data?.playerId;
+      const manager = isManager(event, socket);
+      const message = data.message.trim();
+      const role = manager ? 'manager' : 'player';
+      const pseudo = getParticipantPseudo(event, socket.id, null, playerId);
+      const entry = { socketId: socket.id, playerId, role, pseudo, message };
+      appendPartyMessage(event, entry);
+      io.to(eventId).emit('receiveMessage', toChatMessage(event, null, entry));
+      return;
+    }
+
+    const groupCode = normalizeGroupCode(data?.groupCode);
     const group = getGroup(event, groupCode);
 
-    if (!event || !group) return;
+    if (!group) return;
 
     // Vérification de sécurité : le socket doit appartenir au groupe ou être le manager de la partie.
     const manager = isManager(event, socket);
@@ -159,10 +190,22 @@ export function registerGameHandlers(socket, deps) {
 
   socket.on('getChatMessages', (data) => {
     const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
-    const groupCode = normalizeGroupCode(data?.groupCode);
     const event = eventId ? activeEvents[eventId] : null;
+    if (!event) return;
+
+    if (data?.scope === 'party') {
+      if (!canAccessPartyChat(event, socket)) return;
+      const messages = event.partyChatMessages ?? [];
+      socket.emit(
+        'chatMessages',
+        messages.map((entry) => toChatMessage(event, null, entry)),
+      );
+      return;
+    }
+
+    const groupCode = normalizeGroupCode(data?.groupCode);
     const group = getGroup(event, groupCode);
-    if (!event || !group) return;
+    if (!group) return;
 
     // Vérification de sécurité : le socket doit appartenir au groupe ou être le manager de la partie.
     const manager = isManager(event, socket);

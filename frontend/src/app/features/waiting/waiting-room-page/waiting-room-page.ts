@@ -28,6 +28,7 @@ import {
   COOP_GUESTS_MIN,
   COOP_GRID_MAX,
   COMPETITIVE_PLAYERS_MIN,
+  EVENT_PLAYERS_MAX,
   GAME_MODE_COOP,
   coopGridOccupancy,
 } from '../../../core/config/session-config';
@@ -51,24 +52,32 @@ import {
 import { OnboardingModalComponent } from '../onboarding-modal/onboarding-modal';
 import { InviteModalComponent } from '../invite-modal/invite-modal';
 import { StartConfirmModalComponent } from '../start-confirm-modal/start-confirm-modal';
-import { LucideLayers, LucidePlus, LucideUsers } from '@lucide/angular';
-import { PlayerCardComponent } from '../player-card/player-card';
+import { LucideLayers, LucideUsers } from '@lucide/angular';
+import { WaitingRoomComponent } from '../waiting-room/waiting-room';
+import { TransitionRoomComponent } from '../transition-room/transition-room';
+import { FinalRoomComponent } from '../final-room/final-room';
+import { resolveWrPhase } from '../wr-phase';
+import { GridPixelSplashComponent } from '../../../shared/grid-pixel-splash/grid-pixel-splash';
+import { ChatboxComponent } from '../../../shared/chatbox/chatbox';
 
 @Component({
   selector: 'app-waiting-room-page',
   imports: [
+    WaitingRoomComponent,
+    TransitionRoomComponent,
+    FinalRoomComponent,
     OnboardingModalComponent,
     InviteModalComponent,
     StartConfirmModalComponent,
-    PlayerCardComponent,
-    LucidePlus,
     LucideUsers,
     LucideLayers,
+    GridPixelSplashComponent,
+    ChatboxComponent,
   ],
   templateUrl: './waiting-room-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-// orchestrateur WR : inscription, start, vote, podium — gros morceau du flow
+// orchestrateur WR : sockets, état, shell — délègue aux 3 composants phase
 export class WaitingRoomPageComponent {
   readonly ui = inject(UiStateService);
   private readonly socket = inject(SocketService);
@@ -103,11 +112,11 @@ export class WaitingRoomPageComponent {
   readonly topGrids = signal<PodiumGrid[]>([]);
   readonly sessionResultGrid = signal<GalleryGrid | null>(null);
   readonly galleryGrids = signal<GalleryGrid[]>([]);
-  readonly enlargedImage = signal<{ url: string; title: string } | null>(null);
+  readonly enlargedImage = signal<{ url: string; title: string; players?: PlayerProfile[] } | null>(null);
 
-  openImageEnlarge(url: string | null, title: string): void {
+  openImageEnlarge(url: string | null, title: string, players?: PlayerProfile[]): void {
     if (!url) return;
-    this.enlargedImage.set({ url, title });
+    this.enlargedImage.set({ url, title, players });
   }
 
   closeImageEnlarge(): void {
@@ -134,6 +143,7 @@ export class WaitingRoomPageComponent {
   readonly partyError = signal('');
 
   readonly playerCount = computed(() => this.players().length);
+  readonly isRoomFull = computed(() => this.playerCount() >= EVENT_PLAYERS_MAX);
   readonly isCoop = computed(() => this.ui.partyGameMode() === GAME_MODE_COOP);
 
   readonly coopGridCount = computed(() =>
@@ -168,48 +178,29 @@ export class WaitingRoomPageComponent {
   readonly canStart = computed(
     () => this.ui.isManager() && (this.partyStarted() || this.playerCountReady()),
   );
-  readonly winnerCandidate = computed(() => {
-    if (this.wrMode() === 'sessionResult') {
-      const grid = this.sessionResultGrid();
-      if (!grid) return null;
-      return {
-        groupCode: grid.groupCode,
-        groupIndex: grid.sessionNumber,
-        label: grid.label,
-        image: grid.image,
-        voteCount: 0,
-      };
-    }
+
+  readonly roomPhase = computed(() => resolveWrPhase(this.wrMode(), this.partyStarted()));
+
+  readonly voteWinner = computed(() => {
     const code = this.winnerGroupCode();
     if (!code) return null;
-    return this.voteCandidates().find((c) => c.groupCode === code) ?? null;
+    const candidate = this.voteCandidates().find((c) => c.groupCode === code);
+    if (!candidate) return null;
+    return {
+      groupCode: candidate.groupCode,
+      label: candidate.label,
+      image: candidate.image,
+      voteCount: candidate.voteCount,
+      players: candidate.players,
+    };
   });
-  readonly managerShowsCoopStart = computed(
-    () => this.ui.isManager() && this.isCoop() && this.wrMode() === 'sessionResult',
-  );
-  readonly managerShowsCoopEndParty = computed(
-    () => this.ui.isManager() && this.isCoop() && this.wrMode() === 'gallery',
-  );
-  readonly managerShowsCloseVote = computed(
-    () => this.ui.isManager() && this.wrMode() === 'voting',
-  );
-  readonly managerShowsStart = computed( // session suivante dispo après closeVote
-    () => this.ui.isManager() && this.wrMode() === 'voteResult' && !this.isLastVote(),
-  );
-  readonly managerShowsResults = computed(
-    () => this.ui.isManager() && this.wrMode() === 'voteResult' && this.isLastVote(),
-  );
-  readonly managerShowsEndParty = computed(
-    () => this.ui.isManager() && this.wrMode() === 'podium',
-  );
-  readonly managerShowsInitialStart = computed(
-    () => this.ui.isManager() && this.wrMode() === 'players',
-  );
+
   readonly startButtonLabel = computed(() =>
     this.partyStarted()
       ? `Démarrer la session ${this.currentSession()}`
       : 'Démarrer',
   );
+
   readonly waitingTitle = computed(() => {
     switch (this.wrMode()) {
       case 'voting':
@@ -248,7 +239,7 @@ export class WaitingRoomPageComponent {
   });
   readonly showWaitingStatusBar = computed(() => {
     const mode = this.wrMode();
-    return mode !== 'sessionResult' && mode !== 'gallery' && mode !== 'voteResult';
+    return mode !== 'sessionResult' && mode !== 'gallery' && mode !== 'voteResult' && mode !== 'podium';
   });
   readonly roomUrl = computed(() => `${window.location.origin}/room/${this.roomId()}`);
   readonly showOnboarding = computed(() => this.onboardingOpen() && !this.isRegistered());
@@ -739,31 +730,11 @@ export class WaitingRoomPageComponent {
       this.ui.exitWaitingRoom();
     };
 
-    const onRoomClosed = (payload: { roomId?: string; eventId?: string }) => {
-      const closedId = payload.eventId ?? payload.roomId;
-      if (closedId !== this.roomId()) {
-        return;
-      }
-      this.sessionToken.clear();
-      this.ui.exitWaitingRoom();
-      void this.router.navigateByUrl('/');
-    };
-
-    const onManagerAbsent = (payload: { eventId?: string; roomId?: string; message?: string }) => {
-      const closedId = payload.eventId ?? payload.roomId;
-      if (closedId !== this.roomId()) {
-        return;
-      }
-      // navigation gérée globalement par app.ts sur managerAbsent
-    };
-
     this.socket.on<WaitingRoomUpdatedPayload>('waitingRoomUpdated', onUpdated);
     this.socket.on<GameStartedPayload>('gameStarted', onGameStarted);
     this.socket.on<SessionEndedPayload>('sessionEnded', onSessionEnded);
     this.socket.on<VoteStateUpdatedPayload>('voteStateUpdated', onVoteStateUpdated);
     this.socket.on<WaitingRoomErrorPayload>('waitingRoomError', onWaitingRoomError);
-    this.socket.on<{ roomId: string }>('roomClosed', onRoomClosed);
-    this.socket.on<{ eventId?: string; roomId?: string; message?: string }>('managerAbsent', onManagerAbsent);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('waitingRoomUpdated', onUpdated as (...args: unknown[]) => void);
@@ -771,8 +742,6 @@ export class WaitingRoomPageComponent {
       this.socket.off('sessionEnded', onSessionEnded as (...args: unknown[]) => void);
       this.socket.off('voteStateUpdated', onVoteStateUpdated as (...args: unknown[]) => void);
       this.socket.off('waitingRoomError', onWaitingRoomError as (...args: unknown[]) => void);
-      this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
-      this.socket.off('managerAbsent', onManagerAbsent as (...args: unknown[]) => void);
     });
   }
 }

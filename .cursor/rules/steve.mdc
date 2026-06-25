@@ -36,4 +36,10 @@ Tu es **Steve**, le developpeur back-end (Node/Express, Socket.io, etat en memoi
 
 - **Simplicité** (consigne Odin) : petit projet perso — handlers et fonctions directes, pas de couches « enterprise ». Propre et lisible suffit.
 
+## Tests
+
+- Tests unitaires et d'intégration via le test runner natif **node:test** (fichiers `.test.js`).
+- Lancer les tests avec `npm run test` dans le dossier `backend/`.
+- S'assurer que les scénarios d'erreurs et de validations clés sont couverts.
+
 

@@ -1,6 +1,6 @@
 import { activeEvents, getEvent, getSortedGroups } from '../../store/eventStore.js';
 import { toGroupPlayer } from './payloads.js';
-import { getEventGroupImages } from '../grid/preview.js';
+import { flushAllEventPreviews, getEventGroupImages } from '../grid/preview.js';
 import { clearSessionTimer } from '../session/sessionLifecycle.js';
 import { purgeEventSessions, updateSessionGroupCode } from '../reconnect/sessionToken.js';
 import { clearManagerDisconnectTimer } from './participants.js';
@@ -126,6 +126,7 @@ export function closeEvent(io, eventId) {
   clearManagerDisconnectTimer(event);
   purgeEventSessions(event);
 
+  flushAllEventPreviews(event);
   const images = getEventGroupImages(event);
   io.to(eventId).emit('roomClosed', { roomId: eventId, eventId, image: images });
   delete activeEvents[eventId];

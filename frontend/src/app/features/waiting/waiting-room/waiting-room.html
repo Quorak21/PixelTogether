@@ -1,0 +1,45 @@
+@if (players().length === 0) {
+  <p class="py-8 text-center text-landing-muted">En attente des premiers joueurs…</p>
+} @else {
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+    @for (player of players(); track player.socketId) {
+      <app-player-card [player]="player" />
+    }
+  </div>
+}
+
+@if (isManager()) {
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+    <button
+      type="button"
+      class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+      (click)="openInvite.emit()"
+    >
+      <svg lucidePlus class="h-5 w-5" aria-hidden="true"></svg>
+      Inviter Joueurs
+    </button>
+    <button
+      type="button"
+      class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border px-6 py-3.5 font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
+      [class.border-success/50]="canStart()"
+      [class.bg-success/10]="canStart()"
+      [class.text-success]="canStart()"
+      [class.hover:bg-success/20]="canStart()"
+      [class.border-white/20]="!canStart()"
+      [class.bg-white/5]="!canStart()"
+      [class.text-white/90]="!canStart()"
+      [class.hover:bg-white/10]="!canStart()"
+      [disabled]="!canStart() || isStarting()"
+      (click)="startClick.emit()"
+    >
+      @if (isStarting() && !partyStarted()) {
+        <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+      } @else {
+        {{ startButtonLabel() }}
+      }
+    </button>
+  </div>
+  @if (startError() && !partyStarted()) {
+    <p class="mt-2 text-center text-sm text-red-400">{{ startError() }}</p>
+  }
+}

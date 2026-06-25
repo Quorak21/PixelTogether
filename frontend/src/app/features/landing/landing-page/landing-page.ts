@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideCrown, LucideUsers, LucidePalette } from '@lucide/angular';
@@ -7,6 +7,7 @@ import { SessionTokenService } from '../../../core/services/session-token.servic
 import { ReconnectService } from '../../../core/services/reconnect.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { PartyCreationModalComponent } from '../party-creation-modal/party-creation-modal';
+import { GridPixelSplashComponent } from '../../../shared/grid-pixel-splash/grid-pixel-splash';
 import { GameMode } from '../../../types/entities';
 import { preloadGameRoutes } from '../../../core/utils/preload-game';
 
@@ -17,17 +18,25 @@ export type InfoModalKind = 'why' | 'docs';
 // entrée app : reprise auto si token valide, sinon join / création
 @Component({
   selector: 'app-landing-page',
-  imports: [PartyCreationModalComponent, ReactiveFormsModule, LucideCrown, LucideUsers, LucidePalette],
+  imports: [
+    PartyCreationModalComponent,
+    ReactiveFormsModule,
+    LucideCrown,
+    LucideUsers,
+    LucidePalette,
+    GridPixelSplashComponent,
+  ],
   templateUrl: './landing-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingPageComponent implements OnInit, OnDestroy {
+export class LandingPageComponent implements OnInit {
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly sessionToken = inject(SessionTokenService);
   private readonly reconnect = inject(ReconnectService);
   private readonly socket = inject(SocketService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly error = signal('');
   readonly infoModal = signal<InfoModalKind | null>(null);
@@ -55,11 +64,7 @@ export class LandingPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     preloadGameRoutes();
     void this.tryResumeSession();
-    this.socket.on('serverCapacity', this.onServerCapacity);
-  }
-
-  ngOnDestroy(): void {
-    this.socket.off('serverCapacity', this.onServerCapacity);
+    this.destroyRef.onDestroy(this.socket.on('serverCapacity', this.onServerCapacity));
   }
 
   private readonly onServerCapacity = (...args: unknown[]) => {

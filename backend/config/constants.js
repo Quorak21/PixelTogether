@@ -48,6 +48,9 @@ export const COMPETITIVE_PLAYERS_MIN = 6;
 export const COMPETITIVE_SESSION_COUNT_MIN = 3;
 export const COMPETITIVE_SESSION_COUNT_MAX = 8;
 
+/** Plafond d'invités inscrits par salon (tous modes). */
+export const EVENT_PLAYERS_MAX = 40;
+
 // legacy — plus de validation plafond total partie
 export const MAX_PARTY_DURATION_MINUTES = 60;
 export const SESSION_COUNT_MIN = 1;

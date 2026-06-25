@@ -1,6 +1,4 @@
 import {
-  AfterViewInit,
-  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -11,10 +9,13 @@ import {
   Input,
   signal,
   viewChild,
+  booleanAttribute,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SocketService } from '../../core/services/socket.service';
 import { UiStateService } from '../../core/services/ui-state.service';
+
+export type ChatScope = 'group' | 'party';
 
 interface ChatMessage {
   senderId?: string;
@@ -30,14 +31,14 @@ interface ChatMessage {
   templateUrl: './chatbox.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-// chat scope groupe — monté uniquement sur game-page, pas de badge non-lus (cf backlog FRONT-05)
-export class ChatboxComponent implements AfterViewInit {
+export class ChatboxComponent {
   readonly ui = inject(UiStateService);
   private readonly socket = inject(SocketService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly scope = input<ChatScope>('group');
   readonly eventId = input.required<string>();
-  readonly groupCode = input.required<string>();
+  readonly groupCode = input('');
   @Input({ transform: booleanAttribute }) hideFooter = false;
   readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
@@ -52,28 +53,22 @@ export class ChatboxComponent implements AfterViewInit {
         { ...data, pseudo: data.pseudo ?? 'Joueur' },
       ]);
 
-    this.socket.on<ChatMessage[]>('chatMessages', onChatMessages);
-    this.socket.on<ChatMessage>('receiveMessage', onReceiveMessage);
+    this.destroyRef.onDestroy(this.socket.on<ChatMessage[]>('chatMessages', onChatMessages));
+    this.destroyRef.onDestroy(this.socket.on<ChatMessage>('receiveMessage', onReceiveMessage));
 
-    this.destroyRef.onDestroy(() => {
-      this.socket.off('chatMessages', onChatMessages as (...args: unknown[]) => void);
-      this.socket.off('receiveMessage', onReceiveMessage as (...args: unknown[]) => void);
-    });
-
-    // Auto-scroll au bas du chat dès que les messages changent
     effect(() => {
       this.chatMessages();
       this.scrollToBottom();
     });
+
+    effect(() => {
+      this.scope();
+      this.eventId();
+      this.groupCode();
+      this.fetchMessages();
+    });
   }
 
-
-  ngAfterViewInit(): void {
-    const payload = { eventId: this.eventId(), groupCode: this.groupCode() };
-    this.socket.emit('getChatMessages', payload);
-  }
-
-  // manager peut spectater le groupe sans être dans group.players
   isManagerMessage(msg: ChatMessage): boolean {
     return msg.role === 'manager';
   }
@@ -83,12 +78,30 @@ export class ChatboxComponent implements AfterViewInit {
       return;
     }
     this.socket.emit('sendMessage', {
-      eventId: this.eventId(),
-      groupCode: this.groupCode(),
+      ...this.chatPayload(),
       message: this.inputValue,
     });
     this.inputValue = '';
     this.scrollToBottom();
+  }
+
+  private chatPayload(): { eventId: string; scope?: ChatScope; groupCode?: string } {
+    const payload: { eventId: string; scope?: ChatScope; groupCode?: string } = {
+      eventId: this.eventId(),
+    };
+    if (this.scope() === 'party') {
+      payload.scope = 'party';
+      return payload;
+    }
+    payload.groupCode = this.groupCode();
+    return payload;
+  }
+
+  private fetchMessages(): void {
+    if (this.scope() === 'group' && !this.groupCode()) {
+      return;
+    }
+    this.socket.emit('getChatMessages', this.chatPayload());
   }
 
   private scrollToBottom(): void {

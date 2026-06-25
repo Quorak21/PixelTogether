@@ -30,6 +30,8 @@ export interface PodiumGrid {
   label: string;
   image: string | null;
   voteCount: number;
+  players?: PlayerProfile[];
+  theme?: string;
 }
 
 export interface VoteCandidate {
@@ -38,6 +40,7 @@ export interface VoteCandidate {
   label: string;
   image: string | null;
   voteCount: number;
+  players?: PlayerProfile[];
 }
 
 // champs vote réutilisés dans waitingRoomState, sessionEnded, voteStateUpdated
@@ -47,6 +50,7 @@ export interface GalleryGrid {
   label: string;
   image: string | null;
   groupCode: string;
+  players?: PlayerProfile[];
 }
 
 export interface VoteStateFields {

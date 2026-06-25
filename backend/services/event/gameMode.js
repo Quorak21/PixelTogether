@@ -8,6 +8,7 @@ import {
   COMPETITIVE_PLAYERS_MIN,
   COMPETITIVE_SESSION_COUNT_MIN,
   COMPETITIVE_SESSION_COUNT_MAX,
+  EVENT_PLAYERS_MAX,
 } from '../../config/constants.js';
 
 /**
@@ -86,16 +87,19 @@ export function validateStartPlayerCount(event) {
 }
 
 /**
- * Empêche de nouveaux invités de rejoindre la partie coop si elle est déjà pleine.
- * 
+ * Empêche de nouveaux invités de rejoindre si la salle est pleine (coop ou plafond global).
+ *
  * @param {Object} event - L'événement.
  * @returns {Object|null} Objet d'erreur ou `null`.
  */
 export function validateGuestRegistration(event) {
-  if (!isCoop(event)) return null;
-
-  if (event.players.length >= COOP_GUESTS_MAX) {
+  if (isCoop(event) && event.players.length >= COOP_GUESTS_MAX) {
     return { error: 'Partie complète.' };
   }
+
+  if (event.players.length >= EVENT_PLAYERS_MAX) {
+    return { error: 'La salle ne peut pas accueillir de joueurs supplémentaires.' };
+  }
+
   return null;
 }

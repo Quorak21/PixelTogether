@@ -104,8 +104,13 @@ test('gameMode - validateGuestRegistration', async (t) => {
     assert.ok(validateGuestRegistration(event)?.error);
   });
 
-  await t.test('does not block registration in competitive mode', () => {
-    const event = { gameMode: GAME_MODE_COMPETITIVE, players: Array(100).fill({ socketId: 's' }) };
+  await t.test('blocks registration at global player cap in competitive mode', () => {
+    const event = { gameMode: GAME_MODE_COMPETITIVE, players: Array(39).fill({ socketId: 's' }) };
     assert.strictEqual(validateGuestRegistration(event), null);
+
+    event.players = Array(40).fill({ socketId: 's' });
+    const result = validateGuestRegistration(event);
+    assert.ok(result?.error);
+    assert.match(result.error, /accueillir de joueurs supplémentaires/);
   });
 });

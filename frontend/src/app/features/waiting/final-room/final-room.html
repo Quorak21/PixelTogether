@@ -1,0 +1,338 @@
+@if (wrMode() === 'podium') {
+  <div class="mb-4 text-center">
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-brand-coral/30 bg-brand-coral/25 px-4 py-1 text-xs font-bold uppercase tracking-wider text-brand-coral">
+      Partie terminée
+    </span>
+    <h3 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-2xl font-black tracking-tight text-transparent md:text-3xl mt-1">
+      Classement final
+    </h3>
+  </div>
+
+  <!-- Sélecteur d'onglets (Tab System) -->
+  <div class="mb-6 flex justify-center">
+    <div class="inline-flex rounded-xl bg-slate-950/60 p-1 border border-white/5 shadow-inner">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-200"
+        [class.bg-brand-violet]="activeTab() === 'drawings'"
+        [class.text-white]="activeTab() === 'drawings'"
+        [class.text-slate-400]="activeTab() !== 'drawings'"
+        [class.hover:text-white]="activeTab() !== 'drawings'"
+        (click)="activeTab.set('drawings')"
+      >
+        🏆 Top Dessins
+      </button>
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-200"
+        [class.bg-brand-violet]="activeTab() === 'players'"
+        [class.text-white]="activeTab() === 'players'"
+        [class.text-slate-400]="activeTab() !== 'players'"
+        [class.hover:text-white]="activeTab() !== 'players'"
+        (click)="activeTab.set('players')"
+      >
+        👤 Top Joueurs
+      </button>
+    </div>
+  </div>
+
+  @if (activeTab() === 'drawings') {
+    <!-- Contenu Dessins -->
+    <div class="space-y-4 max-w-4xl mx-auto animate-fade-in">
+      <div class="text-center">
+        <p class="text-[10px] text-landing-muted">Les créations les plus plébiscitées (cliquez pour zoomer)</p>
+      </div>
+
+      @if (topGrids().length === 0) {
+        <div class="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-slate-900/20 py-8 italic text-landing-muted">
+          <p>Aucun dessin classé.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-3 gap-4 items-end justify-center pt-2">
+          <!-- 2ème Place (Silver) -->
+          @if (secondGrid(); as grid) {
+            <div
+              class="group relative flex flex-col items-center rounded-xl border border-slate-400/20 bg-slate-950/50 p-2.5 shadow transition-all duration-200 hover:-translate-y-1 hover:border-slate-400/40 cursor-zoom-in text-center h-[380px]"
+              (click)="onEnlarge(grid.image, '2. ' + grid.label, grid.players)"
+            >
+              <!-- Badge -->
+              <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full border border-slate-400/30 bg-slate-900 px-2.5 py-0.5 text-[9px] font-black uppercase text-slate-300 shadow">
+                🥈 2ème
+              </span>
+              <!-- Thumbnail wrapper -->
+              <div class="relative mt-1.5 aspect-square w-full flex items-center justify-center overflow-hidden rounded-lg border border-white/5 bg-slate-950/90 p-2">
+                @if (grid.image) {
+                  <img
+                    [src]="grid.image"
+                    [alt]="grid.label"
+                    class="max-h-full max-w-full object-contain"
+                    style="image-rendering: pixelated; image-rendering: crisp-edges;"
+                  />
+                } @else {
+                  <span class="text-3xl opacity-20 text-white">▦</span>
+                }
+              </div>
+              <!-- Labels -->
+              <div class="mt-auto pt-2 w-full min-w-0">
+                <h5 class="truncate text-xs font-bold text-white">{{ grid.label }}</h5>
+                @if (grid.theme) {
+                  <p class="truncate text-[10px] font-medium text-landing-muted mt-0.5" [title]="grid.theme">Thème : {{ grid.theme }}</p>
+                }
+                <p class="text-[10px] font-bold text-slate-300 mt-0.5">{{ grid.voteCount }} vote{{ grid.voteCount > 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="h-1"></div>
+          }
+
+          <!-- 1ère Place (Gold) -->
+          @if (firstGrid(); as grid) {
+            <div
+              class="group relative flex flex-col items-center rounded-xl border border-yellow-500/30 bg-slate-950/70 p-2.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:border-yellow-400/50 cursor-zoom-in text-center h-[440px]"
+              (click)="onEnlarge(grid.image, '1. ' + grid.label, grid.players)"
+            >
+              <!-- Badge -->
+              <span class="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-slate-900 px-2.5 py-0.5 text-[10px] font-black uppercase text-yellow-400 shadow animate-pulse">
+                👑 1er
+              </span>
+              <!-- Thumbnail wrapper -->
+              <div class="relative mt-2 aspect-square w-full flex items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-slate-950/90 p-3">
+                @if (grid.image) {
+                  <img
+                    [src]="grid.image"
+                    [alt]="grid.label"
+                    class="max-h-full max-w-full object-contain"
+                    style="image-rendering: pixelated; image-rendering: crisp-edges;"
+                  />
+                } @else {
+                  <span class="text-4xl opacity-20 text-white">▦</span>
+                }
+              </div>
+              <!-- Labels -->
+              <div class="mt-auto pt-2 w-full min-w-0">
+                <h5 class="truncate text-xs font-extrabold text-yellow-400">{{ grid.label }}</h5>
+                @if (grid.theme) {
+                  <p class="truncate text-[10px] font-medium text-yellow-300/70 mt-0.5" [title]="grid.theme">Thème : {{ grid.theme }}</p>
+                }
+                <p class="text-xs font-black text-yellow-300 mt-0.5">{{ grid.voteCount }} vote{{ grid.voteCount > 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="h-1"></div>
+          }
+
+          <!-- 3ème Place (Bronze) -->
+          @if (thirdGrid(); as grid) {
+            <div
+              class="group relative flex flex-col items-center rounded-xl border border-amber-600/20 bg-slate-950/50 p-2.5 shadow transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/40 cursor-zoom-in text-center h-[340px]"
+              (click)="onEnlarge(grid.image, '3. ' + grid.label, grid.players)"
+            >
+              <!-- Badge -->
+              <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full border border-amber-600/30 bg-slate-900 px-2.5 py-0.5 text-[9px] font-black uppercase text-amber-500 shadow">
+                🥉 3ème
+              </span>
+              <!-- Thumbnail wrapper -->
+              <div class="relative mt-1.5 aspect-square w-full flex items-center justify-center overflow-hidden rounded-lg border border-white/5 bg-slate-950/90 p-2">
+                @if (grid.image) {
+                  <img
+                    [src]="grid.image"
+                    [alt]="grid.label"
+                    class="max-h-full max-w-full object-contain"
+                    style="image-rendering: pixelated; image-rendering: crisp-edges;"
+                  />
+                } @else {
+                  <span class="text-3xl opacity-20 text-white">▦</span>
+                }
+              </div>
+              <!-- Labels -->
+              <div class="mt-auto pt-2 w-full min-w-0">
+                <h5 class="truncate text-xs font-bold text-white">{{ grid.label }}</h5>
+                @if (grid.theme) {
+                  <p class="truncate text-[10px] font-medium text-landing-muted mt-0.5" [title]="grid.theme">Thème : {{ grid.theme }}</p>
+                }
+                <p class="text-[10px] font-bold text-amber-500 mt-0.5">{{ grid.voteCount }} vote{{ grid.voteCount > 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="h-1"></div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (activeTab() === 'players') {
+    <!-- Contenu Joueurs -->
+    <div class="space-y-6 max-w-3xl mx-auto animate-fade-in">
+      <div class="text-center">
+        <p class="text-[10px] text-landing-muted">Les artistes ayant cumulé le plus de points</p>
+      </div>
+
+      @if (topPlayers().length === 0) {
+        <div class="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-slate-900/20 py-8 italic text-landing-muted">
+          <p>Aucun joueur classé.</p>
+        </div>
+      } @else {
+        <!-- Podium des 3 premiers joueurs -->
+        <div class="grid grid-cols-3 gap-4 items-end justify-center pt-4 max-w-md mx-auto">
+          <!-- 2ème Place (Silver) -->
+          @if (secondPlayer(); as player) {
+            <div class="group relative flex flex-col items-center rounded-xl border border-slate-400/20 bg-slate-950/50 p-3 shadow transition-all duration-200 hover:-translate-y-0.5 text-center h-[140px] justify-between">
+              <!-- Badge -->
+              <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full border border-slate-400/30 bg-slate-900 px-2.5 py-0.5 text-[9px] font-black uppercase text-slate-300 shadow">
+                🥈 2ème
+              </span>
+              <!-- Avatar -->
+              <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 font-bold text-white text-sm mt-2" [style.background-color]="player.avatarColor">
+                {{ player.pseudo.substring(0, 2).toUpperCase() }}
+              </div>
+              <!-- Name and Points -->
+              <div class="w-full min-w-0">
+                <h5 class="truncate text-xs font-bold text-white">{{ player.pseudo }}</h5>
+                <p class="text-[10px] font-bold text-slate-300 mt-0.5">{{ player.voteTotal }} pt{{ player.voteTotal > 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="h-1"></div>
+          }
+
+          <!-- 1ère Place (Gold) -->
+          @if (firstPlayer(); as player) {
+            <div class="group relative flex flex-col items-center rounded-xl border border-yellow-500/30 bg-slate-950/70 p-3.5 shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center h-[160px] justify-between">
+              <!-- Badge -->
+              <span class="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full border border-yellow-400/40 bg-slate-900 px-3 py-0.5 text-[10px] font-black uppercase text-yellow-400 shadow animate-pulse">
+                👑 1er
+              </span>
+              <!-- Avatar -->
+              <div class="relative flex h-11 w-11 items-center justify-center rounded-full border border-yellow-400/40 font-bold text-white text-base mt-2" [style.background-color]="player.avatarColor">
+                {{ player.pseudo.substring(0, 2).toUpperCase() }}
+                <span class="absolute -top-2.5 -right-1 text-base rotate-12">👑</span>
+              </div>
+              <!-- Name and Points -->
+              <div class="w-full min-w-0">
+                <h5 class="truncate text-xs font-extrabold text-yellow-400">{{ player.pseudo }}</h5>
+                <p class="text-xs font-black text-yellow-300 mt-0.5">{{ player.voteTotal }} pt{{ player.voteTotal > 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="h-1"></div>
+          }
+
+          <!-- 3ème Place (Bronze) -->
+          @if (thirdPlayer(); as player) {
+            <div class="group relative flex flex-col items-center rounded-xl border border-amber-600/20 bg-slate-950/50 p-3 shadow transition-all duration-200 hover:-translate-y-0.5 text-center h-[120px] justify-between">
+              <!-- Badge -->
+              <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full border border-amber-600/30 bg-slate-900 px-2.5 py-0.5 text-[9px] font-black uppercase text-amber-500 shadow">
+                🥉 3ème
+              </span>
+              <!-- Avatar -->
+              <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 font-bold text-white text-sm mt-2" [style.background-color]="player.avatarColor">
+                {{ player.pseudo.substring(0, 2).toUpperCase() }}
+              </div>
+              <!-- Name and Points -->
+              <div class="w-full min-w-0">
+                <h5 class="truncate text-xs font-bold text-white">{{ player.pseudo }}</h5>
+                <p class="text-[10px] font-bold text-amber-500 mt-0.5">{{ player.voteTotal }} pt{{ player.voteTotal > 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="h-1"></div>
+          }
+        </div>
+
+        <!-- Classement à la suite (4ème à 10ème) -->
+        @if (topPlayers().length > 3) {
+          <div class="flex flex-wrap gap-4 justify-center pt-6 border-t border-white/5 mt-6 max-w-2xl mx-auto">
+            @for (p of topPlayers().slice(3); track p.pseudo) {
+              <div class="group relative flex flex-col items-center rounded-xl border border-white/5 bg-slate-950/40 p-2.5 w-20 text-center shadow transition-all duration-200 hover:-translate-y-0.5">
+                <!-- Rank badge in avatar -->
+                <div class="relative flex h-8 w-8 items-center justify-center rounded-full font-bold text-white/70 text-[10px] border border-white/5" [style.background-color]="p.avatarColor">
+                  {{ p.pseudo.substring(0, 2).toUpperCase() }}
+                  <span class="absolute -top-1 -left-1 text-[8px] font-black text-slate-400 bg-slate-900 border border-white/10 rounded-full w-3.5 h-3.5 flex items-center justify-center">{{ p.rank }}e</span>
+                </div>
+                <!-- Pseudo -->
+                <span class="mt-2 text-[10px] font-bold text-slate-300 truncate w-full" [title]="p.pseudo">{{ p.pseudo }}</span>
+                <!-- Points below -->
+                <span class="text-[10px] font-black text-slate-400 mt-0.5">{{ p.voteTotal }} pt{{ p.voteTotal > 1 ? 's' : '' }}</span>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+}
+
+@if (wrMode() === 'gallery') {
+  @if (galleryGrids().length === 0) {
+    <div class="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-slate-900/20 py-12 italic text-landing-muted">
+      <span class="mb-4 text-6xl opacity-20">▦</span>
+      <p>Aucun dessin à afficher dans la galerie.</p>
+    </div>
+  } @else {
+    <div class="mb-8 select-none space-y-2 text-center">
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-brand-coral/30 bg-brand-coral/25 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-coral">
+        🎉 Partie Terminée ! Galerie finale
+      </span>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2">
+      @for (grid of galleryGrids(); track grid.groupCode) {
+        <div
+          class="group relative cursor-zoom-in overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-4 shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/50 hover:shadow-2xl hover:shadow-brand-violet/5"
+          (click)="onEnlarge(grid.image, grid.theme + ' — Session ' + grid.sessionNumber, grid.players)"
+        >
+          <div class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-white/5 bg-slate-950/70 p-4">
+            <div class="absolute inset-0 bg-radial-gradient from-brand-violet/5 via-transparent to-transparent opacity-30"></div>
+
+            @if (grid.image) {
+              <img
+                [src]="grid.image"
+                [alt]="grid.label"
+                class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-102"
+                style="image-rendering: pixelated; image-rendering: crisp-edges;"
+              />
+
+              <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[1px] transition-opacity duration-300 group-hover:opacity-100">
+                <div class="flex h-12 w-12 transform items-center justify-center rounded-full bg-brand-violet/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-100 scale-90">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-5 w-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637zM10.5 7.5v6m3-3h-6" />
+                  </svg>
+                </div>
+              </div>
+            } @else {
+              <span class="text-6xl opacity-25">▦</span>
+            }
+          </div>
+
+          <div class="mt-4 space-y-1 text-center">
+            <span class="rounded bg-brand-violet/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-violet">
+              Session {{ grid.sessionNumber }}
+            </span>
+            <h4 class="truncate text-base font-extrabold text-white">{{ grid.theme }}</h4>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
+
+@if (isManager()) {
+  <div class="mt-6 flex flex-col items-center gap-2">
+    <button
+      type="button"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-error/50 bg-error/10 px-6 py-3.5 font-semibold text-error transition-all hover:bg-error/20 disabled:opacity-50"
+      [disabled]="isEndingParty()"
+      (click)="endParty.emit()"
+    >
+      @if (isEndingParty()) {
+        <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+      } @else {
+        Terminer la partie
+      }
+    </button>
+    @if (partyError()) {
+      <p class="text-sm text-red-400">{{ partyError() }}</p>
+    }
+  </div>
+}
