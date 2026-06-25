@@ -23,6 +23,7 @@ interface ChatMessage {
   pseudo: string;
   message: string;
   role?: string;
+  systemRole?: string;
 }
 
 @Component({

@@ -230,7 +230,7 @@ test('chat authorization - only members and managers can send/retrieve messages'
   });
   const managerChatEmit = managerSocketEmitCalls.find(call => call.event === 'chatMessages');
   assert.ok(managerChatEmit, "Le manager aurait dû pouvoir récupérer l'historique.");
-  assert.strictEqual(managerChatEmit.payload.length, 1);
+  assert.strictEqual(managerChatEmit.payload.length, 0);
 
   // 3. Test avec un membre légitime du groupe
   const memberSocketEmitCalls = [];

@@ -21,12 +21,23 @@
     } @else {
       @for (msg of chatMessages(); track $index) {
         <div class="flex items-start gap-1 text-sm min-w-0">
-          @if (isManagerMessage(msg)) {
+          @if (msg.role === 'system') {
+            <span class="text-slate-400 italic min-w-0 break-all flex items-center gap-1.5">
+              <span>📢</span>
+              @if (msg.systemRole === 'manager') {
+                <span class="font-bold text-brand-coral flex items-center gap-1 not-italic shrink-0">👑 {{ msg.pseudo }}</span>
+              } @else {
+                <span class="font-bold text-brand-violet not-italic shrink-0">{{ msg.pseudo }}</span>
+              }
+              <span>{{ msg.message }}</span>
+            </span>
+          } @else if (isManagerMessage(msg)) {
             <span class="flex items-center gap-1 font-bold text-brand-coral mr-2 shrink-0">👑 {{ msg.pseudo }}:</span>
+            <span class="text-white/90 break-all min-w-0">{{ msg.message }}</span>
           } @else {
             <span class="font-bold text-brand-violet mr-2 shrink-0">{{ msg.pseudo }}:</span>
+            <span class="text-white/90 break-all min-w-0">{{ msg.message }}</span>
           }
-          <span class="text-white/90 break-all min-w-0">{{ msg.message }}</span>
         </div>
       }
     }

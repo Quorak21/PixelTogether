@@ -24,6 +24,16 @@ export function toGroupPlayer(player) {
 }
 
 export function toChatMessage(event, group, entry) {
+  if (entry.role === 'system') {
+    return {
+      socketId: entry.socketId ?? 'system',
+      pseudo: entry.pseudo,
+      message: entry.message,
+      senderId: entry.playerId ?? 'system',
+      role: 'system',
+      systemRole: entry.systemRole,
+    };
+  }
   const isSenderManager = entry.role === 'manager' || 
                           entry.playerId === event?.managerPlayerId || 
                           (event?.manager && entry.socketId === event.manager);

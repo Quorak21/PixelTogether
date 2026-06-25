@@ -7,6 +7,7 @@ import { CanvasComponent } from '../canvas/canvas';
 import { ColorPaletteComponent } from '../color-palette/color-palette';
 import { GroupTransitionModalComponent } from '../group-transition-modal/group-transition-modal';
 import { formatRemainingMs } from '../../../core/utils/time';
+import { SocketService } from '../../../core/services/socket.service';
 
 
 @Component({
@@ -23,6 +24,7 @@ import { formatRemainingMs } from '../../../core/utils/time';
 })
 export class GamePageComponent {
   readonly ui = inject(UiStateService);
+  private readonly socket = inject(SocketService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -82,7 +84,9 @@ export class GamePageComponent {
 
   returnToLobby(): void {
     const eventId = this.eventId();
+    const groupCode = this.groupCode();
     if (eventId && this.ui.isCompetitiveParty()) {
+      this.socket.emit('exitGame', { eventId, groupCode });
       this.ui.leaveGroupView(eventId);
       void this.router.navigateByUrl(`/lobby/${eventId}`);
     }

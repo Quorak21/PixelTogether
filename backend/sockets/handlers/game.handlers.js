@@ -5,11 +5,11 @@ import { isRateLimited } from './socketGuards.js';
 
 // rejoint la room socket du groupe et renvoie gridState (pixels + couleurs assignées)
 function handleJoinGroup(socket, data, deps) {
-  const { store, constants, payloads, participants } = deps;
+  const { io, store, constants, payloads, participants } = deps;
   const { activeEvents, normalizeEventId, normalizeGroupCode, groupRoomName, getGroup } = store;
-  const { GRID_SIZE } = constants;
-  const { buildGridStatePayload } = payloads;
-  const { findPlayerGroupByPlayerId, isManager } = participants;
+  const { GRID_SIZE, CHAT_MAX_MESSAGES } = constants;
+  const { buildGridStatePayload, toChatMessage } = payloads;
+  const { findPlayerGroupByPlayerId, isManager, getParticipantPseudo } = participants;
 
   const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
   const groupCode = normalizeGroupCode(data?.groupCode);
@@ -50,14 +50,58 @@ function handleJoinGroup(socket, data, deps) {
   const role = manager ? 'manager' : 'player';
   const roomName = groupRoomName(eventId, groupCode);
 
-  if (manager) {
-    socket.data.playerId = event.managerPlayerId;
+  // Si l'utilisateur change de groupe (ex: le manager change de vue supervision)
+  const oldGroupCode = socket.data.groupCode;
+  if (oldGroupCode && oldGroupCode !== groupCode && socket.data.eventId === eventId) {
+    const oldRoomName = groupRoomName(eventId, oldGroupCode);
+    socket.leave(oldRoomName);
+    const oldGroup = getGroup(event, oldGroupCode);
+    if (oldGroup) {
+      const wasMember = oldGroup.players.some(
+        (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
+      );
+      if (!wasMember) {
+        const oldPseudo = getParticipantPseudo(event, socket.id, oldGroup, playerId);
+        const leaveEntry = {
+          socketId: 'system',
+          playerId: 'system',
+          role: 'system',
+          systemRole: socket.data.role === 'manager' ? 'manager' : 'player',
+          pseudo: oldPseudo,
+          message: 'a quitté la discussion.',
+        };
+        oldGroup.chatMessages.push(leaveEntry);
+        if (oldGroup.chatMessages.length > CHAT_MAX_MESSAGES) {
+          oldGroup.chatMessages.shift();
+        }
+        io.to(oldRoomName).emit('receiveMessage', toChatMessage(event, oldGroup, leaveEntry));
+      }
+    }
   }
+
   socket.data.role = role;
   socket.data.eventId = eventId;
   socket.data.groupCode = groupCode;
   socket.data.playerId = manager ? event.managerPlayerId : (playerId ?? socket.data.playerId);
   socket.join(roomName);
+
+  // Annonce système si ce n'est pas un membre du groupe (ex: manager spectateur)
+  if (!isMember) {
+    const pseudo = getParticipantPseudo(event, socket.id, group, socket.data.playerId);
+    const joinEntry = {
+      socketId: 'system',
+      playerId: 'system',
+      role: 'system',
+      systemRole: manager ? 'manager' : 'player',
+      pseudo,
+      message: 'a rejoint la discussion.',
+    };
+    group.chatMessages.push(joinEntry);
+    if (group.chatMessages.length > CHAT_MAX_MESSAGES) {
+      group.chatMessages.shift();
+    }
+    io.to(roomName).emit('receiveMessage', toChatMessage(event, group, joinEntry));
+  }
 
   const gridState = buildGridStatePayload(event, groupCode, socket, GRID_SIZE);
   if (gridState) {
@@ -216,6 +260,11 @@ export function registerGameHandlers(socket, deps) {
 
     if (!manager && !isMember) return;
 
+    if (manager && !isMember) {
+      socket.emit('chatMessages', []);
+      return;
+    }
+
     socket.emit(
       'chatMessages',
       group.chatMessages.map((entry) => toChatMessage(event, group, entry)),
@@ -291,16 +340,76 @@ export function registerGameHandlers(socket, deps) {
 
   socket.on('exitGame', (data) => {
     const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
-    const groupCode = normalizeGroupCode(data?.groupCode);
+    const groupCode = normalizeGroupCode(data?.groupCode ?? socket.data.groupCode);
     const event = eventId ? activeEvents[eventId] : null;
 
-    if (!event || isManager(event, socket)) return;
+    if (!event) return;
 
+    const group = getGroup(event, groupCode);
     const roomName = groupCode ? groupRoomName(eventId, groupCode) : null;
+
     if (roomName) {
-      socket.to(roomName).emit('exitGame', { socketId: socket.id });
+      const playerId = socket.data?.playerId;
+      const isMember = group ? group.players.some(
+        (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
+      ) : false;
+
+      if (group && !isMember) {
+        const pseudo = getParticipantPseudo(event, socket.id, group, playerId);
+        const leaveEntry = {
+          socketId: 'system',
+          playerId: 'system',
+          role: 'system',
+          systemRole: socket.data.role === 'manager' || isManager(event, socket) ? 'manager' : 'player',
+          pseudo,
+          message: 'a quitté la discussion.',
+        };
+        group.chatMessages.push(leaveEntry);
+        if (group.chatMessages.length > CHAT_MAX_MESSAGES) {
+          group.chatMessages.shift();
+        }
+        io.to(roomName).emit('receiveMessage', toChatMessage(event, group, leaveEntry));
+      } else if (isMember) {
+        socket.to(roomName).emit('exitGame', { socketId: socket.id });
+      }
       socket.leave(roomName);
     }
-    socket.data.groupCode = undefined;
+
+    if (socket.data.groupCode === groupCode) {
+      socket.data.groupCode = undefined;
+    }
+  });
+
+  socket.on('disconnect', () => {
+    const eventId = socket.data?.eventId;
+    const groupCode = socket.data?.groupCode;
+    if (!eventId || !groupCode) return;
+
+    const event = activeEvents[eventId];
+    const group = event ? getGroup(event, groupCode) : null;
+    if (!group) return;
+
+    const playerId = socket.data?.playerId;
+    const isMember = group.players.some(
+      (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
+    );
+
+    if (!isMember) {
+      const pseudo = getParticipantPseudo(event, socket.id, group, playerId);
+      const leaveEntry = {
+        socketId: 'system',
+        playerId: 'system',
+        role: 'system',
+        systemRole: socket.data.role === 'manager' || isManager(event, socket) ? 'manager' : 'player',
+        pseudo,
+        message: 'a quitté la discussion.',
+      };
+      group.chatMessages.push(leaveEntry);
+      if (group.chatMessages.length > CHAT_MAX_MESSAGES) {
+        group.chatMessages.shift();
+      }
+      const roomName = groupRoomName(eventId, groupCode);
+      io.to(roomName).emit('receiveMessage', toChatMessage(event, group, leaveEntry));
+    }
   });
 }

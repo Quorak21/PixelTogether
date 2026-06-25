@@ -13,6 +13,10 @@
 
 ## Entrées
 
+- **ADD-38** — **Annonces chat présence** : annonce système dans le chat des sous-parties à l'arrivée et au départ du manager spectateur (avec pseudo stylisé, couronne et couleur) ; isolation de l'historique de chat pour que le manager spectateur ne voie pas les messages précédents mais uniquement les nouveaux pendant qu'il est présent.
+
+- **CONFIG-01** — **Nettoyage agents** : suppression subagents Odin/Alex/Steve/Picasso, rules `.cursor/rules/`, `.agents/AGENTS.md` (OpenHands) ; `.cursorrules` unique comme source de vérité Cursor.
+
 - **ADD-36** — **Égalité sur les votes** : en cas d'égalité au 1er tour, phase `tieBreak` — grilles ex æquo visibles pour tous, seul le manager tranche (1 clic), sans impact sur le podium individuel.
 
 - **AUDIT-30** — **Flush previews à la clôture** : `flushAllEventPreviews` appelé dans `closeEvent` avant `getEventGroupImages`.

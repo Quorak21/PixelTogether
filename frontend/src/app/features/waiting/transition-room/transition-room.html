@@ -14,11 +14,11 @@
   @if (voteCandidates().length === 0) {
     <p class="py-8 text-center text-landing-muted">Aucun dessin à voter pour l'instant…</p>
   } @else {
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="flex flex-wrap justify-center gap-4">
       @for (candidate of voteCandidates(); track candidate.groupCode) {
         <button
           type="button"
-          class="overflow-hidden rounded-xl border-2 text-left transition-all hover:scale-[1.02]"
+          class="w-full max-w-xs overflow-hidden rounded-xl border-2 text-left transition-all hover:scale-[1.02] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
           [class.border-brand-violet]="myVote() === candidate.groupCode"
           [class.ring-2]="myVote() === candidate.groupCode"
           [class.ring-brand-violet]="myVote() === candidate.groupCode"
@@ -58,12 +58,12 @@
   @if (voteCandidates().length === 0) {
     <p class="py-8 text-center text-landing-muted">Chargement des grilles ex æquo…</p>
   } @else {
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="flex flex-wrap justify-center gap-4">
       @for (candidate of voteCandidates(); track candidate.groupCode) {
         @if (isManager()) {
           <button
             type="button"
-            class="overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40 text-left transition-all hover:scale-[1.02] hover:border-brand-violet"
+            class="w-full max-w-xs overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40 text-left transition-all hover:scale-[1.02] hover:border-brand-violet sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
             (click)="vote.emit(candidate.groupCode)"
           >
             <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60">
@@ -81,7 +81,7 @@
             </div>
           </button>
         } @else {
-          <div class="overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40">
+          <div class="w-full max-w-xs overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]">
             <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60">
               @if (candidate.image) {
                 <img [src]="candidate.image" [alt]="candidate.label" class="h-[90%] w-[90%] object-contain" />

@@ -276,10 +276,10 @@
       </span>
     </div>
 
-    <div class="grid gap-6 sm:grid-cols-2">
+    <div class="flex flex-wrap justify-center gap-6">
       @for (grid of galleryGrids(); track grid.groupCode) {
         <div
-          class="group relative cursor-zoom-in overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-4 shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/50 hover:shadow-2xl hover:shadow-brand-violet/5"
+          class="group relative w-full max-w-xs cursor-zoom-in overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 p-4 shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/50 hover:shadow-2xl hover:shadow-brand-violet/5 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
           (click)="onEnlarge(grid.image, grid.theme + ' — Session ' + grid.sessionNumber, grid.players)"
         >
           <div class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-white/5 bg-slate-950/70 p-4">
