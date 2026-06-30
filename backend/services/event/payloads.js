@@ -9,6 +9,11 @@ import { buildVoteFields } from '../vote/voteLifecycle.js';
 import { isCoop } from './gameMode.js';
 import { isGroupSpectator, resolveSocketPlayerId } from '../session/groupAccess.js';
 
+/** Thème de la session en cours — `event.name` n'est renseigné qu'après passage à la session suivante. */
+export function getCurrentSessionTheme(event) {
+  return event.themes?.[event.currentSession - 1] ?? event.theme ?? event.name ?? '';
+}
+
 export function toPublicPlayer({ socketId, pseudo, avatarColor, playerId }) {
   return { socketId, pseudo, avatarColor, playerId };
 }
@@ -72,8 +77,8 @@ function buildWaitingRoomBase(event, socketId, playerId = null) {
     roomId: event.id,
     eventId: event.id,
     partyName: event.partyName,
-    theme: event.name,
-    name: event.name,
+    theme: getCurrentSessionTheme(event),
+    name: getCurrentSessionTheme(event),
     themes: Array.isArray(event.themes) ? [...event.themes] : [],
     gameMode: event.gameMode ?? 'competitive',
     sessionCount: event.sessionCount,
@@ -102,7 +107,7 @@ export function buildSessionEndedPayload(event, socketId, playerId = null) {
   return {
     eventId: event.id,
     partyName: event.partyName,
-    theme: event.name,
+    theme: getCurrentSessionTheme(event),
     gameMode: event.gameMode ?? 'competitive',
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
@@ -148,12 +153,12 @@ export function buildGridStatePayload(event, groupCode, socket, gridSize) {
     groupIndex: group.groupIndex,
     groupLabel: isCoop(event) ? 'Discussion' : `Groupe ${group.groupIndex}`,
     partyName: event.partyName,
-    theme: event.name,
+    theme: getCurrentSessionTheme(event),
     gameMode: event.gameMode ?? 'competitive',
     pixels: group.pixels,
     width: gridSize,
     height: gridSize,
-    name: event.name,
+    name: getCurrentSessionTheme(event),
     colors: canDraw ? playerColors : [],
     role: isManagerSocket ? 'manager' : 'player',
     teammates: group.players.map(toGroupPlayer),
@@ -190,8 +195,8 @@ export function buildEventLobbyPayload(event) {
   return {
     eventId: event.id,
     partyName: event.partyName,
-    theme: event.name,
-    name: event.name,
+    theme: getCurrentSessionTheme(event),
+    name: getCurrentSessionTheme(event),
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
     sessionDurationMinutes: event.sessionDurationMinutes,

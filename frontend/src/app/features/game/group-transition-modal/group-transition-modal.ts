@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { UiStateService } from '../../../core/services/ui-state.service';
+import { PAINTED_WHITE } from '../../../core/config/session-config';
 import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/avatar-placeholder';
 
 // overlay post-gameStarted — fermeture manuelle (le chrono compétitif inclut déjà la marge serveur)
@@ -18,6 +19,7 @@ import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/a
 })
 export class GroupTransitionModalComponent {
   readonly ui = inject(UiStateService);
+  readonly paintedWhite = PAINTED_WHITE;
 
   readonly useGlobalState = input(true);
   readonly dismissed = output<void>();

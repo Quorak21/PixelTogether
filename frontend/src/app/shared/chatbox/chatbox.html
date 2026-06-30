@@ -1,14 +1,20 @@
 <div class="flex flex-col h-full min-h-0 bg-transparent text-white">
   <!-- Header du chat -->
   <div class="flex items-center gap-2.5 shrink-0 px-4 py-3 bg-slate-950/40 border-b border-white/10 select-none">
-    <span class="text-base-content/80">💬</span>
-    <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">
-      @if (scope() === 'party') {
-        Global
-      } @else {
-        {{ ui.isCoopParty() ? 'Discussion' : (ui.groupLabel() || 'Chat') }}
-      }
-    </span>
+    <span class="text-base-content/80 shrink-0">💬</span>
+    @if (scope() === 'party') {
+      <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">Global</span>
+    } @else if (ui.isCoopParty()) {
+      <div class="flex min-w-0 items-baseline gap-1.5">
+        <span class="shrink-0 text-xs font-bold uppercase tracking-wider text-[#A5B4FC]">Thème :</span>
+        <span
+          class="truncate text-base font-bold uppercase tracking-wide text-white"
+          [title]="ui.gameTheme()"
+        >{{ ui.gameTheme() }}</span>
+      </div>
+    } @else {
+      <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">{{ ui.groupLabel() || 'Chat' }}</span>
+    }
   </div>
 
   <!-- Zone de messages -->

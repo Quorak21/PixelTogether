@@ -502,7 +502,7 @@ function votePayloadFor(event, playerId) {
  * Les informations envoyées à chaque joueur sont personnalisées (notamment pour indiquer
  * son propre choix de vote via `myVote`).
  */
-function emitVoteStateUpdated(io, event) {
+export function emitVoteStateUpdated(io, event) {
   const recipients = [
     { playerId: event.managerPlayerId, socketId: event.manager },
     ...event.players.map((p) => ({ playerId: p.playerId, socketId: p.socketId })),

@@ -8,10 +8,10 @@ test('groupShuffle - computeGroupSizes', async (t) => {
     assert.deepStrictEqual(computeGroupSizes(1), []);
   });
 
-  await t.test('returns single group size for 2, 3 or 4 players', () => {
+  await t.test('returns small group layouts for 2 to 4 players', () => {
     assert.deepStrictEqual(computeGroupSizes(2), [2]);
     assert.deepStrictEqual(computeGroupSizes(3), [3]);
-    assert.deepStrictEqual(computeGroupSizes(4), [4]);
+    assert.deepStrictEqual(computeGroupSizes(4), [2, 2]);
   });
 
   await t.test('splits larger groups into balanced sizes of 2-4 players', () => {

@@ -100,6 +100,7 @@ describe('UiStateService', () => {
     service.showManagerAbsentWarning('Manager disconnected', 5000);
     
     expect(service.managerAbsentWarning()).toEqual({
+      title: 'Manager absent',
       message: 'Manager disconnected',
       secondsLeft: 5,
     });

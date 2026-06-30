@@ -16,7 +16,7 @@
               @for (color of transition.myColors; track color) {
                 <span
                   class="h-5 w-5 shrink-0 rounded-sm border border-white/20"
-                  [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
+                  [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === paintedWhite"
                   [style.backgroundColor]="color"
                   [title]="color"
                 ></span>
@@ -48,7 +48,7 @@
                     @for (color of mate.colors; track color) {
                       <span
                         class="h-5 w-5 shrink-0 rounded-sm border border-white/20"
-                        [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
+                        [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === paintedWhite"
                         [style.backgroundColor]="color"
                         [title]="color"
                       ></span>
@@ -78,7 +78,7 @@
                         @for (color of player.colors; track color) {
                           <span
                             class="h-5 w-5 shrink-0 rounded-sm border border-white/20"
-                            [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === '#ffffff'"
+                            [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]]="color === paintedWhite"
                             [style.backgroundColor]="color"
                             [title]="color"
                           ></span>

@@ -216,6 +216,22 @@ export interface EndPartyResponse {
   error?: string;
 }
 
+export interface LeavePartyPayload {
+  eventId: string;
+  roomId?: string;
+}
+
+export interface LeavePartyResponse {
+  ok?: boolean;
+  error?: string;
+}
+
+export interface LeaveWaitingRoomResponse {
+  ok?: boolean;
+  soft?: boolean;
+  error?: string;
+}
+
 export interface RequestExportZipPayload {
   roomId: string;
   token: string;

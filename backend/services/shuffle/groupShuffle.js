@@ -12,8 +12,13 @@ export function computeGroupSizes(playerCount) {
     return [];
   }
 
-  if (playerCount <= 4) {
+  if (playerCount <= 3) {
     return [playerCount];
+  }
+
+  // 4 joueurs restants (ex. départs en cours de partie) → 2 groupes pour le vote
+  if (playerCount === 4) {
+    return [2, 2];
   }
 
   let numGroups = Math.ceil(playerCount / 4);

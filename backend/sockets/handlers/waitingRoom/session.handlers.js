@@ -35,6 +35,7 @@ export function registerSessionPhaseHandlers(socket, deps) {
       if (playerCountError) {
         return callback(playerCountError);
       }
+      event.rosterBaselineCount = event.players.length;
     }
 
     if (event.status !== 'waiting') {
@@ -48,6 +49,7 @@ export function registerSessionPhaseHandlers(socket, deps) {
     event.activeVote = null;
     event.coopWrMode = null;
     event.theme = event.themes[event.currentSession - 1];
+    event.name = event.theme;
     beginSession(event, deps);
     if (!isCoop(event)) {
       scheduleSessionEnd(event, io);

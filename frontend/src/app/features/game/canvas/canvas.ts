@@ -15,6 +15,7 @@ import { SocketService } from '../../../core/services/socket.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
 import { ReconnectService } from '../../../core/services/reconnect.service';
 import { GridStatePayload, SessionEndedPayload } from '../../../types/entities';
+import { paintGridContent } from './canvas-grid.util';
 
 @Component({
   selector: 'app-canvas-board',
@@ -40,6 +41,9 @@ export class CanvasComponent implements AfterViewInit {
   readonly isDragging = signal(false);
 
   private readonly pixelSize = 20;
+  private readonly pixelMap = new Map<string, string>();
+  private gridWidth = 0;
+  private gridHeight = 0;
   private dragStart = { x: 0, y: 0 };
   private hasMoved = false;
   private pointerDownPos = { x: 0, y: 0 };
@@ -241,7 +245,7 @@ export class CanvasComponent implements AfterViewInit {
     this.isDragging.set(false);
   }
 
-  // trace la grille complète + pixels existants (appelé une fois au gridState)
+  // fond blanc + pixels + contours conditionnels (ADD-46)
   private renderGrid(data: GridStatePayload): void {
     requestAnimationFrame(() => {
       const canvas = this.canvasEl().nativeElement;
@@ -261,24 +265,14 @@ export class CanvasComponent implements AfterViewInit {
       canvas.width = width * this.pixelSize;
       canvas.height = height * this.pixelSize;
 
-      ctx.beginPath();
-      ctx.strokeStyle = '#ddd';
-      ctx.lineWidth = 1;
-      for (let x = 0; x <= width; x += 1) {
-        ctx.moveTo(x * this.pixelSize, 0);
-        ctx.lineTo(x * this.pixelSize, height * this.pixelSize);
-      }
-      for (let y = 0; y <= height; y += 1) {
-        ctx.moveTo(0, y * this.pixelSize);
-        ctx.lineTo(width * this.pixelSize, y * this.pixelSize);
-      }
-      ctx.stroke();
-
+      this.gridWidth = width;
+      this.gridHeight = height;
+      this.pixelMap.clear();
       for (const [coords, color] of Object.entries(data.pixels)) {
-        const [x, y] = coords.split(',').map((value) => Number(value));
-        ctx.fillStyle = color;
-        ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
+        this.pixelMap.set(coords, color);
       }
+
+      paintGridContent(ctx, this.pixelMap, width, height, this.pixelSize);
 
       this.fitGridToViewport();
       this.ui.setGameCanvasReady();
@@ -303,19 +297,15 @@ export class CanvasComponent implements AfterViewInit {
     });
   }
 
-  // incrémental — broadcast drawPixel des autres joueurs (et le sien via le serveur)
+  // incrémental — repaint local pour retirer les arêtes entre blancs adjacents
   private drawSinglePixel(data: { x: number; y: number; color: string }): void {
     const canvas = this.canvasEl().nativeElement;
     const ctx = canvas.getContext('2d');
-    if (!ctx) {
+    if (!ctx || !this.gridWidth || !this.gridHeight) {
       return;
     }
-    ctx.fillStyle = data.color;
-    ctx.fillRect(data.x * this.pixelSize, data.y * this.pixelSize, this.pixelSize, this.pixelSize);
-    if (data.color.startsWith('#ffffff')) {
-      ctx.strokeStyle = '#ddd';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(data.x * this.pixelSize, data.y * this.pixelSize, this.pixelSize, this.pixelSize);
-    }
+
+    this.pixelMap.set(`${data.x},${data.y}`, data.color);
+    paintGridContent(ctx, this.pixelMap, this.gridWidth, this.gridHeight, this.pixelSize);
   }
 }

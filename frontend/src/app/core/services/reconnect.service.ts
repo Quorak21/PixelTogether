@@ -290,7 +290,10 @@ export class ReconnectService {
     if (data.gameMode) {
       this.ui.setPartyGameMode(data.gameMode);
     }
-    this.ui.gameTheme.set(data.theme ?? data.name);
+    const theme = data.theme ?? data.name;
+    if (theme) {
+      this.ui.gameTheme.set(theme);
+    }
     this.ui.partyName.set(data.partyName);
     this.ui.groupLabel.set(data.groupLabel);
     this.ui.setSessionEndsAt(data.sessionEndsAt);

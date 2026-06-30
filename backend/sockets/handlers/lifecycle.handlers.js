@@ -1,10 +1,110 @@
 // fermeture volontaire + cleanup déco (manager = grace period 5 min)
-import { setSessionConnected } from '../../services/reconnect/sessionToken.js';
+import { MANAGER_ABSENT_WARNING_MS } from '../../config/constants.js';
+import {
+  removePlayerSessionFromEvent,
+  setSessionConnected,
+} from '../../services/reconnect/sessionToken.js';
 import {
   resolvePlayerId,
   scheduleManagerAbsentClose,
   isManager,
+  removePlayerFromEvent,
 } from '../../services/event/participants.js';
+import { toPublicPlayer } from '../../services/event/payloads.js';
+import { isCoop } from '../../services/event/gameMode.js';
+import {
+  finishCurrentSession,
+  emitSessionEnded,
+} from '../../services/session/sessionLifecycle.js';
+import {
+  closeVote,
+  openResults,
+  emitVoteStateUpdated,
+} from '../../services/vote/voteLifecycle.js';
+import { guardAck } from './socketGuards.js';
+
+/** Retire un joueur de tous les groupes actifs. */
+function removePlayerFromGroups(event, playerId) {
+  if (!playerId) return;
+  for (const groupCode in event.groups) {
+    const group = event.groups[groupCode];
+    group.players = group.players.filter((p) => p.playerId !== playerId);
+    if (group.finishedPlayerIds) {
+      group.finishedPlayerIds = group.finishedPlayerIds.filter((id) => id !== playerId);
+    }
+  }
+}
+
+/** Passe la partie au final (podium / galerie) avec ce qui a été fait. */
+function progressPartyToFinal(io, event) {
+  if (event.status === 'started') {
+    finishCurrentSession(io, event);
+    event.currentSession = event.sessionCount;
+  }
+
+  if (isCoop(event)) {
+    event.currentSession = event.sessionCount;
+    event.coopWrMode = 'gallery';
+    emitSessionEnded(io, event);
+    return;
+  }
+
+  if (event.activeVote) {
+    if (event.activeVote.status === 'open') {
+      closeVote(event);
+    }
+    if (event.activeVote.status === 'tiebreak') {
+      event.activeVote.status = 'closed';
+      event.activeVote.winnerGroupCode = event.activeVote.tiedGroupCodes?.[0] ?? null;
+    }
+    if (event.activeVote.sessionNumber < event.sessionCount) {
+      event.activeVote.sessionNumber = event.sessionCount;
+    }
+  }
+
+  if (!event.showingResults) {
+    const result = openResults(event);
+    if (result.error) {
+      event.showingResults = true;
+    }
+  }
+
+  emitVoteStateUpdated(io, event);
+}
+
+function maybeScheduleForcedFinal(io, event, eventId, activeEvents) {
+  if (!event.partyStarted || event.forcedFinalAt || !event.rosterBaselineCount) {
+    return;
+  }
+
+  const remaining = event.players.length;
+  const half = Math.floor(event.rosterBaselineCount / 2);
+  if (remaining > half) {
+    return;
+  }
+
+  event.forcedFinalAt = Date.now();
+
+  io.to(eventId).emit('managerAbsentWarning', {
+    eventId,
+    roomId: eventId,
+    title: 'Fin de partie',
+    message: 'Plus assez de joueurs disponibles, la partie va se terminer.',
+    closesInMs: MANAGER_ABSENT_WARNING_MS,
+  });
+
+  if (event._forcedFinalTimer) {
+    clearTimeout(event._forcedFinalTimer);
+  }
+
+  event._forcedFinalTimer = setTimeout(() => {
+    event._forcedFinalTimer = null;
+    if (!activeEvents[eventId]) {
+      return;
+    }
+    progressPartyToFinal(io, activeEvents[eventId]);
+  }, MANAGER_ABSENT_WARNING_MS);
+}
 
 /**
  * Enregistre les handlers de gestion du cycle de vie de la connexion socket
@@ -23,6 +123,48 @@ export function registerLifecycleHandlers(socket, deps) {
 
     closeEvent(io, eventId);
     socket.leave(eventId);
+  });
+
+  // Sortie définitive d'un joueur (hors phase de groupement WR)
+  socket.on('leaveParty', (data, callback) => {
+    if (!guardAck(callback)) return;
+
+    const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
+    const event = eventId ? activeEvents[eventId] : null;
+
+    if (!event) {
+      return callback({ error: "La partie n'existe pas." });
+    }
+
+    if (isManager(event, socket)) {
+      return callback({ error: 'Le manager doit fermer la partie.' });
+    }
+
+    if (!event.partyStarted) {
+      return callback({ error: 'Utilisez leaveWaitingRoom en phase de groupement.' });
+    }
+
+    const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
+    if (!playerId) {
+      return callback({ error: 'Session invalide.' });
+    }
+
+    removePlayerFromGroups(event, playerId);
+    removePlayerFromEvent(event, socket.id, playerId);
+    removePlayerSessionFromEvent(event, playerId);
+
+    socket.leave(eventId);
+    socket.data.eventId = undefined;
+    socket.data.playerId = undefined;
+    socket.data.role = undefined;
+
+    io.to(eventId).emit('waitingRoomUpdated', {
+      players: event.players.map(toPublicPlayer),
+    });
+
+    callback({ ok: true });
+
+    maybeScheduleForcedFinal(io, event, eventId, activeEvents);
   });
 
   // Déconnexion inattendue d'un client (perte réseau, fermeture d'onglet)

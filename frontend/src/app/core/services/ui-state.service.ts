@@ -88,8 +88,12 @@ export class UiStateService {
     this.partyGameMode.set(mode);
   }
 
-  /** Signal contenant l'alerte d'absence du manager avec le compte à rebours de fermeture. */
-  readonly managerAbsentWarning = signal<{ message: string; secondsLeft: number } | null>(null);
+  /** Signal contenant l'alerte countdown (manager absent ou fin de partie forcée). */
+  readonly managerAbsentWarning = signal<{
+    title: string;
+    message: string;
+    secondsLeft: number;
+  } | null>(null);
 
   private managerAbsentCountdownId: ReturnType<typeof setInterval> | null = null;
 
@@ -328,10 +332,14 @@ export class UiStateService {
    * @param message - Le message d'alerte à afficher.
    * @param closesInMs - Le temps restant avant fermeture en millisecondes.
    */
-  showManagerAbsentWarning(message: string, closesInMs: number): void {
+  showManagerAbsentWarning(
+    message: string,
+    closesInMs: number,
+    title = 'Manager absent',
+  ): void {
     this.clearManagerAbsentWarning();
     const secondsLeft = Math.max(1, Math.ceil(closesInMs / 1000));
-    this.managerAbsentWarning.set({ message, secondsLeft });
+    this.managerAbsentWarning.set({ title, message, secondsLeft });
 
     this.managerAbsentCountdownId = setInterval(() => {
       const current = this.managerAbsentWarning();

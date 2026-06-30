@@ -13,6 +13,10 @@
 
 ## Entrées
 
+- **ADD-48** — **Quitter / fermer la partie** : sortie douce WR groupement (token conservé) ; `leaveParty` définitif avec disclaimer (navbar logo + dropdown pseudo) ; manager ferme via dropdown ; seuil 50 % → modale countdown puis podium/galerie.
+
+- **ADD-46** — **Gestion du blanc adjacent** : blanc peint `#fefefe` (distinct du fond `#ffffff`) ; grille de contours conditionnels sur le canvas — pas d'arête entre deux blancs adjacents ; util `canvas-grid.util.ts` + sync palette back/front.
+
 - **ADD-45** — **Kick joueur waiting room** : bouton manager sur les cartes joueur ; kick détache le token de la room (`kicksByEvent` sur la session), ban au 2e kick sur la même room ; events `kickPlayer` / `playerKicked`.
 
 - **ADD-41** — **Statut « j'ai fini » (compétitif)** : bouton par joueur avec compteur X/Y ; quand tout le groupe a cliqué → grille verrouillée, joueurs au lobby (sans fin de session manuelle), spectateur sur les autres grilles (chat sans historique, pas de pixel) ; fin de session auto quand toutes les grilles sont terminées ; grilles finies retirées du lobby.

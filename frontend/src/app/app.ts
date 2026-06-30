@@ -21,6 +21,7 @@ interface PlayerKickedPayload {
 interface ManagerAbsentWarningPayload {
   eventId?: string;
   roomId?: string;
+  title?: string;
   message: string;
   closesInMs?: number;
 }
@@ -49,6 +50,7 @@ export class App {
       this.ui.showManagerAbsentWarning(
         payload.message,
         payload.closesInMs ?? 5000,
+        payload.title ?? 'Manager absent',
       );
     };
 

@@ -3,7 +3,6 @@ import {
   validateToken,
   issueSession,
   hasActiveSessionOnOtherEvent,
-  removePlayerSessionFromEvent,
   setSessionConnected,
   getSessionByPlayerId,
   isBannedFromEvent,
@@ -290,28 +289,43 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     callback({ ok: true });
   });
 
-  socket.on('leaveWaitingRoom', (data) => {
+  socket.on('leaveWaitingRoom', (data, callback) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
     if (!event || isManager(event, socket)) {
+      if (typeof callback === 'function') {
+        callback({ error: 'Action non autorisée.' });
+      }
+      return;
+    }
+
+    if (event.partyStarted) {
+      if (typeof callback === 'function') {
+        callback({ error: 'Utilisez leaveParty pour quitter une partie en cours.' });
+      }
       return;
     }
 
     const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
+    const session = playerId ? getSessionByPlayerId(playerId) : null;
     const removed = removePlayerFromEvent(event, socket.id, playerId);
 
-    if (playerId) {
-      removePlayerSessionFromEvent(event, playerId);
+    if (session) {
+      detachSessionFromEvent(session, event);
     }
 
     socket.leave(eventId);
     socket.data.eventId = undefined;
     socket.data.playerId = undefined;
 
-    if (removed && event.status === 'waiting') {
+    if (removed) {
       io.to(eventId).emit('waitingRoomUpdated', {
         players: event.players.map(toPublicPlayer),
       });
+    }
+
+    if (typeof callback === 'function') {
+      callback({ ok: true, soft: true });
     }
   });
 }

@@ -124,6 +124,10 @@ export function closeEvent(io, eventId) {
 
   clearSessionTimer(event);
   clearManagerDisconnectTimer(event);
+  if (event._forcedFinalTimer) {
+    clearTimeout(event._forcedFinalTimer);
+    event._forcedFinalTimer = null;
+  }
   purgeEventSessions(event);
 
   flushAllEventPreviews(event);

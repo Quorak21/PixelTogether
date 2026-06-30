@@ -8,12 +8,15 @@ export const GROUP_CODE_LENGTH = 4;
 export const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 export const GROUP_CODE_REGEX = /^[2-9]{4}$/;
 
+/** Blanc peint sur la grille (quasi pur) — distinct du fond canvas/export `#ffffff`. */
+export const PAINTED_WHITE = '#fefefe';
+
 export const GAME_PALETTE_16 = [
   '#000000',
   '#6b4423',
   '#38b764',
   '#f4b41b',
-  '#ffffff',
+  PAINTED_WHITE,
   '#e53b44',
   '#f18d2d',
   '#a3a7c2',

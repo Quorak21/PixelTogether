@@ -50,7 +50,7 @@
   </div>
 } @else {
   <div class="flex h-screen flex-col overflow-hidden bg-[#0F172A]">
-    <header class="flex-none z-50">
+    <header class="relative z-50 flex-none">
       <app-navbar />
     </header>
 
@@ -85,7 +85,7 @@
   <div
     class="w-full max-w-md rounded-2xl border border-amber-500/40 bg-slate-950/95 p-6 text-center shadow-2xl"
   >
-    <h2 id="manager-absent-title" class="text-lg font-bold text-white">Manager absent</h2>
+    <h2 id="manager-absent-title" class="text-lg font-bold text-white">{{ warning.title }}</h2>
     <p class="mt-3 text-sm leading-relaxed text-landing-muted">{{ warning.message }}</p>
     <p class="mt-4 font-mono text-2xl font-bold tabular-nums text-amber-400">{{ warning.secondsLeft }} s</p>
   </div>

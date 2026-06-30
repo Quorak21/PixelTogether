@@ -16,7 +16,7 @@
           [class.scale-115]="ui.selectedColor() === color"
           [class.shadow-[0_0_12px_rgba(99,102,241,0.5)]]="ui.selectedColor() === color"
           [class.border-white/20]="ui.selectedColor() !== color"
-          [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]]="color === '#ffffff'"
+          [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]]="color === paintedWhite"
           [style.backgroundColor]="color"
           (click)="selectColor(color)"
         ></button>

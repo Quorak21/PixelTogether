@@ -25,13 +25,28 @@ export const COMPETITIVE_SESSION_COUNT_MAX = 8;
 /** Plafond d'invités inscrits par salon (tous modes) — miroir backend/config/constants.js */
 export const EVENT_PLAYERS_MAX = 40;
 
+/** Blanc peint sur la grille (quasi pur) — distinct du fond canvas/export `#ffffff`. */
+export const PAINTED_WHITE = '#fefefe';
+
+/** Fond canvas et export PNG. */
+export const CANVAS_BG_WHITE = '#ffffff';
+
+/** Blanc peint actuel ou legacy `#ffffff` encore en mémoire. */
+export function isPaintedWhite(color: string | null | undefined): boolean {
+  if (!color) {
+    return false;
+  }
+  const normalized = color.toLowerCase();
+  return normalized === PAINTED_WHITE || normalized === '#ffffff';
+}
+
 /** Palette de dessin (16 couleurs) — miroir backend/config/constants.js `GAME_PALETTE_16`. */
 export const GAME_PALETTE_16 = [
   '#000000',
   '#6b4423',
   '#38b764',
   '#f4b41b',
-  '#ffffff',
+  PAINTED_WHITE,
   '#e53b44',
   '#f18d2d',
   '#a3a7c2',
