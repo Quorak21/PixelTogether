@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-45** — **Kick joueur waiting room** : bouton manager sur les cartes joueur ; kick détache le token de la room (`kicksByEvent` sur la session), ban au 2e kick sur la même room ; events `kickPlayer` / `playerKicked`.
+
 - **ADD-41** — **Statut « j'ai fini » (compétitif)** : bouton par joueur avec compteur X/Y ; quand tout le groupe a cliqué → grille verrouillée, joueurs au lobby (sans fin de session manuelle), spectateur sur les autres grilles (chat sans historique, pas de pixel) ; fin de session auto quand toutes les grilles sont terminées ; grilles finies retirées du lobby.
 
 - **UI-LOBBY-01** — **Optimisation du Lobby d'Attente** : refonte visuelle complète de la page d'attente (split layout 2 colonnes avec timeline des sessions/thèmes à gauche et participants/lancement à droite), en-tête épuré avec copie rapide du code de session dans le presse-papier, et indicateur de statut à puce animée.

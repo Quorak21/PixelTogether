@@ -5,6 +5,11 @@ import {
   hasActiveSessionOnOtherEvent,
   removePlayerSessionFromEvent,
   setSessionConnected,
+  getSessionByPlayerId,
+  isBannedFromEvent,
+  recordRoomKick,
+  detachSessionFromEvent,
+  reattachSessionToEvent,
 } from '../../../services/reconnect/sessionToken.js';
 import {
   remapSocket,
@@ -18,6 +23,9 @@ import {
 } from '../../../services/event/participants.js';
 import { validateGuestRegistration } from '../../../services/event/gameMode.js';
 import { guardAck } from '../socketGuards.js';
+
+const BAN_ERROR = 'Vous avez été exclu de cette partie.';
+const KICK_MESSAGE = "Vous avez été retiré de la salle d'attente par le manager.";
 
 function attachSessionFields(state, session) {
   return {
@@ -39,24 +47,53 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
     }
 
     const session = validateToken(token);
-    if (session && session.eventId === eventId) {
-      remapSocket(event, session.playerId, socket.id);
-      setSessionConnected(session.playerId, true, socket.id);
-      if (session.role === 'manager') {
-        clearManagerDisconnectTimer(event);
+    if (session) {
+      if (isBannedFromEvent(session, eventId)) {
+        return { error: BAN_ERROR };
       }
-      event.lastActivityAt = Date.now();
 
-      socket.data.playerId = session.playerId;
-      socket.data.role = session.role;
-      socket.data.eventId = eventId;
-      socket.join(eventId);
+      if (session.eventId === eventId) {
+        remapSocket(event, session.playerId, socket.id);
+        setSessionConnected(session.playerId, true, socket.id);
+        if (session.role === 'manager') {
+          clearManagerDisconnectTimer(event);
+        }
+        event.lastActivityAt = Date.now();
 
-      const state = attachSessionFields(
-        buildWaitingRoomState(event, socket.id, session.playerId),
-        session,
-      );
-      return { state };
+        socket.data.playerId = session.playerId;
+        socket.data.role = session.role;
+        socket.data.eventId = eventId;
+        socket.join(eventId);
+
+        const state = attachSessionFields(
+          buildWaitingRoomState(event, socket.id, session.playerId),
+          session,
+        );
+        return { state };
+      }
+
+      if (session.eventId === null) {
+        const capacityError = validateGuestRegistration(event);
+        if (capacityError) {
+          return capacityError;
+        }
+
+        reattachSessionToEvent(session, event);
+        remapSocket(event, session.playerId, socket.id);
+        setSessionConnected(session.playerId, true, socket.id);
+        event.lastActivityAt = Date.now();
+
+        socket.data.playerId = session.playerId;
+        socket.data.role = session.role;
+        socket.data.eventId = eventId;
+        socket.join(eventId);
+
+        const state = attachSessionFields(
+          buildWaitingRoomState(event, socket.id, session.playerId),
+          session,
+        );
+        return { state };
+      }
     }
   }
 
@@ -150,6 +187,11 @@ export function registerWaitingPhaseHandlers(socket, deps) {
       return callback({ error: 'Session invalide. Rejoignez la salle d\'attente.' });
     }
 
+    const playerSession = getSessionByPlayerId(playerId);
+    if (playerSession && isBannedFromEvent(playerSession, eventId)) {
+      return callback({ error: BAN_ERROR });
+    }
+
     if (isRegistered(event, socket.id, playerId)) {
       return callback({ error: 'Vous êtes déjà enregistré.' });
     }
@@ -192,6 +234,60 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     const state = buildWaitingRoomState(event, socket.id, playerId);
     socket.to(eventId).emit('waitingRoomUpdated', { players: state.players });
     callback({ ...state });
+  });
+
+  socket.on('kickPlayer', (data, callback) => {
+    if (!guardAck(callback)) return;
+
+    const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
+    const event = eventId ? activeEvents[eventId] : null;
+
+    if (!event) {
+      return callback({ error: "La partie n'existe pas." });
+    }
+
+    if (!isManager(event, socket)) {
+      return callback({ error: 'Action réservée au manager.' });
+    }
+
+    if (event.status === 'started' || event.partyStarted) {
+      return callback({ error: 'La partie a déjà commencé.' });
+    }
+
+    const targetPlayerId = typeof data?.playerId === 'string' ? data.playerId.trim() : '';
+    if (!targetPlayerId || targetPlayerId === event.managerPlayerId) {
+      return callback({ error: 'Joueur introuvable.' });
+    }
+
+    const target = event.players.find((player) => player.playerId === targetPlayerId);
+    if (!target) {
+      return callback({ error: 'Joueur introuvable.' });
+    }
+
+    const session = getSessionByPlayerId(targetPlayerId);
+    let banned = false;
+    if (session) {
+      ({ banned } = recordRoomKick(session, eventId));
+      detachSessionFromEvent(session, event);
+    }
+
+    removePlayerFromEvent(event, target.socketId, targetPlayerId);
+
+    const message = banned ? BAN_ERROR : KICK_MESSAGE;
+    const targetSocket = io.sockets.sockets.get(target.socketId);
+    if (targetSocket) {
+      targetSocket.emit('playerKicked', { roomId: eventId, message, banned });
+      targetSocket.leave(eventId);
+      targetSocket.data.eventId = undefined;
+      targetSocket.data.playerId = undefined;
+      targetSocket.data.role = undefined;
+    }
+
+    event.lastActivityAt = Date.now();
+    io.to(eventId).emit('waitingRoomUpdated', {
+      players: event.players.map(toPublicPlayer),
+    });
+    callback({ ok: true });
   });
 
   socket.on('leaveWaitingRoom', (data) => {

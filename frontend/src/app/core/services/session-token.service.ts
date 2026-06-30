@@ -20,6 +20,15 @@ export class SessionTokenService {
   private readonly _hasValidSession = signal<boolean>(this.hasValidSession());
   readonly hasSessionSignal = this._hasValidSession.asReadonly();
 
+  private readonly _hasPartyBinding = signal<boolean>(this.isBoundToParty());
+  /** Token valide encore rattaché à une room (false après kick — join/création OK). */
+  readonly hasPartyBindingSignal = this._hasPartyBinding.asReadonly();
+
+  private refreshSessionSignals(): void {
+    this._hasValidSession.set(this.hasValidSession());
+    this._hasPartyBinding.set(this.isBoundToParty());
+  }
+
   /**
    * Sauvegarde les données de session du joueur dans le localStorage.
    * 
@@ -27,7 +36,7 @@ export class SessionTokenService {
    */
   save(data: SessionTokenData): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    this._hasValidSession.set(this.hasValidSession());
+    this.refreshSessionSignals();
   }
 
   /**
@@ -51,7 +60,7 @@ export class SessionTokenService {
    */
   clear(): void {
     localStorage.removeItem(STORAGE_KEY);
-    this._hasValidSession.set(false);
+    this.refreshSessionSignals();
   }
 
   /**
@@ -75,6 +84,11 @@ export class SessionTokenService {
     return Boolean(session && !this.isExpired(session));
   }
 
+  /** Token valide et encore lié à une room (pas le cas après un kick). */
+  isBoundToParty(session: SessionTokenData | null = this.read()): boolean {
+    return Boolean(session && !this.isExpired(session) && session.eventId);
+  }
+
   /**
    * Met à jour uniquement le code de groupe dans la session sauvegardée.
    * Très pratique lors d'un reshuffle en fin de manche !
@@ -90,6 +104,13 @@ export class SessionTokenService {
   /** Efface le groupe courant — joueur au lobby après fin de sa grille. */
   clearGroupCode(): void {
     this.updateGroupCode(null);
+  }
+
+  /** Efface le lien room/groupe — le token reste valide (ex. après un kick). */
+  clearEventBinding(): void {
+    const session = this.read();
+    if (!session) return;
+    this.save({ ...session, eventId: '', groupCode: null });
   }
 
   /** 

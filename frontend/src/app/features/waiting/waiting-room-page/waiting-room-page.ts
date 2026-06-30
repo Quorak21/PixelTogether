@@ -41,6 +41,8 @@ import {
   EndPartyResponse,
   EnterWaitingRoomPayload,
   GameStartedPayload,
+  KickPlayerPayload,
+  KickPlayerResponse,
   RegisterPlayerPayload,
   RegisterPlayerResponse,
   RequestExportZipPayload,
@@ -328,6 +330,24 @@ export class WaitingRoomPageComponent {
       return;
     }
     this.startConfirmOpen.set(true);
+  }
+
+  async handleKickPlayer(playerId: string): Promise<void> {
+    if (!this.ui.isManager() || !playerId) {
+      return;
+    }
+
+    try {
+      const response = await this.socket.emitWithAck<KickPlayerPayload, KickPlayerResponse>(
+        'kickPlayer',
+        { roomId: this.roomId(), playerId },
+      );
+      if (response.error) {
+        this.startError.set(response.error);
+      }
+    } catch {
+      this.startError.set('Impossible de retirer ce joueur. Réessayez.');
+    }
   }
 
   async handleCloseVote(): Promise<void> {

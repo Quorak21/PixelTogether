@@ -162,7 +162,11 @@ C'est le module de tolérance aux pannes réseau. Il évite qu'un joueur perde s
 * **`updateSessionGroupCode(playerId, groupCode)`** : Assigne le nouveau code de groupe d'un joueur dans sa session lors des changements de manches (reshuffle).
 * **`setSessionConnected(playerId, connected, socketId)`** : Met à jour le flag `connected` de la session d'un joueur et mémorise son nouveau `socketId` en cas de déconnexion/reconnexion.
 * **`purgePlayerSession(playerId)`** / **`purgeEventSessions(event)`** / **`removePlayerSessionFromEvent(event, playerId)`** : Fonctions de nettoyage qui effacent les sessions des index en mémoire.
-* **`hasActiveSessionOnOtherEvent(token, eventId)`** : Vérifie qu'un joueur n'est pas déjà enregistré sur une autre partie active avant de le laisser entrer dans une nouvelle.
+* **`hasActiveSessionOnOtherEvent(token, eventId)`** : Vérifie qu'un joueur est déjà rattaché à une autre partie active (ignore les sessions détachées, `eventId` null).
+* **`isBannedFromEvent(session, eventId)`** : `true` si `session.kicksByEvent[eventId] >= 2` (ban room-scoped via le token).
+* **`recordRoomKick(session, eventId)`** : Incrémente `kicksByEvent` pour ce salon.
+* **`detachSessionFromEvent(session, event)`** : Kick — retire le lien room sans supprimer le token.
+* **`reattachSessionToEvent(session, event)`** : Réattache un token détaché lors d'un retour en waiting room.
 
 ---
 
@@ -239,6 +243,8 @@ Voici comment se déroule une partie de A à Z à travers les échanges de messa
 ### 2. Inscription des joueurs (Salle d'attente)
 * **`enterWaitingRoom`** (Joueur ➔ Serveur) : Le joueur entre le code du salon pour s'y connecter. L'ack `waitingRoomState` inclut `themes` (liste complète des thèmes configurés) en plus de `theme` (thème de la session courante).
 * **`registerPlayer`** (Joueur ➔ Serveur) : Le joueur s'inscrit en choisissant son pseudo et son avatar.
+* **`kickPlayer`** (Manager ➔ Serveur) : Expulse un joueur de la salle d'attente (détache le token, compteur de kicks sur le token). Ack `{ ok }` ou `{ error }`.
+* **`playerKicked`** (Serveur ➔ Joueur expulsé) : Notification de kick avec `{ roomId, message, banned }`.
 * **`waitingRoomUpdated`** (Serveur ➔ Salon) : Diffuse à tout le monde la liste des joueurs connectés pour mettre à jour l'écran d'attente.
 
 ### 3. Démarrage du jeu

@@ -12,6 +12,12 @@ interface RoomLifecyclePayload {
   roomId?: string;
 }
 
+interface PlayerKickedPayload {
+  roomId: string;
+  message: string;
+  banned: boolean;
+}
+
 interface ManagerAbsentWarningPayload {
   eventId?: string;
   roomId?: string;
@@ -66,14 +72,31 @@ export class App {
       void this.router.navigateByUrl('/');
     };
 
+    const onPlayerKicked = (payload: PlayerKickedPayload) => {
+      const session = this.sessionToken.read();
+      if (!session) return;
+      if (
+        session.eventId &&
+        session.eventId.toUpperCase() !== payload.roomId.toUpperCase()
+      ) {
+        return;
+      }
+
+      this.sessionToken.clearEventBinding();
+      this.ui.exitWaitingRoom();
+      void this.router.navigateByUrl('/');
+    };
+
     this.socket.on<ManagerAbsentWarningPayload>('managerAbsentWarning', onWarning);
     this.socket.on('managerAbsent', onAbsent);
     this.socket.on<RoomLifecyclePayload>('roomClosed', onRoomClosed);
+    this.socket.on<PlayerKickedPayload>('playerKicked', onPlayerKicked);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('managerAbsentWarning', onWarning as (...args: unknown[]) => void);
       this.socket.off('managerAbsent', onAbsent as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
+      this.socket.off('playerKicked', onPlayerKicked as (...args: unknown[]) => void);
       this.ui.clearManagerAbsentWarning();
     });
   }

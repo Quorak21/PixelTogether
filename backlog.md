@@ -36,7 +36,6 @@ Pas de tâches info pour le moment
 
 Fonctionnalités indispensables et prioritaires pour la V1.
 
-- **ADD-45** — **Kick joueur waiting room** : expulser un joueur de la salle d'attente.
 - **ADD-46** — **Gestion du blanc adjacent** : si deux blancs côte à côte, enlever la bordure entre eux.
 - **ADD-47** — **Partie sans manager** : en cas d'absence prolongée du manager, ne pas fermer brutalement — enchaînement auto (vote, podium, export ZIP) pour que tous les joueurs puissent récupérer le pack final.
 - **ADD-48** — **Joueur peuvent quitter** : Permettre aux joueurs de quitter officielement la partie avec disclaimer de non-retour possible + purge token. Pareil pour manager, peut a tout moment tout fermer avec disclaimer pas de retour en arrière et non remboursement. => Si moitié des joueurs quittent => go final

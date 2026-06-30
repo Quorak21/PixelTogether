@@ -18,4 +18,5 @@ export class WaitingRoomComponent {
   readonly startButtonLabel = input('Démarrer');
   readonly startClick = output<void>();
   readonly openInvite = output<void>();
+  readonly kickClick = output<string>();
 }

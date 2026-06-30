@@ -3,6 +3,7 @@ import {
   purgePlayerSession,
   updateSessionGroupCode,
   setSessionConnected,
+  isBannedFromEvent,
 } from '../../services/reconnect/sessionToken.js';
 import {
   remapSocket,
@@ -41,6 +42,15 @@ export function handleReconnectSession(socket, data, callback, deps) {
 
   if (!session) {
     return callback({ error: 'PARTY_GONE' });
+  }
+
+  // Session détachée après un kick — enterWaitingRoom gère la réentrée.
+  if (!session.eventId) {
+    return callback({ error: 'DETACHED' });
+  }
+
+  if (isBannedFromEvent(session, session.eventId)) {
+    return callback({ error: 'Vous avez été exclu de cette partie.' });
   }
 
   const event = activeEvents[session.eventId];

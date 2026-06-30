@@ -15,7 +15,7 @@ export const roomGuard: CanActivateFn = (route) => {
     route.paramMap.get('roomId') ?? (route.params['roomId'] as string | undefined)
   )?.toUpperCase();
 
-  if (roomId && session.eventId.toUpperCase() !== roomId) {
+  if (roomId && session.eventId && session.eventId.toUpperCase() !== roomId) {
     return router.parseUrl('/');
   }
 

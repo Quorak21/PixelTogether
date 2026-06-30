@@ -42,7 +42,7 @@ export class LandingPageComponent implements OnInit {
   readonly infoModal = signal<InfoModalKind | null>(null);
   readonly isResuming = signal(false);
   readonly serverMaxCapReached = signal(false);
-  readonly hasActiveSession = this.sessionToken.hasSessionSignal;
+  readonly hasActiveSession = this.sessionToken.hasPartyBindingSignal;
 
   readonly form = this.fb.nonNullable.group({
     code: [
@@ -104,7 +104,7 @@ export class LandingPageComponent implements OnInit {
   }
 
   private async tryResumeSession(): Promise<void> {
-    if (!this.sessionToken.hasValidSession()) {
+    if (!this.sessionToken.isBoundToParty()) {
       return;
     }
 

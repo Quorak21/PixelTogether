@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { WaitingRoomPlayer } from '../../../types/entities';
 import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/avatar-placeholder';
 
@@ -10,4 +10,6 @@ import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/a
 })
 export class PlayerCardComponent {
   readonly player = input.required<WaitingRoomPlayer>();
+  readonly canKick = input(false);
+  readonly kick = output<string>();
 }

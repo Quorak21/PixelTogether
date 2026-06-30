@@ -3,7 +3,11 @@
 } @else {
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
     @for (player of players(); track player.socketId) {
-      <app-player-card [player]="player" />
+      <app-player-card
+        [player]="player"
+        [canKick]="isManager()"
+        (kick)="kickClick.emit($event)"
+      />
     }
   </div>
 }

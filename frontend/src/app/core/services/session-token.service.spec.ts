@@ -176,4 +176,25 @@ describe('SessionTokenService', () => {
     service.save(data);
     expect(service.hasSessionSignal()).toBe(false);
   });
+
+  it('should clear party binding but keep valid token after clearEventBinding()', () => {
+    const data: SessionTokenData = {
+      token: 'tok123',
+      playerId: 'p1',
+      role: 'player',
+      eventId: 'EVT1',
+      groupCode: 'g1',
+      expiresAt: Date.now() + 10000,
+    };
+
+    service.save(data);
+    expect(service.hasPartyBindingSignal()).toBe(true);
+
+    service.clearEventBinding();
+
+    expect(service.hasSessionSignal()).toBe(true);
+    expect(service.hasPartyBindingSignal()).toBe(false);
+    expect(service.read()?.eventId).toBe('');
+    expect(service.read()?.groupCode).toBeNull();
+  });
 });

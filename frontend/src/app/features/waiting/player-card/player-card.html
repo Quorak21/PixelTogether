@@ -1,4 +1,18 @@
-<div class="flex flex-col items-center gap-2 text-center">
-  <app-avatar-placeholder [color]="player().avatarColor" size="md" />
+<div class="relative flex flex-col items-center gap-2 text-center">
+  <div class="relative inline-block">
+    <app-avatar-placeholder [color]="player().avatarColor" size="md" />
+    @if (canKick()) {
+      <button
+        type="button"
+        class="absolute -top-1 -right-2 z-10 flex size-4 items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-all duration-200 hover:scale-110 active:scale-95 hover:bg-red-600 cursor-pointer"
+        title="Retirer de la salle"
+        (click)="kick.emit(player().playerId!)"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" />
+        </svg>
+      </button>
+    }
+  </div>
   <p class="w-full truncate text-sm font-medium text-white/90">{{ player().pseudo }}</p>
 </div>

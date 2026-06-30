@@ -38,6 +38,7 @@ export function issueSession(event, { playerId, role, socketId, groupCode = null
     expiresAt,
     connected: true,
     socketId,
+    kicksByEvent: {},
   };
 
   playerSessions[playerId] = session;
@@ -120,5 +121,43 @@ export function removePlayerSessionFromEvent(event, playerId) {
 /** Token encore valide pour une autre partie ? */
 export function hasActiveSessionOnOtherEvent(token, eventId) {
   const session = validateToken(token);
-  return Boolean(session && session.eventId !== eventId);
+  return Boolean(session?.eventId && session.eventId !== eventId);
+}
+
+/** Ban room-scoped : 2 kicks ou plus sur le même eventId pour ce token. */
+export function isBannedFromEvent(session, eventId) {
+  if (!session?.kicksByEvent) return false;
+  return (session.kicksByEvent[eventId] ?? 0) >= 2;
+}
+
+/** Incrémente le compteur de kicks pour une room. */
+export function recordRoomKick(session, eventId) {
+  if (!session.kicksByEvent) {
+    session.kicksByEvent = {};
+  }
+  session.kicksByEvent[eventId] = (session.kicksByEvent[eventId] ?? 0) + 1;
+  return { banned: session.kicksByEvent[eventId] >= 2 };
+}
+
+/** Détache le token de la room sans le supprimer (kick). */
+export function detachSessionFromEvent(session, event) {
+  if (event?.sessionsByToken && session.token) {
+    delete event.sessionsByToken[session.token];
+  }
+  session.eventId = null;
+  if (tokenIndex[session.token]) {
+    tokenIndex[session.token].eventId = null;
+  }
+}
+
+/** Réattache un token détaché à une room (retour après kick). */
+export function reattachSessionToEvent(session, event) {
+  if (!event.sessionsByToken) {
+    event.sessionsByToken = {};
+  }
+  session.eventId = event.id;
+  event.sessionsByToken[session.token] = session.playerId;
+  if (tokenIndex[session.token]) {
+    tokenIndex[session.token].eventId = event.id;
+  }
 }

@@ -115,6 +115,22 @@ export interface WaitingRoomErrorPayload {
   error: string;
 }
 
+export interface KickPlayerPayload {
+  roomId: string;
+  playerId: string;
+}
+
+export interface KickPlayerResponse {
+  ok?: boolean;
+  error?: string;
+}
+
+export interface PlayerKickedPayload {
+  roomId: string;
+  message: string;
+  banned: boolean;
+}
+
 export interface GetEventLobbyPayload {
   eventId: string;
 }

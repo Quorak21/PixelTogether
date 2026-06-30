@@ -14,7 +14,8 @@ export const sessionGuard: CanActivateFn = (route) => {
   const params = route.params;
 
   const eventId = (params['eventId'] as string | undefined)?.toUpperCase();
-  if (eventId && session.eventId.toUpperCase() !== eventId) {
+  /** Token valide mais plus lié à une room (kick) — la landing reste utilisable. */
+  if (session.eventId && session.eventId.toUpperCase() !== eventId) {
     return router.parseUrl('/');
   }
 
