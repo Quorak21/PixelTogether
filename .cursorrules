@@ -1,23 +1,11 @@
-# PixelTogether — Regles Cursor
+# PixelTogether — Règles Cursor
 
-Regles agents : `.cursor/rules/*.mdc` — definitions subagents : `.cursor/agents/*.md`
+**Source unique de vérité** : `@AGENTS.md` (conventions projet partagées).
 
-## Cap produit
+~**95 %** du développement se fait ici dans **Cursor** (agent intégré fullstack). ~**5 %** via **Hermes** sur Discord — mêmes règles projet, point d'entrée `.agents/AGENTS.md`.
 
-Outil de **teambuilding B2B ephemere par session** : le manager configure une partie, les joueurs sont repartis en **groupes de 3-4** avec une **palette de couleurs exclusive par membre** (collaboration forcee), puis **vote** et export **ZIP** des grilles. Tout l'etat est **en memoire** ; rien ne persiste apres la session.
+## Mode Cursor
 
-Suivi projet : **`backlog.md`** (taches en cours + futur features), **`journal.md`** (termine).
-
-## Stack
-
-**Angular 21** + **Tailwind CSS 4** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
-
-## Conventions dev
-
-- **Cohérence** : Le code doit être cohérent est simple, pas d'over engineering. 
-
-- **Styles** : classes Tailwind dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind (`@theme` palette Nord).
-
-- **Tests** : Couverture unitaire et d'intégration avec `node:test` (backend) et `Vitest` (frontend). Lancer les tests avec `npm run test` dans chaque dossier respectif.
-
-
+- **Agent unique fullstack** : front (`frontend/**/*`) et back (`backend/**/*`) — pas de sous-agents ni délégation.
+- Avant modification Angular significative : MCP Angular CLI (`list_projects`, puis `get_best_practices`).
+- Ne pas commit ni push sans demande explicite de l'utilisateur.
