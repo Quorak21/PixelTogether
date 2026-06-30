@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   signal,
 } from '@angular/core';
@@ -10,6 +11,7 @@ import { SocketService } from '../../core/services/socket.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { SessionTokenService } from '../../core/services/session-token.service';
 import { EndSessionPayload, EndSessionResponse } from '../../types/socket-payloads';
+import { formatRemainingMs } from '../../core/utils/time';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder';
 
 
@@ -24,6 +26,10 @@ export class NavbarComponent {
   readonly ui = inject(UiStateService);
   private readonly router = inject(Router);
   private readonly sessionToken = inject(SessionTokenService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** Timestamp courant mis à jour chaque seconde pour le chrono. */
+  private readonly now = signal(Date.now());
 
   readonly otherTeammates = computed(() => {
     if (!this.ui.gameMode() || this.ui.isCoopParty()) {
@@ -52,7 +58,54 @@ export class NavbarComponent {
   readonly isEndingSession = signal(false);
   readonly endSessionError = signal('');
 
-  constructor() {}
+  // --- Chrono session (ADD-39) ---
+
+  /** Libellé formaté du temps restant (ex: « 4:32 »). Null si pas de timer actif. */
+  readonly sessionTimerLabel = computed(() => {
+    const endsAt = this.ui.sessionEndsAt();
+    if (endsAt === null || !this.ui.gameMode()) return null;
+    return formatRemainingMs(endsAt - this.now());
+  });
+
+  /** Vrai s'il reste moins d'1 minute → urgence critique. */
+  readonly sessionTimerUrgent = computed(() => {
+    const endsAt = this.ui.sessionEndsAt();
+    if (endsAt === null) return false;
+    return endsAt - this.now() <= 60_000;
+  });
+
+  /** Vrai s'il reste entre 1 et 5 minutes → avertissement. */
+  readonly sessionTimerWarning = computed(() => {
+    const endsAt = this.ui.sessionEndsAt();
+    if (endsAt === null) return false;
+    const remaining = endsAt - this.now();
+    return remaining > 60_000 && remaining <= 300_000;
+  });
+
+  /** Classes Tailwind du badge chrono selon l'urgence. */
+  readonly timerColorClasses = computed(() => {
+    if (this.sessionTimerUrgent()) {
+      // 🔴 Urgent : rouge/coral (< 1 min)
+      return 'border-brand-coral/70 bg-brand-coral/15 text-brand-coral shadow-[0_0_24px_rgba(244,63,94,0.35)]';
+    }
+    if (this.sessionTimerWarning()) {
+      // 🟠 Warning : ambre (1–5 min)
+      return 'border-warning/70 bg-warning/15 text-warning shadow-[0_0_24px_rgba(245,158,11,0.3)]';
+    }
+    // 🟢 Normal : violet/indigo (> 5 min)
+    return 'border-brand-violet/60 bg-brand-violet/15 text-[#A5B4FC] shadow-[0_0_16px_rgba(99,102,241,0.25)]';
+  });
+
+  constructor() {
+    // Rafraîchit le timestamp chaque seconde pour le chrono
+    const interval = window.setInterval(() => {
+      this.now.set(Date.now());
+    }, 1000);
+
+    this.destroyRef.onDestroy(() => {
+      window.clearInterval(interval);
+    });
+  }
 
   // sortie contextuelle : WR = quitter la partie ; en jeu manager = retour lobby sans couper la session
   handleExitToLobby(): void {

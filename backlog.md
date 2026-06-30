@@ -35,7 +35,6 @@ Pas de tâches info pour le moment
 Fonctionnalités indispensables et prioritaires pour la V1.
 
 - **ADD-37** — **Export ZIP fin de partie** : export de toutes les grilles par le manager, avant `endParty`.
-- **ADD-39** — **Chrono navbar coloré** : le chrono de la navbar change de couleur quand le temps baisse.
 - **ADD-40** — **Indicateur « en train d'écrire »** : sur la barre joueurs.
 - **ADD-41** — **Statut « j'ai fini »** : quand tout le groupe a fini → grille lock + joueurs au lobby (accès autres grilles en chat, pas de pixel).
 
