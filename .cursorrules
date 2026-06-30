@@ -1,67 +1,23 @@
-# PixelTogether
+# PixelTogether — Regles Cursor
 
-Projet perso post-MVP — code simple, cohérent, lisible. Pas d'over-engineering.
+Regles agents : `.cursor/rules/*.mdc` — definitions subagents : `.cursor/agents/*.md`
 
 ## Cap produit
 
-Teambuilding B2B éphémère par session : groupes 3-4, palette exclusive par joueur, vote, export ZIP. État en mémoire — rien ne persiste après la session.
+Outil de **teambuilding B2B ephemere par session** : le manager configure une partie, les joueurs sont repartis en **groupes de 3-4** avec une **palette de couleurs exclusive par membre** (collaboration forcee), puis **vote** et export **ZIP** des grilles. Tout l'etat est **en memoire** ; rien ne persiste apres la session.
 
-Suivi : `backlog.md` (en cours + idées FF), `journal.md` (terminé — une ligne par tâche résolue).
+Suivi projet : **`backlog.md`** (taches en cours + futur features), **`journal.md`** (termine).
 
 ## Stack
 
-Angular 21 + Tailwind 4 (front) ; Node/Express + Socket.io (back, RAM only).
+**Angular 21** + **Tailwind CSS 4** (front) ; **Node/Express + Socket.io** (back, etat en memoire).
 
-## Où chercher
+## Conventions dev
 
-| Sujet | Front | Back |
-|-------|-------|------|
-| Waiting / vote / sessions | `features/waiting/` | `sockets/handlers/waitingRoom/` |
-| Jeu / canvas | `features/game/` | `handlers/game.handlers.js` |
-| Lobby / landing | `features/lobby/`, `landing/` | `handlers/lobby.handlers.js` |
-| Contrats socket | `types/socket-payloads.ts`, `entities.ts` | handlers + `services/event/payloads.js` |
-| État / constantes | `core/services/socket.service.ts` | `store/eventStore.js`, `config/constants.js` |
+- **Cohérence** : Le code doit être cohérent est simple, pas d'over engineering. 
 
-## Conventions code
+- **Styles** : classes Tailwind dans les templates HTML uniquement — pas de `styleUrl`, pas de `.css` par composant. Seul `frontend/src/styles.css` : point d'entrée Tailwind (`@theme` palette Nord).
 
-- **Simplicité** : réutiliser l'existant, petits diffs, pas d'abstraction « au cas où ». Rester cohérent avec le style du fichier touché.
-- **Bonnes pratiques** : suivre les patterns déjà en place dans le repo (Angular signals, handlers fins, etc.).
-- **Styles** : Tailwind dans les HTML seulement — pas de `styleUrl`, pas de `.css` composant. Thème Nord : `frontend/src/styles.css`.
-- **Front** : `OnPush`, signals, `inject`, `@if`/`@for`. Composant = `.ts` + `.html`. Nouveau composant ou feature → MCP `get_best_practices`.
-- **Back** : logique dans `services/`, handlers légers. Pas de BDD.
-- **Socket** : changement d'event ou payload → sync `socket-payloads.ts` côté front.
-- **Commentaires** : niveau dev junior — commenter les fonctions ou logiques non évidentes, en français, ton simple et naturel.
+- **Tests** : Couverture unitaire et d'intégration avec `node:test` (backend) et `Vitest` (frontend). Lancer les tests avec `npm run test` dans chaque dossier respectif.
 
-## Sécurité
 
-- Jamais de secret, token ou contenu `.env` dans le code, les commits ou le chat.
-- URLs API : `runtime-config.ts` / `environment.ts` — pas d'URL en dur dans les composants.
-
-## Périmètre
-
-- Modifier uniquement ce qui est nécessaire. Pas de refactor ou fichier bonus hors demande.
-- Nouvelle dépendance npm : demander avant, justifier en une phrase.
-
-## UI
-
-- Textes utilisateur en français, ton direct et pro (B2B teambuilding).
-- **Desktop uniquement** — le mobile affiche déjà un écran d'erreur (`app.ts`). Pas de travail responsive mobile.
-
-## Tests
-
-Ne pas ajouter de tests sans accord. Proposer d'abord en expliquant concrètement ce qu'ils couvriraient et pourquoi ça vaut le coup — pas de tests triviaux ou de couverture pour la couverture.
-
-## Backlog
-
-- « Plus tard » / « on fera après » → ticket dans `backlog.md` (section adaptée).
-- L'agent peut aussi y ajouter un ticket par initiative si un souci ou une dette mérite d'être tracé.
-- Ticket résolu → retirer de `backlog.md` + une ligne dans `journal.md`.
-
-## Efficacité
-
-- Lire 2–4 fichiers du périmètre avant d'explorer ailleurs.
-- Préférer modifier l'existant à créer un nouveau fichier.
-
-## Fin de tâche
-
-- Résumer : fichiers touchés, comment tester à la main, alerte si contrat socket modifié.
