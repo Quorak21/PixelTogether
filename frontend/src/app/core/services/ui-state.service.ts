@@ -45,6 +45,15 @@ export class UiStateService {
   readonly joinRoomError = signal<string | null>(null);
   readonly gameCanvasLoading = signal(false);
 
+  /** Joueur au lobby qui observe une autre grille (pas membre du groupe affiché). */
+  readonly isSpectator = signal(false);
+
+  /** Compteur « j'ai fini » du groupe courant (compétitif). */
+  readonly groupFinishFinishedCount = signal(0);
+  readonly groupFinishTotalCount = signal(0);
+  readonly hasMarkedFinished = signal(false);
+  readonly canDrawOnCanvas = signal(true);
+
   /** Indique si le salon actif est configuré en mode Coopératif. */
   readonly isCoopParty = computed(() => this.partyGameMode() === GAME_MODE_COOP);
 
@@ -87,6 +96,9 @@ export class UiStateService {
   readonly selectedColor = signal('#000000');
   readonly colors = signal<string[]>([]);
   readonly groupTeammates = signal<GroupPlayer[]>([]);
+  readonly typingTeammateIds = signal<ReadonlySet<string>>(new Set());
+
+  private typingHideTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   /**
    * Configure l'UI pour entrer dans la salle d'attente d'une partie.
@@ -131,6 +143,32 @@ export class UiStateService {
     this.currentGroupCode.set(groupCode ?? null);
     this.waitingMode.set(false);
     this.gameMode.set(true);
+    // isSpectator n'est pas réinitialisé ici : défini par setSpectatorMode (lobby) ou clearGroupFinishState (sortie)
+  }
+
+  setSpectatorMode(active: boolean): void {
+    this.isSpectator.set(active);
+  }
+
+  setGroupFinishProgress(finishedCount: number, totalCount: number): void {
+    this.groupFinishFinishedCount.set(finishedCount);
+    this.groupFinishTotalCount.set(totalCount);
+  }
+
+  setHasMarkedFinished(marked: boolean): void {
+    this.hasMarkedFinished.set(marked);
+  }
+
+  setCanDrawOnCanvas(canDraw: boolean): void {
+    this.canDrawOnCanvas.set(canDraw);
+  }
+
+  clearGroupFinishState(): void {
+    this.groupFinishFinishedCount.set(0);
+    this.groupFinishTotalCount.set(0);
+    this.hasMarkedFinished.set(false);
+    this.canDrawOnCanvas.set(true);
+    this.isSpectator.set(false);
   }
 
   /** Activateur du loader visuel pendant le chargement initial du canvas de jeu. */
@@ -220,6 +258,50 @@ export class UiStateService {
     this.groupTeammates.set([]);
   }
 
+  /** Indique si un coéquipier est en train d'écrire dans le chat de groupe. */
+  isTeammateTyping(socketId: string): boolean {
+    return this.typingTeammateIds().has(socketId);
+  }
+
+  /**
+   * Met à jour l'indicateur « en train d'écrire » d'un coéquipier.
+   * active=true : affiche 3 s max ; active=false : masque tout de suite.
+   */
+  setTeammateTyping(socketId: string, active: boolean): void {
+    const existingTimer = this.typingHideTimers.get(socketId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      this.typingHideTimers.delete(socketId);
+    }
+
+    if (active) {
+      const next = new Set(this.typingTeammateIds());
+      next.add(socketId);
+      this.typingTeammateIds.set(next);
+
+      const timer = setTimeout(() => {
+        this.typingHideTimers.delete(socketId);
+        const updated = new Set(this.typingTeammateIds());
+        updated.delete(socketId);
+        this.typingTeammateIds.set(updated);
+      }, 3000);
+      this.typingHideTimers.set(socketId, timer);
+      return;
+    }
+
+    const next = new Set(this.typingTeammateIds());
+    next.delete(socketId);
+    this.typingTeammateIds.set(next);
+  }
+
+  clearTypingTeammates(): void {
+    for (const timer of this.typingHideTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.typingHideTimers.clear();
+    this.typingTeammateIds.set(new Set());
+  }
+
   /**
    * Quitte la vue d'un groupe spécifique pour un spectateur ou joueur sans pour autant quitter la partie globale.
    * Réinitialise les paramètres de manche spécifiques.
@@ -236,6 +318,7 @@ export class UiStateService {
     this.colors.set([]);
     this.selectedColor.set('#000000');
     this.gameCanvasLoading.set(false);
+    this.clearGroupFinishState();
   }
 
   /**
@@ -313,7 +396,9 @@ export class UiStateService {
     this.colors.set([]);
     this.selectedColor.set('#000000');
     this.clearGroupTeammates();
+    this.clearTypingTeammates();
     this.gameCanvasLoading.set(false);
+    this.clearGroupFinishState();
   }
 
   /** Définit la couleur de dessin sélectionnée. */

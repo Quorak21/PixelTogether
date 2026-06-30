@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AVATAR_COLORS } from '../../../core/constants/avatar-colors';
+import { AVATAR_COLOR_ROWS, AVATAR_COLORS } from '../../../core/constants/avatar-colors';
 import { AvatarPlaceholderComponent } from '../../../shared/avatar-placeholder/avatar-placeholder';
 
 // pseudo + couleur avatar → emit vers waiting-room-page qui appelle registerPlayer
@@ -19,7 +19,7 @@ export class OnboardingModalComponent {
 
   readonly submitProfile = output<{ pseudo: string; avatarColor: string }>();
 
-  readonly avatarColors = AVATAR_COLORS;
+  readonly avatarColorRows = AVATAR_COLOR_ROWS;
   readonly selectedAvatarColor = signal<string>(AVATAR_COLORS[0]);
   readonly isSubmitting = signal(false);
 

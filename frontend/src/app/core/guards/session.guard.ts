@@ -19,7 +19,13 @@ export const sessionGuard: CanActivateFn = (route) => {
   }
 
   const groupCode = params['groupCode'] as string | undefined;
-  if (groupCode && session.role !== 'manager' && session.groupCode !== groupCode) {
+  // Joueur au lobby (groupCode null) peut observer n'importe quelle grille encore active.
+  if (
+    groupCode &&
+    session.role !== 'manager' &&
+    session.groupCode &&
+    session.groupCode !== groupCode
+  ) {
     return router.parseUrl('/');
   }
 

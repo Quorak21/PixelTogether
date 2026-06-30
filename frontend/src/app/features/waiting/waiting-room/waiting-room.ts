@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { LucidePlus } from '@lucide/angular';
 import { WaitingRoomPlayer } from '../../../types/entities';
 import { PlayerCardComponent } from '../player-card/player-card';
 
 @Component({
   selector: 'app-wr-gathering',
-  imports: [PlayerCardComponent, LucidePlus],
+  imports: [PlayerCardComponent],
   templateUrl: './waiting-room.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

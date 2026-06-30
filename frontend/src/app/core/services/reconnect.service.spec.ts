@@ -37,6 +37,7 @@ function mockWaitingRoomState(
     partyName: 'Party',
     theme: 'Theme',
     name: 'Theme',
+    themes: ['Theme'],
     gameMode: 'competitive',
     sessionCount: 1,
     currentSession: 1,

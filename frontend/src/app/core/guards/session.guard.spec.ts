@@ -83,9 +83,14 @@ describe('sessionGuard', () => {
     expect(runSessionGuard({ eventId: 'OTHER' })).toBe(homeUrl);
   });
 
-  it('redirects to / when groupCode does not match for a player', () => {
+  it('redirects to / when groupCode does not match for a player with an assigned group', () => {
     sessionToken.save(validSession({ groupCode: 'G1' }));
     expect(runSessionGuard({ eventId: 'EVT1', groupCode: 'G2' })).toBe(homeUrl);
+  });
+
+  it('allows a player at lobby (null groupCode) to open any group for spectating', () => {
+    sessionToken.save(validSession({ groupCode: null }));
+    expect(runSessionGuard({ eventId: 'EVT1', groupCode: 'G2' })).toBe(true);
   });
 
   it('allows manager without groupCode when route has groupCode', () => {

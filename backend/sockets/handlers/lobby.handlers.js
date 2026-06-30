@@ -6,6 +6,7 @@ import {
   hasActiveSessionOnOtherEvent,
 } from '../../services/reconnect/sessionToken.js';
 import { isManager } from '../../services/event/participants.js';
+import { canAccessLobby, resolveSocketPlayerId } from '../../services/session/groupAccess.js';
 import {
   parseGameMode,
   validateSessionCountForMode,
@@ -34,7 +35,7 @@ export function registerLobbyHandlers(socket, deps) {
   } = constants;
   const { buildEventLobbyPayload } = payloads;
 
-  // Récupère l'état complet du lobby (réservé au manager de la partie)
+  // Récupère l'état complet du lobby (manager ou joueur dont le groupe est terminé)
   socket.on('getEventLobby', (data, callback) => {
     const eventId = normalizeEventId(data?.eventId);
     const event = eventId ? activeEvents[eventId] : null;
@@ -46,15 +47,24 @@ export function registerLobbyHandlers(socket, deps) {
       return;
     }
 
-    if (!isManager(event, socket)) {
-      const error = 'Seul le manager peut accéder à ce lobby.';
+    const manager = isManager(event, socket);
+    let playerId = resolveSocketPlayerId(event, socket);
+    const allowed = manager || canAccessLobby(event, playerId);
+
+    if (!allowed) {
+      const error = 'Accès au lobby non autorisé.';
       socket.emit('eventLobbyError', { error });
       if (typeof callback === 'function') callback({ error });
       return;
     }
 
-    socket.data.playerId = event.managerPlayerId;
-    socket.data.role = 'manager';
+    if (manager) {
+      socket.data.playerId = event.managerPlayerId;
+      socket.data.role = 'manager';
+    } else if (playerId) {
+      socket.data.playerId = playerId;
+      socket.data.role = 'player';
+    }
     socket.data.eventId = eventId;
 
     const payload = buildEventLobbyPayload(event);

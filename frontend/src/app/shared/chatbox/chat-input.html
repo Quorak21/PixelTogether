@@ -7,6 +7,8 @@
       autocomplete="off"
       autocapitalize="off"
       spellcheck="false"
+      (input)="onInputChange()"
+      (blur)="onInputBlur()"
       class="w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-sm text-white placeholder-slate-500 focus:border-brand-violet focus:outline-none focus:ring-1 focus:ring-brand-violet/50"
       placeholder="Écrire un message..."
       maxlength="200"

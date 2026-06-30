@@ -23,7 +23,7 @@
         <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div class="min-w-0 flex-1">
             <h1 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-3xl font-black tracking-tight text-transparent md:text-4xl pb-2">
-              {{ managerPartyName() || 'Supervision' }}
+              {{ lobbyTitle() }}
             </h1>
             <p class="mt-1.5 text-sm font-medium text-landing-muted">
               Thème : <span class="text-white">{{ managerTheme() }}</span>
@@ -31,26 +31,7 @@
             </p>
           </div>
 
-          @if (sessionTimerLabel(); as timer) {
-            <div
-              class="flex shrink-0 flex-col items-center rounded-xl border-2 px-8 py-2 shadow-[0_0_32px_rgba(99,102,241,0.35)]"
-              [class.border-brand-violet/60]="!sessionTimerUrgent()"
-              [class.bg-brand-violet/15]="!sessionTimerUrgent()"
-              [class.border-brand-coral/70]="sessionTimerUrgent()"
-              [class.bg-brand-coral/15]="sessionTimerUrgent()"
-              [class.shadow-[0_0_32px_rgba(244,63,94,0.4)]]="sessionTimerUrgent()"
-              [class.animate-pulse]="sessionTimerUrgent()"
-            >
-              <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-landing-muted">Temps restant</span>
-              <span
-                class="font-mono text-3xl font-black tabular-nums leading-none"
-                [class.text-[#A5B4FC]]="!sessionTimerUrgent()"
-                [class.text-brand-coral]="sessionTimerUrgent()"
-              >{{ timer }}</span>
-            </div>
-          }
-
-          @if (managerGroups().length > 0) {
+          @if (!isPlayerLobby() && managerGroups().length > 0) {
             <button
               type="button"
               class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-error/50 bg-error/10 px-6 py-3 font-semibold text-error transition-all hover:bg-error/20 disabled:opacity-50 lg:self-center"
@@ -77,7 +58,11 @@
       @if (managerGroups().length === 0) {
         <div class="flex-1 flex flex-col items-center justify-center text-landing-muted italic py-20 bg-slate-900/20 rounded-2xl border border-white/5">
           <span class="text-6xl mb-4 opacity-20">▦</span>
+          @if (isPlayerLobby()) {
+          <p class="text-lg">Tous les groupes ont terminé — passage à la phase suivante…</p>
+          } @else {
           <p class="text-lg">Aucune sous-partie active.</p>
+          }
         </div>
       }
     </div>

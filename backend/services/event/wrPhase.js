@@ -1,4 +1,5 @@
-import { isCoop } from './gameMode.js';
+import { isCoop } from '../event/gameMode.js';
+import { getPlayerHomeGroup } from '../session/groupAccess.js';
 
 /**
  * Mode d'affichage WR côté client (`wrMode` dans les payloads).
@@ -23,12 +24,15 @@ export function getWrMode(event) {
  * Phase de reconnexion — inclut game/lobby hors WR.
  * `waiting` = rassemblement ou attente inter-session (`wrMode: players`).
  */
-export function resolveReconnectPhase(event, role) {
+export function resolveReconnectPhase(event, role, playerId = null) {
   if (event.status === 'started') {
     if (isCoop(event)) {
       return 'game';
     }
-    return role === 'manager' ? 'lobby' : 'game';
+    if (role === 'manager') return 'lobby';
+    const home = getPlayerHomeGroup(event, playerId);
+    if (home?.group?.finished) return 'lobby';
+    return 'game';
   }
 
   const wrMode = getWrMode(event);

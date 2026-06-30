@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SocketService } from '../../core/services/socket.service';
+import { ChatTypingPayload } from '../../types/socket-payloads';
 import { ChatScope } from './chatbox';
 
 @Component({
@@ -35,5 +36,26 @@ export class ChatInputComponent {
     }
     this.socket.emit('sendMessage', payload);
     this.inputValue = '';
+    this.emitTyping(false);
+  }
+
+  onInputChange(): void {
+    this.emitTyping(Boolean(this.inputValue.trim()));
+  }
+
+  onInputBlur(): void {
+    this.emitTyping(false);
+  }
+
+  private emitTyping(active: boolean): void {
+    if (this.scope() !== 'group' || !this.groupCode()) {
+      return;
+    }
+    const payload: ChatTypingPayload = {
+      eventId: this.eventId(),
+      groupCode: this.groupCode(),
+      active,
+    };
+    this.socket.emit('chatTyping', payload);
   }
 }

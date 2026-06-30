@@ -54,6 +54,12 @@ export class CanvasComponent implements AfterViewInit {
         return;
       }
 
+      if (eventId && this.ui.isCompetitiveParty() && (this.ui.isSpectator() || !this.ui.isManager())) {
+        this.ui.leaveGroupView(eventId);
+        void this.router.navigateByUrl(`/lobby/${eventId}`);
+        return;
+      }
+
       this.ui.exitGame();
       this.ui.joinRoomError.set(data.error);
       void this.router.navigateByUrl('/');
@@ -108,7 +114,7 @@ export class CanvasComponent implements AfterViewInit {
     if (session?.token) {
       const response = await this.reconnect.reconnect();
 
-      // Manager en observation : phase lobby → rejoindre le groupe choisi dans l'URL
+      // Manager ou joueur au lobby en observation : phase lobby → rejoindre le groupe choisi dans l'URL
       if (response?.phase === 'lobby' && session.role === 'manager') {
         this.ui.setRole('manager');
         this.ui.joinGame(this.eventId(), this.groupCode());
@@ -116,13 +122,18 @@ export class CanvasComponent implements AfterViewInit {
         return;
       }
 
-      if (response?.phase === 'game' && response.gridState) {
-        const sameGroup = response.groupCode === this.groupCode();
-        if (sameGroup || session.role === 'player') {
-          this.reconnect.hydrateGridState(response.gridState);
-          this.renderGrid(response.gridState);
-          return;
-        }
+      if (response?.phase === 'lobby' && session.role === 'player') {
+        this.ui.setRole('player');
+        this.ui.setSpectatorMode(true);
+        this.ui.joinGame(this.eventId(), this.groupCode());
+        this.emitJoinGroup();
+        return;
+      }
+
+      if (response?.phase === 'game' && response.gridState && response.groupCode === this.groupCode()) {
+        this.reconnect.hydrateGridState(response.gridState);
+        this.renderGrid(response.gridState);
+        return;
       }
 
       if (response && response.phase !== 'game') {
@@ -143,7 +154,13 @@ export class CanvasComponent implements AfterViewInit {
 
   handleDraw(event: PointerEvent): void {
     const managerCanDraw = this.ui.isCoopParty() && this.ui.isManager();
-    if ((this.ui.isManager() && !managerCanDraw) || this.hasMoved || event.button !== 0) {
+    if (
+      (this.ui.isManager() && !managerCanDraw) ||
+      !this.ui.canDrawOnCanvas() ||
+      this.ui.hasMarkedFinished() ||
+      this.hasMoved ||
+      event.button !== 0
+    ) {
       this.hasMoved = false;
       return;
     }

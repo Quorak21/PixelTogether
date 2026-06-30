@@ -27,17 +27,21 @@
 
         <div>
           <span class="mb-2 block font-medium text-white">Couleur d'avatar</span>
-          <div class="flex flex-wrap items-center justify-center gap-3">
-            @for (color of avatarColors; track color) {
-              <button
-                type="button"
-                class="cursor-pointer rounded-full border-[3px] border-transparent bg-transparent p-0.5 transition-all hover:scale-110"
-                [class.border-brand-violet]="selectedAvatarColor() === color"
-                (click)="selectColor(color)"
-                [attr.aria-label]="'Couleur ' + color"
-              >
-                <app-avatar-placeholder [color]="color" size="sm" />
-              </button>
+          <div class="flex flex-col items-center gap-2">
+            @for (row of avatarColorRows; track $index) {
+              <div class="flex justify-center gap-2">
+                @for (color of row; track color) {
+                  <button
+                    type="button"
+                    class="shrink-0 cursor-pointer rounded-full border-[3px] border-transparent bg-transparent p-0.5 transition-all hover:scale-110"
+                    [class.border-brand-violet]="selectedAvatarColor() === color"
+                    (click)="selectColor(color)"
+                    [attr.aria-label]="'Couleur ' + color"
+                  >
+                    <app-avatar-placeholder [color]="color" size="sm" />
+                  </button>
+                }
+              </div>
             }
           </div>
         </div>

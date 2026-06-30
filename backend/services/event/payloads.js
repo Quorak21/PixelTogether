@@ -5,9 +5,9 @@ import {
   getParticipantPseudo,
   resolvePlayerId,
 } from './participants.js';
-import { getEventGroupImages } from '../grid/preview.js';
 import { buildVoteFields } from '../vote/voteLifecycle.js';
 import { isCoop } from './gameMode.js';
+import { isGroupSpectator, resolveSocketPlayerId } from '../session/groupAccess.js';
 
 export function toPublicPlayer({ socketId, pseudo, avatarColor, playerId }) {
   return { socketId, pseudo, avatarColor, playerId };
@@ -24,6 +24,23 @@ export function toGroupPlayer(player) {
 }
 
 export function toChatMessage(event, group, entry) {
+  let avatarColor = entry.avatarColor;
+  if (!avatarColor && event) {
+    const pid = entry.playerId;
+    const sid = entry.socketId;
+    if (sid === event.manager || pid === event.managerPlayerId) {
+      avatarColor = event.managerProfile?.avatarColor;
+    } else {
+      const player =
+        group?.players.find((p) => p.socketId === sid || (pid && p.playerId === pid)) ??
+        event.players.find((p) => p.socketId === sid || (pid && p.playerId === pid)) ??
+        event.players.find((p) => p.pseudo === entry.pseudo);
+      avatarColor = player?.avatarColor ?? (
+        entry.pseudo === event.managerProfile?.pseudo ? event.managerProfile?.avatarColor : null
+      );
+    }
+  }
+
   if (entry.role === 'system') {
     return {
       socketId: entry.socketId ?? 'system',
@@ -32,6 +49,7 @@ export function toChatMessage(event, group, entry) {
       senderId: entry.playerId ?? 'system',
       role: 'system',
       systemRole: entry.systemRole,
+      avatarColor,
     };
   }
   const isSenderManager = entry.role === 'manager' || 
@@ -43,6 +61,7 @@ export function toChatMessage(event, group, entry) {
     message: entry.message,
     senderId: entry.playerId ?? entry.socketId,
     role: isSenderManager ? 'manager' : 'player',
+    avatarColor,
   };
 }
 
@@ -55,6 +74,7 @@ function buildWaitingRoomBase(event, socketId, playerId = null) {
     partyName: event.partyName,
     theme: event.name,
     name: event.name,
+    themes: Array.isArray(event.themes) ? [...event.themes] : [],
     gameMode: event.gameMode ?? 'competitive',
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
@@ -106,13 +126,21 @@ export function buildGridStatePayload(event, groupCode, socket, gridSize) {
   const group = event.groups[groupCode];
   if (!group) return null;
 
-  const playerId = socket.data?.playerId;
+  const playerId = resolveSocketPlayerId(event, socket) ?? socket.data?.playerId;
   const isManagerSocket = playerId === event.managerPlayerId || socket.id === event.manager;
   const member = group.players.find(
     (p) => p.playerId === playerId || p.socketId === socket.id,
   );
   const playerColors = member?.assignedColors ?? [];
   const managerPlays = isCoop(event) && isManagerSocket;
+  const spectator = isGroupSpectator(event, socket, group);
+  const playerFinished =
+    Boolean(playerId && group.finishedPlayerIds?.includes(playerId));
+  const canDraw =
+    !group.finished &&
+    !spectator &&
+    !playerFinished &&
+    (member || managerPlays);
 
   return {
     eventId: event.id,
@@ -126,25 +154,38 @@ export function buildGridStatePayload(event, groupCode, socket, gridSize) {
     width: gridSize,
     height: gridSize,
     name: event.name,
-    colors: isManagerSocket && !managerPlays ? [] : playerColors,
+    colors: canDraw ? playerColors : [],
     role: isManagerSocket ? 'manager' : 'player',
     teammates: group.players.map(toGroupPlayer),
     sessionEndsAt: event.sessionEndsAt ?? null,
     sessionCount: event.sessionCount,
     currentSession: event.currentSession,
+    canDraw,
+    finishedCount: group.finishedPlayerIds?.length ?? 0,
+    totalCount: group.players.length,
+    hasMarkedFinished: playerFinished,
   };
 }
 
 // payload lobby manager : groupes triés + previews + timer si session en cours
 export function buildEventLobbyPayload(event) {
-  const groups = getSortedGroups(event).map(({ groupCode, group }) => ({
-    eventId: event.id,
-    groupCode,
-    groupIndex: group.groupIndex,
-    label: `Groupe ${group.groupIndex}`,
-    players: group.players.map(toGroupPlayer),
-    image: group.image,
-  }));
+  const groups = getSortedGroups(event)
+    .filter(({ group }) => !group.finished)
+    .map(({ groupCode, group }) => ({
+      eventId: event.id,
+      groupCode,
+      groupIndex: group.groupIndex,
+      label: `Groupe ${group.groupIndex}`,
+      players: group.players.map(toGroupPlayer),
+      image: group.image,
+    }));
+
+  const images = {};
+  for (const card of groups) {
+    if (card.image) {
+      images[card.groupCode] = card.image;
+    }
+  }
 
   return {
     eventId: event.id,
@@ -157,6 +198,6 @@ export function buildEventLobbyPayload(event) {
     sessionEndsAt: event.status === 'started' ? (event.sessionEndsAt ?? null) : null,
     status: event.status,
     groups,
-    images: getEventGroupImages(event),
+    images,
   };
 }

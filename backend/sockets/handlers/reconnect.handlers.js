@@ -62,7 +62,7 @@ export function handleReconnectSession(socket, data, callback, deps) {
 
   socket.join(session.eventId);
 
-  const phase = resolveReconnectPhase(event, session.role);
+  const phase = resolveReconnectPhase(event, session.role, session.playerId);
   const response = {
     phase,
     eventId: session.eventId,

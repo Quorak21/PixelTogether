@@ -40,7 +40,7 @@ test('getWrMode and resolveReconnectPhase stay aligned on WR phases', () => {
   assert.strictEqual(resolveReconnectPhase(podium, 'player'), 'podium');
 });
 
-test('registerWaitingRoomHandlers registers all 8 events', async () => {
+test('registerWaitingRoomHandlers registers all 9 events', async () => {
   const { registerWaitingRoomHandlers } = await import('./register.js');
 
   const registered = {};
@@ -67,6 +67,7 @@ test('registerWaitingRoomHandlers registers all 8 events', async () => {
     'closeVote',
     'showResults',
     'endParty',
+    'requestExportZip',
   ];
 
   for (const event of expected) {

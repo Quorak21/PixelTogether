@@ -77,6 +77,8 @@ export function beginSession(event, deps) {
       pixels: {},
       chatMessages: [],
       image: null,
+      finishedPlayerIds: [],
+      finished: false,
     };
     assignPalettesToGroup(group);
     event.groups[groupCode] = group;

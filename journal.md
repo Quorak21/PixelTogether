@@ -13,6 +13,14 @@
 
 ## Entrées
 
+- **ADD-41** — **Statut « j'ai fini » (compétitif)** : bouton par joueur avec compteur X/Y ; quand tout le groupe a cliqué → grille verrouillée, joueurs au lobby (sans fin de session manuelle), spectateur sur les autres grilles (chat sans historique, pas de pixel) ; fin de session auto quand toutes les grilles sont terminées ; grilles finies retirées du lobby.
+
+- **UI-LOBBY-01** — **Optimisation du Lobby d'Attente** : refonte visuelle complète de la page d'attente (split layout 2 colonnes avec timeline des sessions/thèmes à gauche et participants/lancement à droite), en-tête épuré avec copie rapide du code de session dans le presse-papier, et indicateur de statut à puce animée.
+
+- **ADD-44** — **Copy waiting room** : pool de 19 sous-titres aléatoires sous le titre (placeholder `{manager}`), programme des thèmes en phase gathering — exposition de `themes[]` dans `waitingRoomState`.
+
+- **ADD-40** — **Indicateur « en train d'écrire »** : tag 3 points (Tailwind `animate-bounce`) sur la barre coéquipiers en mode compétitif quand un joueur tape dans le chat de groupe — events `chatTyping` / `playerTyping`, émission depuis `chat-input`, affichage navbar.
+
 - **ADD-39** — **Chrono navbar coloré** : badge chrono dans la navbar visible en mode jeu uniquement, avec changement de couleur progressif selon le temps restant — violet/indigo en normal (> 5 min), ambre en avertissement (1–5 min), rouge/coral en urgence (< 1 min). Rafraîchissement chaque seconde via signal `now` + `setInterval` nettoyé dans `DestroyRef`.
 
 - **ADD-38** — **Annonces chat présence** : annonce système dans le chat des sous-parties à l'arrivée et au départ du manager spectateur (avec pseudo stylisé, couronne et couleur) ; isolation de l'historique de chat pour que le manager spectateur ne voie pas les messages précédents mais uniquement les nouveaux pendant qu'il est présent.
@@ -135,3 +143,5 @@
 **Démolition (DEMO-01 → 06)** — Héritage retiré (Mongo, auth, galerie, économie, gamification). Base remise à plat : lobby, pixels temps réel, `socket.id`.
 
 **Pivot produit** — Fin du jeu communautaire persistant → outil B2B éphémère par session (manager, groupes, vote, export ZIP). Zéro BDD, état en mémoire.
+
+**ADD-37** — Export ZIP fin de partie : PNG de toutes les grilles archivées + `recap.txt` (complet compétitif, minimal coop). Téléchargement par tous les inscrits en podium/galerie, avant `endParty` ; cache RAM sur l'event, route `GET /export/:eventId` + socket `requestExportZip`, auth token + `isRegistered`. Dépendance `archiver`.

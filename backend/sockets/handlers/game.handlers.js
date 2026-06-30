@@ -1,7 +1,13 @@
 import { getSortedGroups } from '../../store/eventStore.js';
 import { isCoop } from '../../services/event/gameMode.js';
 import { canAccessPartyChat } from '../../services/chat/partyChat.js';
-import { isRateLimited } from './socketGuards.js';
+import { isRateLimited, guardAck } from './socketGuards.js';
+import {
+  isGroupMember,
+  isGroupSpectator,
+  resolveSocketPlayerId,
+} from '../../services/session/groupAccess.js';
+import { markPlayerFinished } from '../../services/session/groupFinish.js';
 
 // rejoint la room socket du groupe et renvoie gridState (pixels + couleurs assignées)
 function handleJoinGroup(socket, data, deps) {
@@ -36,13 +42,20 @@ function handleJoinGroup(socket, data, deps) {
     return;
   }
 
-  const playerId = socket.data?.playerId;
   const manager = isManager(event, socket);
-  const isMember = group.players.some(
-    (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
-  );
+  let playerId = resolveSocketPlayerId(event, socket);
+  if (playerId && !socket.data?.playerId) {
+    socket.data.playerId = playerId;
+  }
+  const isMember = isGroupMember(group, socket, playerId);
+  const spectator = isGroupSpectator(event, socket, group);
 
-  if (!manager && !isMember) {
+  if (group.finished) {
+    socket.emit('joinRoomError', { error: 'Cette grille est terminée.' });
+    return;
+  }
+
+  if (!isMember && !spectator) {
     socket.emit('joinRoomError', { error: "Vous n'appartenez pas à ce groupe." });
     return;
   }
@@ -176,6 +189,47 @@ export function registerGameHandlers(socket, deps) {
     handleJoinGroup(socket, { eventId, groupCode: assignment.groupCode }, deps);
   });
 
+  socket.on('markFinished', (data, callback) => {
+    if (!guardAck(callback)) return;
+
+    const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
+    const groupCode = normalizeGroupCode(data?.groupCode ?? socket.data.groupCode);
+    const event = eventId ? activeEvents[eventId] : null;
+    const group = getGroup(event, groupCode);
+
+    if (!event || !group) {
+      return callback({ error: "La partie n'existe pas." });
+    }
+
+    if (event.status !== 'started') {
+      return callback({ error: "La partie n'a pas encore démarré." });
+    }
+
+    if (isCoop(event)) {
+      return callback({ error: 'Non disponible en mode coopératif.' });
+    }
+
+    if (isManager(event, socket)) {
+      return callback({ error: 'Réservé aux joueurs.' });
+    }
+
+    if (group.finished) {
+      return callback({ error: 'Ce groupe a déjà terminé.' });
+    }
+
+    const playerId = socket.data?.playerId;
+    if (!isGroupMember(group, socket, playerId)) {
+      return callback({ error: "Vous n'appartenez pas à ce groupe." });
+    }
+
+    const result = markPlayerFinished(io, event, group, playerId);
+    if (!result) {
+      return callback({ error: 'Impossible de marquer comme terminé.' });
+    }
+
+    callback({ ok: true, ...result });
+  });
+
   socket.on('sendMessage', (data) => {
     const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
     const event = eventId ? activeEvents[eventId] : null;
@@ -207,11 +261,10 @@ export function registerGameHandlers(socket, deps) {
     // Vérification de sécurité : le socket doit appartenir au groupe ou être le manager de la partie.
     const manager = isManager(event, socket);
     const playerId = socket.data?.playerId;
-    const isMember = group.players.some(
-      (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
-    );
+    const isMember = isGroupMember(group, socket, playerId);
+    const spectator = isGroupSpectator(event, socket, group);
 
-    if (!manager && !isMember) return;
+    if (!manager && !isMember && !spectator) return;
 
     if (isRateLimited(socket, 'sendMessage', CHAT_COOLDOWN_MS)) return;
 
@@ -230,6 +283,30 @@ export function registerGameHandlers(socket, deps) {
 
     const roomName = groupRoomName(eventId, groupCode);
     io.to(roomName).emit('receiveMessage', toChatMessage(event, group, entry));
+  });
+
+  socket.on('chatTyping', (data) => {
+    const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
+    const groupCode = normalizeGroupCode(data?.groupCode);
+    const event = eventId ? activeEvents[eventId] : null;
+    const group = getGroup(event, groupCode);
+
+    if (!event || !group) return;
+
+    const manager = isManager(event, socket);
+    const playerId = socket.data?.playerId;
+    const isMember = isGroupMember(group, socket, playerId);
+    const spectator = isGroupSpectator(event, socket, group);
+
+    if (!manager && !isMember && !spectator) return;
+
+    if (isRateLimited(socket, 'chatTyping', 300)) return;
+
+    const roomName = groupRoomName(eventId, groupCode);
+    io.to(roomName).emit('playerTyping', {
+      socketId: socket.id,
+      active: Boolean(data?.active),
+    });
   });
 
   socket.on('getChatMessages', (data) => {
@@ -254,13 +331,12 @@ export function registerGameHandlers(socket, deps) {
     // Vérification de sécurité : le socket doit appartenir au groupe ou être le manager de la partie.
     const manager = isManager(event, socket);
     const playerId = socket.data?.playerId;
-    const isMember = group.players.some(
-      (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
-    );
+    const isMember = isGroupMember(group, socket, playerId);
+    const spectator = isGroupSpectator(event, socket, group);
 
-    if (!manager && !isMember) return;
+    if (!manager && !isMember && !spectator) return;
 
-    if (manager && !isMember) {
+    if (spectator) {
       socket.emit('chatMessages', []);
       return;
     }
@@ -307,6 +383,10 @@ export function registerGameHandlers(socket, deps) {
     }
 
     if (!group.players.some((p) => p.socketId === socket.id || p.playerId === socket.data?.playerId)) {
+      return;
+    }
+
+    if (group.finished || group.finishedPlayerIds?.includes(socket.data?.playerId)) {
       return;
     }
 
@@ -394,6 +474,9 @@ export function registerGameHandlers(socket, deps) {
       (p) => p.socketId === socket.id || (playerId && p.playerId === playerId),
     );
 
+    const roomName = groupRoomName(eventId, groupCode);
+    io.to(roomName).emit('playerTyping', { socketId: socket.id, active: false });
+
     if (!isMember) {
       const pseudo = getParticipantPseudo(event, socket.id, group, playerId);
       const leaveEntry = {
@@ -408,7 +491,6 @@ export function registerGameHandlers(socket, deps) {
       if (group.chatMessages.length > CHAT_MAX_MESSAGES) {
         group.chatMessages.shift();
       }
-      const roomName = groupRoomName(eventId, groupCode);
       io.to(roomName).emit('receiveMessage', toChatMessage(event, group, leaveEntry));
     }
   });

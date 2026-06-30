@@ -68,6 +68,7 @@ export interface WaitingRoomStatePayload extends VoteStateFields, SessionFields 
   partyName: string;
   theme: string;
   name: string;
+  themes: string[];
   gameMode: GameMode;
   sessionCount: number;
   currentSession: number;
@@ -118,9 +119,40 @@ export interface GetEventLobbyPayload {
   eventId: string;
 }
 
-// ack getEventLobby — manager only
+// ack getEventLobby — manager ou joueur au lobby
 export interface EventLobbyStatePayload extends EventLobbyState {
   error?: string;
+}
+
+export interface MarkFinishedPayload {
+  eventId: string;
+  groupCode: string;
+}
+
+export interface MarkFinishedResponse {
+  ok?: boolean;
+  finishedCount?: number;
+  totalCount?: number;
+  error?: string;
+}
+
+export interface GroupFinishProgressPayload {
+  eventId: string;
+  groupCode: string;
+  finishedCount: number;
+  totalCount: number;
+  finishedPlayerIds?: string[];
+}
+
+export interface GroupFinishedPayload {
+  eventId: string;
+  groupCode: string;
+}
+
+export interface LobbyGroupsUpdatedPayload {
+  eventId: string;
+  groups: EventLobbyState['groups'];
+  images: EventLobbyState['images'];
 }
 
 export interface GroupPreviewUpdatedPayload {
@@ -168,8 +200,40 @@ export interface EndPartyResponse {
   error?: string;
 }
 
+export interface RequestExportZipPayload {
+  roomId: string;
+  token: string;
+}
+
+export interface RequestExportZipResponse {
+  downloadUrl?: string;
+  filename?: string;
+  error?: string;
+}
+
 // broadcast après castVote / closeVote / showResults — myVote varie par socket
 export interface VoteStateUpdatedPayload extends VoteStateFields {
   eventId: string;
   error?: string;
+}
+
+export interface ChatTypingPayload {
+  eventId: string;
+  groupCode: string;
+  active: boolean;
+}
+
+export interface PlayerTypingPayload {
+  socketId: string;
+  active: boolean;
+}
+
+export interface ChatMessagePayload {
+  socketId: string;
+  pseudo: string;
+  message: string;
+  senderId?: string;
+  role?: 'manager' | 'player' | 'system';
+  systemRole?: string;
+  avatarColor?: string | null;
 }

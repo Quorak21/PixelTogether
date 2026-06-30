@@ -14,17 +14,11 @@ import {
 import { FormsModule } from '@angular/forms';
 import { SocketService } from '../../core/services/socket.service';
 import { UiStateService } from '../../core/services/ui-state.service';
+import { ChatMessagePayload } from '../../types/socket-payloads';
 
 export type ChatScope = 'group' | 'party';
 
-interface ChatMessage {
-  senderId?: string;
-  socketId: string;
-  pseudo: string;
-  message: string;
-  role?: string;
-  systemRole?: string;
-}
+type ChatMessage = ChatMessagePayload;
 
 @Component({
   selector: 'app-chatbox',
@@ -72,6 +66,11 @@ export class ChatboxComponent {
 
   isManagerMessage(msg: ChatMessage): boolean {
     return msg.role === 'manager';
+  }
+
+  pseudoColor(msg: ChatMessage): string {
+    const color = msg.avatarColor ?? '#A5B4FC';
+    return color.toLowerCase() === '#000000' ? '#ffffff' : color;
   }
 
   sendMessage(): void {

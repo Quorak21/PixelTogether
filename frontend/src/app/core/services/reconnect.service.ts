@@ -84,13 +84,16 @@ export class ReconnectService {
       return null;
     }
 
+    const groupCode =
+      response.phase === 'lobby' ? null : (response.groupCode ?? null);
+
     this.sessionToken.patchFromServer({
       playerId: response.playerId,
       token: response.token,
       expiresAt: response.expiresAt,
       role: response.role,
       eventId: response.eventId,
-      groupCode: response.groupCode ?? null,
+      groupCode,
     });
 
     return response;
@@ -141,18 +144,25 @@ export class ReconnectService {
 
     if (response.phase === 'lobby' && response.lobbyState && response.eventId) {
       const gameRoute = this.parseGameRoute(url);
-      if (gameRoute && session?.role === 'manager' && this.idsMatch(gameRoute.eventId, response.eventId)) {
-        this.hydrateLobbyState(response.lobbyState, response.eventId);
+      if (
+        gameRoute &&
+        (session?.role === 'manager' || session?.role === 'player') &&
+        this.idsMatch(gameRoute.eventId, response.eventId)
+      ) {
+        this.hydrateLobbyState(response.lobbyState, response.eventId, session?.role);
         this.socket.emit('joinGroup', {
           eventId: gameRoute.eventId,
           groupCode: gameRoute.groupCode,
         });
+        if (session?.role === 'player') {
+          this.ui.setSpectatorMode(true);
+        }
         return;
       }
 
       const lobbyEventId = this.parseLobbyRoute(url);
       if (lobbyEventId && this.idsMatch(lobbyEventId, response.eventId)) {
-        this.hydrateLobbyState(response.lobbyState, response.eventId);
+        this.hydrateLobbyState(response.lobbyState, response.eventId, session?.role);
         this.lobbyResyncHandler?.(response.lobbyState as EventLobbyStatePayload);
         return;
       }
@@ -218,7 +228,7 @@ export class ReconnectService {
     }
 
     if (response.phase === 'lobby' && response.lobbyState) {
-      this.hydrateLobbyState(response.lobbyState, eventId);
+      this.hydrateLobbyState(response.lobbyState, eventId, response.role);
       await this.router.navigateByUrl(`/lobby/${eventId}`);
       return true;
     }
@@ -292,6 +302,13 @@ export class ReconnectService {
     if ((data.role === 'player' || managerPlays) && data.colors.length) {
       this.ui.setColorsFromGrid(data.colors);
     }
+    this.ui.setCanDrawOnCanvas(data.canDraw !== false);
+    if (data.finishedCount !== undefined && data.totalCount !== undefined) {
+      this.ui.setGroupFinishProgress(data.finishedCount, data.totalCount);
+    }
+    if (data.hasMarkedFinished) {
+      this.ui.setHasMarkedFinished(true);
+    }
     this.syncSelfProfileFromTeammates(data.teammates ?? []);
   }
 
@@ -319,15 +336,18 @@ export class ReconnectService {
   hydrateLobbyState(
     response: NonNullable<ReconnectSessionResponse['lobbyState']>,
     eventId: string,
+    role?: 'manager' | 'player',
   ): void {
     this.ui.currentEventId.set(eventId);
     this.ui.partyName.set(response.partyName);
     this.ui.gameTheme.set(response.theme ?? response.name);
     this.ui.setSessionMeta(response.sessionCount ?? 1, response.currentSession ?? 1, true);
-    this.ui.setRole('manager');
+    const sessionRole = role ?? this.sessionToken.read()?.role ?? 'manager';
+    this.ui.setRole(sessionRole);
     if (response.sessionEndsAt) {
       this.ui.setSessionEndsAt(response.sessionEndsAt);
     }
+    this.ui.clearGroupFinishState();
   }
 
   /**

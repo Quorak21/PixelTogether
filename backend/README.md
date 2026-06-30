@@ -42,6 +42,8 @@ backend/
 │   ├── reconnect/
 │   │   └── sessionToken.js      # Génération et validation des tokens de reconnexion
 │   ├── session/
+│   │   ├── groupAccess.js       # Accès lobby joueur et mode spectateur
+│   │   ├── groupFinish.js       # Statut « j'ai fini » compétitif (compteur, lobby joueur)
 │   │   ├── sessionLifecycle.js  # Déroulement d'une session de dessin (début, fin)
 │   │   └── sessionTimer.js      # Planification du chronomètre de fin de session
 │   └── vote/
@@ -89,6 +91,8 @@ Chaque salon de jeu créé est modélisé par un objet `Event` stocké dans la b
         "12,34": "#ffffff"
       },
       chatMessages: [ ... ],  // Historique des messages du groupe
+      finishedPlayerIds: [],  // Compétitif : joueurs ayant cliqué « j'ai fini »
+      finished: false,        // Compétitif : true quand tout le groupe a terminé
       image: "data:image/png..." // Preview Base64 de la grille générée par canvas
     }
   },
@@ -191,6 +195,13 @@ C'est le module de tolérance aux pannes réseau. Il évite qu'un joueur perde s
 
 ---
 
+### 7b. Fin de groupe compétitif ([groupFinish.js](file:///h:/Taches/Programmation/PixelTogether/backend/services/session/groupFinish.js))
+* **`markPlayerFinished(io, event, group, playerId)`** : Enregistre un clic « j'ai fini », diffuse `groupFinishProgress` au groupe, et appelle `completeGroup` si tout le monde a cliqué.
+* **`completeGroup(io, event, groupCode)`** : Verrouille la grille (`finished: true`), émet `groupFinished` aux membres, `lobbyGroupsUpdated` au salon, et `finishCurrentSession` si toutes les grilles sont terminées.
+* **`canAccessLobby(event, playerId)`** / **`isGroupSpectator(event, socket, group)`** : Autorisent l'accès au lobby joueur et le mode spectateur (chat sans historique, pas de pixel). Voir aussi [groupAccess.js](file:///h:/Taches/Programmation/PixelTogether/backend/services/session/groupAccess.js).
+
+---
+
 ### 8. Chronomètres de session ([sessionTimer.js](file:///h:/Taches/Programmation/PixelTogether/backend/services/session/sessionTimer.js))
 * **`scheduleSessionEnd(event, io)`** : Calcule le timestamp exact de la fin de la manche en ajoutant la durée de dessin et 10 secondes de transition (temps de latence pour que le front affiche l'alerte). Enregistre un `setTimeout` qui appellera `finishCurrentSession()` une fois ce délai écoulé.
 
@@ -226,7 +237,7 @@ Voici comment se déroule une partie de A à Z à travers les échanges de messa
 * **Confirmation** (Serveur ➔ Manager) : Le serveur renvoie le code unique de salon (ex: `AJDKSL`) et le jeton (`token`) de reconnexion.
 
 ### 2. Inscription des joueurs (Salle d'attente)
-* **`enterWaitingRoom`** (Joueur ➔ Serveur) : Le joueur entre le code du salon pour s'y connecter.
+* **`enterWaitingRoom`** (Joueur ➔ Serveur) : Le joueur entre le code du salon pour s'y connecter. L'ack `waitingRoomState` inclut `themes` (liste complète des thèmes configurés) en plus de `theme` (thème de la session courante).
 * **`registerPlayer`** (Joueur ➔ Serveur) : Le joueur s'inscrit en choisissant son pseudo et son avatar.
 * **`waitingRoomUpdated`** (Serveur ➔ Salon) : Diffuse à tout le monde la liste des joueurs connectés pour mettre à jour l'écran d'attente.
 
@@ -237,13 +248,17 @@ Voici comment se déroule une partie de A à Z à travers les échanges de messa
   * Le **manager** reçoit le tableau de bord (lobby de supervision) avec les miniatures des grilles.
 
 ### 4. Phase de dessin et chat (En temps réel)
+* **`markFinished`** (Joueur ➔ Serveur) : Compétitif — le joueur signale qu'il a terminé sa grille. Ack `{ ok, finishedCount, totalCount }`.
+* **`groupFinishProgress`** (Serveur ➔ Équipe) : Mise à jour du compteur « X/Y » dans le groupe.
+* **`groupFinished`** (Serveur ➔ Membres du groupe) : Tout le groupe a cliqué — redirection lobby joueur.
+* **`lobbyGroupsUpdated`** (Serveur ➔ Salon) : Liste des grilles encore actives (grilles terminées retirées).
 * **`pixelPlaced`** (Joueur ➔ Serveur) : Un joueur pose un pixel sur sa grille.
 * **`drawPixel`** (Serveur ➔ Équipe) : Le serveur répercute le pixel uniquement aux membres de cette équipe.
 * **`groupPreviewUpdated`** (Serveur ➔ Manager) : Le serveur envoie l'image mise à jour à l'écran de contrôle du manager.
 * **`sendMessage`** (Joueur ➔ Serveur) / **`receiveMessage`** (Serveur ➔ Équipe) : Gèrent le chat interne de l'équipe.
 
 ### 5. Fin d'une manche (Session)
-* **`sessionEnded`** (Serveur ➔ Salon) : Le temps est écoulé (ou le manager clique sur "Terminer la session"). Le serveur bloque le dessin et redirige tout le monde vers la salle d'attente.
+* **`sessionEnded`** (Serveur ➔ Salon) : Le temps est écoulé, le manager clique sur « Terminer la session », ou **toutes les grilles compétitives sont terminées**. Le serveur bloque le dessin et redirige tout le monde vers la salle d'attente.
 
 ### 6. Phase de vote (Compétitif uniquement)
 * **`castVote`** (Joueur ➔ Serveur) : Un joueur vote pour le dessin d'un groupe.

@@ -13,6 +13,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
+import { getApiUrl } from '../../../core/config/runtime-config';
 import { ReconnectService } from '../../../core/services/reconnect.service';
 import {
   GalleryGrid,
@@ -42,6 +43,8 @@ import {
   GameStartedPayload,
   RegisterPlayerPayload,
   RegisterPlayerResponse,
+  RequestExportZipPayload,
+  RequestExportZipResponse,
   ShowResultsPayload,
   StartGamePayload,
   StartGameResponse,
@@ -61,6 +64,10 @@ import { resolveWrPhase } from '../wr-phase';
 import { GridPixelSplashComponent } from '../../../shared/grid-pixel-splash/grid-pixel-splash';
 import { ChatboxComponent } from '../../../shared/chatbox/chatbox';
 import { fireVoteWinnerConfetti } from '../../../core/utils/confetti-burst';
+import {
+  buildThemeSchedule,
+  pickWaitingRoomSubtitle,
+} from '../../../core/constants/waiting-room-copy';
 
 @Component({
   selector: 'app-waiting-room-page',
@@ -98,6 +105,8 @@ export class WaitingRoomPageComponent {
   readonly roomId = signal(this.route.snapshot.paramMap.get('roomId')?.toUpperCase() ?? '');
   readonly partyName = signal('');
   readonly gameTheme = signal('');
+  readonly partyThemes = signal<string[]>([]);
+  readonly partySubtitleLine = signal('');
   readonly sessionCount = signal(1);
   readonly currentSession = signal(1);
   readonly partyStarted = signal(false);
@@ -118,6 +127,13 @@ export class WaitingRoomPageComponent {
   readonly sessionResultGrid = signal<GalleryGrid | null>(null);
   readonly galleryGrids = signal<GalleryGrid[]>([]);
   readonly enlargedImage = signal<{ url: string; title: string; players?: PlayerProfile[] } | null>(null);
+  readonly urlCopied = signal(false);
+
+  copyRoomUrl(): void {
+    void navigator.clipboard.writeText(this.roomUrl());
+    this.urlCopied.set(true);
+    setTimeout(() => this.urlCopied.set(false), 2000);
+  }
 
   openImageEnlarge(url: string | null, title: string, players?: PlayerProfile[]): void {
     if (!url) return;
@@ -144,8 +160,10 @@ export class WaitingRoomPageComponent {
   readonly isClosingVote = signal(false);
   readonly isShowingResults = signal(false);
   readonly isEndingParty = signal(false);
+  readonly isDownloadingExport = signal(false);
   readonly voteError = signal('');
   readonly partyError = signal('');
+  readonly exportError = signal('');
 
   readonly playerCount = computed(() => this.players().length);
   readonly isRoomFull = computed(() => this.playerCount() >= EVENT_PLAYERS_MAX);
@@ -227,14 +245,31 @@ export class WaitingRoomPageComponent {
     }
   });
   readonly partySubtitle = computed(() => {
-    if (this.wrMode() !== 'players' || this.partyStarted()) {
+    if (!this.showPreStartCopy()) {
       return '';
     }
-    const pseudo = this.managerProfile()?.pseudo;
-    if (pseudo) {
-      return `${pseudo} vous a préparé un super thème !`;
-    }
-    return 'Votre manager vous a préparé un super thème !';
+    return this.partySubtitleLine();
+  });
+  readonly showPreStartCopy = computed(
+    () => this.wrMode() === 'players' && !this.partyStarted(),
+  );
+  readonly showThemeProgram = computed(
+    () => this.partyThemes().length > 0 && this.roomPhase() === 'waiting',
+  );
+  readonly themeSchedule = computed(() =>
+    buildThemeSchedule(this.partyThemes(), this.currentSession(), this.partyStarted()),
+  );
+  readonly firstUpcomingIndex = computed(() => {
+    return this.themeSchedule().findIndex((entry) => entry.status === 'upcoming');
+  });
+  readonly startProgressPercent = computed(() => {
+    const min = this.isCoop() ? COOP_GUESTS_MIN : COMPETITIVE_PLAYERS_MIN;
+    const current = this.playerCount();
+    const pct = (current / min) * 100;
+    return pct > 100 ? 100 : pct;
+  });
+  readonly minPlayersRequired = computed(() => {
+    return this.isCoop() ? COOP_GUESTS_MIN : COMPETITIVE_PLAYERS_MIN;
   });
   readonly waitingSubtitle = computed(() => {
     if (this.wrMode() === 'voting' || this.wrMode() === 'tieBreak') {
@@ -382,6 +417,59 @@ export class WaitingRoomPageComponent {
     }
   }
 
+  async handleDownloadExport(): Promise<void> {
+    if (this.isDownloadingExport()) {
+      return;
+    }
+
+    const session = this.sessionToken.read();
+    if (!session?.token) {
+      this.exportError.set('Session invalide. Reconnectez-vous à la partie.');
+      return;
+    }
+
+    this.isDownloadingExport.set(true);
+    this.exportError.set('');
+
+    let response: RequestExportZipResponse;
+    try {
+      response = await this.socket.emitWithAck<RequestExportZipPayload, RequestExportZipResponse>(
+        'requestExportZip',
+        { roomId: this.roomId(), token: session.token },
+      );
+    } catch {
+      this.isDownloadingExport.set(false);
+      this.exportError.set('Une erreur est survenue. Veuillez réessayer.');
+      return;
+    }
+
+    if (response.error || !response.downloadUrl || !response.filename) {
+      this.isDownloadingExport.set(false);
+      this.exportError.set(response.error ?? 'Impossible de préparer le téléchargement.');
+      return;
+    }
+
+    try {
+      const downloadRes = await fetch(`${getApiUrl()}${response.downloadUrl}`);
+      if (!downloadRes.ok) {
+        this.exportError.set('Téléchargement impossible.');
+        return;
+      }
+
+      const blob = await downloadRes.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = response.filename;
+      anchor.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      this.exportError.set('Une erreur est survenue lors du téléchargement.');
+    } finally {
+      this.isDownloadingExport.set(false);
+    }
+  }
+
   async handleVote(groupCode: string): Promise<void> {
     const mode = this.wrMode();
     if (mode !== 'voting' && mode !== 'tieBreak') {
@@ -501,6 +589,7 @@ export class WaitingRoomPageComponent {
         }
         if (reconnected.waitingRoomState) {
           this.applyState(reconnected.waitingRoomState);
+          this.rollPartySubtitle();
           this.isLoading.set(false);
           return;
         }
@@ -532,6 +621,13 @@ export class WaitingRoomPageComponent {
 
     this.reconnect.saveFromWaitingRoom(response);
     this.applyState(response);
+    this.rollPartySubtitle();
+  }
+
+  private rollPartySubtitle(): void {
+    this.partySubtitleLine.set(
+      pickWaitingRoomSubtitle(this.managerProfile()?.pseudo ?? null),
+    );
   }
 
   // sync locale + UiStateService depuis n'importe quel ack WR
@@ -539,6 +635,7 @@ export class WaitingRoomPageComponent {
     this.ui.setRole(state.role);
     this.partyName.set(state.partyName);
     this.gameTheme.set(state.theme ?? state.name);
+    this.partyThemes.set(state.themes ?? []);
     this.sessionCount.set(state.sessionCount);
     this.currentSession.set(state.currentSession);
     this.partyStarted.set(Boolean(state.partyStarted));

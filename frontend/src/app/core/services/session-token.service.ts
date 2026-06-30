@@ -81,10 +81,15 @@ export class SessionTokenService {
    * 
    * @param groupCode - Le nouveau code de groupe attribué.
    */
-  updateGroupCode(groupCode: string): void {
+  updateGroupCode(groupCode: string | null): void {
     const session = this.read();
     if (!session) return;
     this.save({ ...session, groupCode });
+  }
+
+  /** Efface le groupe courant — joueur au lobby après fin de sa grille. */
+  clearGroupCode(): void {
+    this.updateGroupCode(null);
   }
 
   /** 

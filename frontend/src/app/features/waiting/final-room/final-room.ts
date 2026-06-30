@@ -14,8 +14,11 @@ export class FinalRoomComponent {
   readonly galleryGrids = input<GalleryGrid[]>([]);
   readonly isManager = input(false);
   readonly isEndingParty = input(false);
+  readonly isDownloadingExport = input(false);
+  readonly exportError = input('');
   readonly partyError = input('');
 
+  readonly downloadExport = output<void>();
   readonly endParty = output<void>();
   readonly enlargeImage = output<{ url: string; title: string; players?: PlayerProfile[] }>();
 

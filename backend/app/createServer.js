@@ -9,6 +9,7 @@ import * as payloads from '../services/event/payloads.js';
 import * as preview from '../services/grid/preview.js';
 import * as lifecycle from '../services/event/lifecycle.js';
 import { registerSocketHandlers } from '../sockets/register.js';
+import { registerExportRoute } from './exportRoute.js';
 
 /**
  * Crée le serveur de l'application.
@@ -51,6 +52,7 @@ export function createServer() {
   };
 
   registerSocketHandlers(io, deps);
+  registerExportRoute(app, store);
 
   // Lancement du sweep d'inactivité périodique
   const sweepInterval = setInterval(() => {

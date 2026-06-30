@@ -1,100 +1,100 @@
-<div class="flex flex-col h-full min-h-0 relative bg-landing-bg text-white">
-  @if (transitionActive() && ui.groupTransition()) {
-  <app-group-transition-modal (dismissed)="onTransitionDismissed()" />
-  }
-
-  <div class="flex flex-col flex-1 min-h-0" [class.pointer-events-none]="transitionActive() && ui.groupTransition()"
-    [class.blur-sm]="transitionActive() && ui.groupTransition()">
-    @if (managerSpectatorBar()) {
-    <div
-      class="shrink-0 flex items-center justify-between gap-4 border-b border-white/10 bg-slate-900/40 px-6 py-3 backdrop-blur-md"
-    >
-      <div class="flex min-w-0 items-center gap-2.5">
-        <span class="relative flex h-2.5 w-2.5">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-        </span>
-        <span class="truncate text-sm font-bold text-white/95">
-          Spectateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Groupe' }}</span>
-        </span>
-      </div>
-
-      @if (sessionTimerLabel(); as timer) {
-        <div
-          class="flex shrink-0 flex-col items-center rounded-xl border-2 px-8 py-2 shadow-[0_0_32px_rgba(99,102,241,0.35)]"
-          [class.border-brand-violet/60]="!sessionTimerUrgent()"
-          [class.bg-brand-violet/15]="!sessionTimerUrgent()"
-          [class.border-brand-coral/70]="sessionTimerUrgent()"
-          [class.bg-brand-coral/15]="sessionTimerUrgent()"
-        >
-          <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-landing-muted">Temps restant</span>
-          <span class="font-mono text-3xl font-black tabular-nums leading-none"
-            [class.text-[#A5B4FC]]="!sessionTimerUrgent()"
-            [class.text-brand-coral]="sessionTimerUrgent()">{{ timer }}</span>
-        </div>
-      }
-
-      <div class="flex shrink-0 items-center gap-2">
-        @if (ui.isCompetitiveParty()) {
-        <button type="button"
-          class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/90 transition-all hover:bg-white/10"
-          (click)="returnToLobby()">
-          Retour au lobby
-        </button>
-        }
-      </div>
-    </div>
-    }
-
-    @if (showPlayerLayout()) {
-    <div class="grid min-h-0 flex-1 grid-cols-[1fr_20rem] grid-rows-[1fr_auto]">
-      <div class="relative col-start-1 row-start-1 min-h-0 overflow-hidden bg-slate-600">
-        <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
-        @if (sessionTimerLabel(); as timer) {
-        <div class="absolute top-4 left-4 z-20 pointer-events-none select-none">
-          <span
-            class="inline-flex items-center gap-1.5 rounded-xl border border-brand-violet/30 bg-slate-900/90 px-3.5 py-1.5 font-mono text-sm font-bold tabular-nums text-[#A5B4FC] shadow-lg backdrop-blur-md">
-            ⏱️ {{ timer }}
-          </span>
-        </div>
-        }
-      </div>
-
-      <div
-        class="col-start-1 row-start-2 flex min-h-[3.75rem] items-center border-t border-white/10 bg-slate-950/40 backdrop-blur-md">
-        <app-color-palette class="w-full" />
-      </div>
-
-      <div
-        class="col-start-2 row-start-1 flex min-h-0 flex-col overflow-hidden border-l border-white/10 bg-slate-950/20 backdrop-blur-md">
-        <app-chatbox [eventId]="eventId()" [groupCode]="groupCode()" [hideFooter]="true" />
-      </div>
-
-      <div
-        class="col-start-2 row-start-2 flex min-h-[3.75rem] items-center border-l border-t border-white/10 bg-slate-950/40 px-4 backdrop-blur-md">
-        <app-chat-input [eventId]="eventId()" [groupCode]="groupCode()" class="w-full" />
-      </div>
-    </div>
-    } @else {
-    <div class="flex flex-1 min-h-0">
-      <div class="relative flex-1 min-w-0 overflow-hidden bg-slate-800">
-        <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
-      </div>
-      <aside class="w-80 shrink-0 min-h-0 border-l border-white/10 bg-slate-950/20 backdrop-blur-md">
-        <app-chatbox [eventId]="eventId()" [groupCode]="groupCode()" />
-      </aside>
-    </div>
-    }
-  </div>
-
-  @if (showCanvasLoading()) {
-  <div
-    class="fixed inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-landing-bg/80 backdrop-blur-sm"
-    aria-live="polite"
-    aria-busy="true"
-  >
-    <span class="inline-block size-8 animate-spin rounded-full border-2 border-brand-violet border-t-transparent"></span>
-    <p class="text-sm text-landing-muted">Chargement de la grille…</p>
-  </div>
-  }
-</div>
+<div class="flex flex-col h-full min-h-0 relative bg-landing-bg text-white">
+  @if (transitionActive() && ui.groupTransition()) {
+  <app-group-transition-modal (dismissed)="onTransitionDismissed()" />
+  }
+
+  <div class="flex flex-col flex-1 min-h-0" [class.pointer-events-none]="transitionActive() && ui.groupTransition()"
+    [class.blur-sm]="transitionActive() && ui.groupTransition()">
+    @if (spectatorBar()) {
+    <div
+      class="shrink-0 flex items-center justify-between gap-4 border-b border-white/10 bg-slate-900/40 px-6 py-3 backdrop-blur-md"
+    >
+      <div class="flex min-w-0 items-center gap-2.5">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span class="truncate text-sm font-bold text-white/95">
+          Spectateur — <span class="text-brand-violet">{{ ui.groupLabel() || 'Groupe' }}</span>
+        </span>
+      </div>
+
+      <div class="flex shrink-0 items-center gap-2">
+        @if (ui.isCompetitiveParty()) {
+        <button type="button"
+          class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/90 transition-all hover:bg-white/10"
+          (click)="returnToLobby()">
+          Retour au lobby
+        </button>
+        }
+      </div>
+    </div>
+    }
+
+    @if (showPlayerLayout()) {
+    <div class="grid min-h-0 flex-1 grid-cols-[1fr_20rem] grid-rows-[1fr_auto]">
+      <div class="relative col-start-1 row-start-1 min-h-0 overflow-hidden bg-slate-600">
+        <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
+      </div>
+
+      <div
+        class="col-start-1 row-start-2 flex min-h-[3.75rem] items-center gap-3 border-t border-white/10 bg-slate-950/40 px-4 backdrop-blur-md">
+        <app-color-palette class="min-w-0 flex-1" />
+        @if (showFinishButton()) {
+        <button
+          type="button"
+          class="inline-flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#6366F1] px-4 py-2.5 text-xs font-bold text-white transition-all hover:scale-[1.02] disabled:opacity-50"
+          [disabled]="isMarkingFinished()"
+          (click)="markFinished()"
+        >
+          @if (isMarkingFinished()) {
+          <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+          } @else {
+          {{ finishButtonLabel() }}
+          }
+        </button>
+        }
+        @if (ui.hasMarkedFinished()) {
+        <span class="shrink-0 text-xs font-semibold text-emerald-400">
+          Terminé ({{ ui.groupFinishFinishedCount() }}/{{ ui.groupFinishTotalCount() }})
+        </span>
+        }
+      </div>
+
+      <div
+        class="col-start-2 row-start-1 flex min-h-0 flex-col overflow-hidden border-l border-white/10 bg-slate-950/20 backdrop-blur-md">
+        <app-chatbox [eventId]="eventId()" [groupCode]="groupCode()" [hideFooter]="true" />
+      </div>
+
+      <div
+        class="col-start-2 row-start-2 flex min-h-[3.75rem] items-center border-l border-t border-white/10 bg-slate-950/40 px-4 backdrop-blur-md">
+        <app-chat-input [eventId]="eventId()" [groupCode]="groupCode()" class="w-full" />
+      </div>
+    </div>
+    } @else {
+    <div class="flex flex-1 min-h-0">
+      <div class="relative flex-1 min-w-0 overflow-hidden bg-slate-800">
+        <app-canvas-board [eventId]="eventId()" [groupCode]="groupCode()" />
+      </div>
+      <aside class="w-80 shrink-0 min-h-0 border-l border-white/10 bg-slate-950/20 backdrop-blur-md flex flex-col">
+        <app-chatbox [eventId]="eventId()" [groupCode]="groupCode()" [hideFooter]="true" class="flex-1 min-h-0" />
+        <div class="shrink-0 border-t border-white/10 bg-slate-950/40 px-4 py-3">
+          <app-chat-input [eventId]="eventId()" [groupCode]="groupCode()" class="w-full" />
+        </div>
+      </aside>
+    </div>
+    }
+  </div>
+
+  @if (showCanvasLoading()) {
+  <div
+    class="fixed inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-landing-bg/80 backdrop-blur-sm"
+    aria-live="polite"
+    aria-busy="true"
+  >
+    <span class="inline-block size-8 animate-spin rounded-full border-2 border-brand-violet border-t-transparent"></span>
+    <p class="text-sm text-landing-muted">Chargement de la grille…</p>
+  </div>
+  }
+</div>
+

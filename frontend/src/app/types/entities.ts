@@ -131,6 +131,10 @@ export interface GridStatePayload {
   sessionEndsAt?: number | null;
   sessionCount?: number;
   currentSession?: number;
+  canDraw?: boolean;
+  finishedCount?: number;
+  totalCount?: number;
+  hasMarkedFinished?: boolean;
 }
 
 // push fin de session — renvoie tout le monde en WR avec wrMode voting
