@@ -67,7 +67,10 @@ export class NavbarComponent {
   });
 
   readonly showCoopEndSession = computed(
-    () => this.ui.gameMode() && this.ui.isCoopParty() && this.ui.isManager(),
+    () =>
+      this.ui.gameMode() &&
+      this.ui.isCoopParty() &&
+      (this.ui.isManager() || this.ui.coopManagerAbsent()),
   );
 
   readonly isGroupingPhase = computed(

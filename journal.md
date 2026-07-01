@@ -13,7 +13,7 @@
 
 ## Entrées
 
-- **ADD-48** — **Quitter / fermer la partie** : sortie douce WR groupement (token conservé) ; `leaveParty` définitif avec disclaimer (navbar logo + dropdown pseudo) ; manager ferme via dropdown ; seuil 50 % → modale countdown puis podium/galerie.
+- **ADD-48** — **Quitter / fermer la partie** : sortie douce WR groupement (token conservé) ; `leaveParty` définitif avec disclaimer (navbar logo + dropdown pseudo) ; manager ferme via dropdown ; seuil 50 % (compétitif seul) → modale countdown puis podium.
 
 - **ADD-46** — **Gestion du blanc adjacent** : blanc peint `#fefefe` (distinct du fond `#ffffff`) ; grille de contours conditionnels sur le canvas — pas d'arête entre deux blancs adjacents ; util `canvas-grid.util.ts` + sync palette back/front.
 
@@ -100,6 +100,8 @@
 - **MODE-03** — **Manager joueur en coop** : toggle à la création ; palette + pixels si participation ; spectateur sinon.
 - **MODE-04** — **Garde-fous démarrage** : validation start/register par mode (coop 2–7/8 invités, compétitif min 6).
 - **MODE-05** — **Landing & création** : cartes Coop/Compétitif + rejoindre ; modale adaptée ; compteur joueurs WR manager.
+
+- **ADD-47** — **Partie sans manager** : compétitif — pilote auto si manager absent (vote 60s, roulette tiebreak 7s, session suivante 10s, podium 300s puis `closeEvent`, export ZIP préchauffé) ; coop — bannière après 2 min, `endSession` pour tous les joueurs. Manager présent : flux manuel inchangé.
 
 - **AUTH-03** — **Reconnexion session par token (v2)** : `playerId` UUID stable + token opaque en `localStorage` (`pxl-session`), event `reconnectSession`, remap socket à la reconnexion ; landing auto-resume ; garde-fous une partie/navigateur et fermeture si manager absent 5 min (`managerAbsent`).
 

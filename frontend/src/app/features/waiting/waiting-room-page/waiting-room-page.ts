@@ -128,6 +128,13 @@ export class WaitingRoomPageComponent {
   readonly topGrids = signal<PodiumGrid[]>([]);
   readonly sessionResultGrid = signal<GalleryGrid | null>(null);
   readonly galleryGrids = signal<GalleryGrid[]>([]);
+  readonly autoPilotActive = signal(false);
+  readonly autoPilotPhase = signal<'vote' | 'roulette' | 'sessionStart' | 'podium' | null>(null);
+  readonly phaseDeadlineAt = signal<number | null>(null);
+  readonly rouletteWinnerGroupCode = signal<string | null>(null);
+  readonly rouletteStartedAt = signal<number | null>(null);
+  readonly rouletteDurationMs = signal<number | null>(null);
+  private readonly clockNow = signal(Date.now());
   readonly enlargedImage = signal<{ url: string; title: string; players?: PlayerProfile[] } | null>(null);
   readonly urlCopied = signal(false);
 
@@ -197,9 +204,6 @@ export class WaitingRoomPageComponent {
     () => 'Plus personne ne pourra rejoindre une fois la partie lancée.',
   );
 
-  readonly sessionLabel = computed(
-    () => `Session ${this.currentSession()}/${this.sessionCount()}`,
-  );
   readonly canStart = computed(
     () => this.ui.isManager() && (this.partyStarted() || this.playerCountReady()),
   );
@@ -231,7 +235,9 @@ export class WaitingRoomPageComponent {
       case 'voting':
         return 'Votez pour votre dessin préféré !';
       case 'tieBreak':
-        return 'Égalité — le manager tranche !';
+        return this.rouletteStartedAt()
+          ? 'Égalité — tirage au sort…'
+          : 'Égalité — le manager tranche !';
       case 'voteResult':
         return 'Le gagnant de la session !';
       case 'sessionResult':
@@ -273,7 +279,31 @@ export class WaitingRoomPageComponent {
   readonly minPlayersRequired = computed(() => {
     return this.isCoop() ? COOP_GUESTS_MIN : COMPETITIVE_PLAYERS_MIN;
   });
+  readonly autoPilotCountdownLabel = computed(() => {
+    const deadline = this.phaseDeadlineAt();
+    if (!this.autoPilotActive() || !deadline) {
+      return null;
+    }
+    const secs = Math.max(0, Math.ceil((deadline - this.clockNow()) / 1000));
+    const phase = this.autoPilotPhase();
+    if (phase === 'vote') {
+      return `Clôture automatique du vote dans ${secs} s`;
+    }
+    if (phase === 'sessionStart') {
+      return `Prochaine session dans ${secs} s`;
+    }
+    if (phase === 'podium') {
+      const mm = String(Math.floor(secs / 60)).padStart(2, '0');
+      const ss = String(secs % 60).padStart(2, '0');
+      return `La partie se termine dans ${mm}:${ss}`;
+    }
+    return null;
+  });
   readonly waitingSubtitle = computed(() => {
+    const countdown = this.autoPilotCountdownLabel();
+    if (countdown) {
+      return countdown;
+    }
     if (this.wrMode() === 'voting' || this.wrMode() === 'tieBreak') {
       return '';
     }
@@ -309,6 +339,31 @@ export class WaitingRoomPageComponent {
         fireVoteWinnerConfetti();
       }
       this.previousWrMode = mode;
+    });
+
+    effect((onCleanup) => {
+      if (!this.autoPilotActive() && !this.phaseDeadlineAt()) {
+        return;
+      }
+      const id = setInterval(() => this.clockNow.set(Date.now()), 500);
+      onCleanup(() => clearInterval(id));
+    });
+
+    effect(() => {
+      if (!this.autoPilotActive()) {
+        return;
+      }
+      const phase = this.autoPilotPhase();
+      const deadline = this.phaseDeadlineAt();
+      const onPodium =
+        phase === 'podium' || (this.wrMode() === 'podium' && deadline != null);
+      if (onPodium && deadline) {
+        this.ui.showPodiumEndCountdownBanner(deadline);
+      } else {
+        this.ui.showManagerAbsentBanner(
+          'Le manager est absent — la partie continue automatiquement.',
+        );
+      }
     });
   }
 
@@ -702,6 +757,30 @@ export class WaitingRoomPageComponent {
     }
     if (state.galleryGrids) {
       this.galleryGrids.set(state.galleryGrids);
+    }
+    if (state.autoPilotActive !== undefined) {
+      this.autoPilotActive.set(state.autoPilotActive);
+      if (!state.autoPilotActive) {
+        this.ui.clearManagerAbsentBanner();
+      }
+    }
+    if (state.autoPilotPhase !== undefined) {
+      this.autoPilotPhase.set(state.autoPilotPhase ?? null);
+    }
+    if (state.phaseDeadlineAt !== undefined) {
+      this.phaseDeadlineAt.set(state.phaseDeadlineAt ?? null);
+    }
+    if (state.rouletteWinnerGroupCode !== undefined) {
+      this.rouletteWinnerGroupCode.set(state.rouletteWinnerGroupCode ?? null);
+    }
+    if (state.rouletteStartedAt !== undefined) {
+      this.rouletteStartedAt.set(state.rouletteStartedAt ?? null);
+    }
+    if (state.rouletteDurationMs !== undefined) {
+      this.rouletteDurationMs.set(state.rouletteDurationMs ?? null);
+    }
+    if (state.coopManagerAbsent !== undefined) {
+      this.ui.setCoopManagerAbsent(Boolean(state.coopManagerAbsent));
     }
   }
 

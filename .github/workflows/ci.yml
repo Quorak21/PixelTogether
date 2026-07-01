@@ -9,6 +9,7 @@ on:
 jobs:
   backend-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
@@ -36,6 +37,7 @@ jobs:
 
   frontend-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -60,6 +62,7 @@ jobs:
     needs: [backend-test, frontend-test]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:

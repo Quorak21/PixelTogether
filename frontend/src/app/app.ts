@@ -26,6 +26,19 @@ interface ManagerAbsentWarningPayload {
   closesInMs?: number;
 }
 
+interface ManagerAbsentBannerPayload {
+  eventId?: string;
+  roomId?: string;
+  message: string;
+  mode?: string;
+}
+
+interface ManagerAbsentCoopPayload {
+  eventId?: string;
+  roomId?: string;
+  message: string;
+}
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, NavbarComponent, FooterComponent, LucideMonitor],
@@ -89,17 +102,39 @@ export class App {
       void this.router.navigateByUrl('/');
     };
 
+    const onAbsentBanner = (payload: ManagerAbsentBannerPayload) => {
+      this.ui.clearManagerAbsentWarning();
+      this.ui.showManagerAbsentBanner(payload.message);
+    };
+
+    const onAbsentCoop = (payload: ManagerAbsentCoopPayload) => {
+      this.ui.showManagerAbsentBanner(payload.message);
+      this.ui.setCoopManagerAbsent(true);
+    };
+
+    const onAbsentCleared = () => {
+      this.ui.clearManagerAbsentBanner();
+      this.ui.setCoopManagerAbsent(false);
+    };
+
     this.socket.on<ManagerAbsentWarningPayload>('managerAbsentWarning', onWarning);
     this.socket.on('managerAbsent', onAbsent);
+    this.socket.on<ManagerAbsentBannerPayload>('managerAbsentBanner', onAbsentBanner);
+    this.socket.on<ManagerAbsentCoopPayload>('managerAbsentCoop', onAbsentCoop);
+    this.socket.on('managerAbsentCleared', onAbsentCleared);
     this.socket.on<RoomLifecyclePayload>('roomClosed', onRoomClosed);
     this.socket.on<PlayerKickedPayload>('playerKicked', onPlayerKicked);
 
     this.destroyRef.onDestroy(() => {
       this.socket.off('managerAbsentWarning', onWarning as (...args: unknown[]) => void);
       this.socket.off('managerAbsent', onAbsent as (...args: unknown[]) => void);
+      this.socket.off('managerAbsentBanner', onAbsentBanner as (...args: unknown[]) => void);
+      this.socket.off('managerAbsentCoop', onAbsentCoop as (...args: unknown[]) => void);
+      this.socket.off('managerAbsentCleared', onAbsentCleared as (...args: unknown[]) => void);
       this.socket.off('roomClosed', onRoomClosed as (...args: unknown[]) => void);
       this.socket.off('playerKicked', onPlayerKicked as (...args: unknown[]) => void);
       this.ui.clearManagerAbsentWarning();
+      this.ui.clearManagerAbsentBanner();
     });
   }
 

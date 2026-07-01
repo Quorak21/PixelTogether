@@ -337,6 +337,10 @@
               [startError]="startError()"
               [voteError]="voteError()"
               [partyError]="partyError()"
+              [autoPilotActive]="autoPilotActive()"
+              [rouletteWinnerGroupCode]="rouletteWinnerGroupCode()"
+              [rouletteStartedAt]="rouletteStartedAt()"
+              [rouletteDurationMs]="rouletteDurationMs()"
               (vote)="handleVote($event)"
               (closeVote)="handleCloseVote()"
               (startClick)="handleStartClick()"
@@ -350,6 +354,7 @@
               [topGrids]="topGrids()"
               [galleryGrids]="galleryGrids()"
               [isManager]="ui.isManager()"
+              [canEndParty]="isCoop() && ui.coopManagerAbsent()"
               [isEndingParty]="isEndingParty()"
               [isDownloadingExport]="isDownloadingExport()"
               [exportError]="exportError()"
@@ -384,7 +389,7 @@
             </span>
             <span class="inline-flex items-center gap-1.5">
               <svg lucideLayers class="h-3.5 w-3.5" aria-hidden="true"></svg>
-              {{ sessionLabel() }}
+            {{ ui.sessionLabel() }}
             </span>
           </div>
         }

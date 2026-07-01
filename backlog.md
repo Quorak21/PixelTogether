@@ -36,7 +36,6 @@ Pas de tâches info pour le moment
 
 Fonctionnalités indispensables et prioritaires pour la V1.
 
-- **ADD-47** — **Partie sans manager** : en cas d'absence prolongée du manager, ne pas fermer brutalement — enchaînement auto (vote, podium, export ZIP) pour que tous les joueurs puissent récupérer le pack final.
 - **ADD-49** — **Gestion des erreurs dans le formulaire de création de partie** : améliorer la remontée et l'affichage des erreurs du formulaire lors de la création d'un salon.
 - **ADD-50** — **Zoom + vote par cœur sur les œuvres** : pendant la phase de vote, un clic sur une miniature de grille ouvre un zoom (comme le zoom coop existant). Un cœur ❤️ positionné en haut à droite de l'image zoomée permet de voter : clic sur le cœur = +1 vote pour cette œuvre. Le clic direct sur la grille déclenche le zoom, pas le vote — séparation claire des deux actions. + compte des votes pour le manager
 - **ADD-51** — **Amélioration de la documentation sur landing page** : Améliorer la documentation et les textes explicatifs sur la page d'accueil pour guider les utilisateurs.

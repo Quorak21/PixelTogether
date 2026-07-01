@@ -65,6 +65,13 @@ export interface VoteStateFields {
   topGrids?: PodiumGrid[];
   sessionResultGrid?: GalleryGrid | null;
   galleryGrids?: GalleryGrid[];
+  autoPilotActive?: boolean;
+  autoPilotPhase?: 'vote' | 'roulette' | 'sessionStart' | 'podium' | null;
+  phaseDeadlineAt?: number | null;
+  rouletteWinnerGroupCode?: string | null;
+  rouletteStartedAt?: number | null;
+  rouletteDurationMs?: number | null;
+  coopManagerAbsent?: boolean;
 }
 
 export interface PlayerProfile {

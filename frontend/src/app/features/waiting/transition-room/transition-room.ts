@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import {
   GalleryGrid,
   PlayerProfile,
@@ -42,12 +49,74 @@ export class TransitionRoomComponent {
   readonly startError = input('');
   readonly voteError = input('');
   readonly partyError = input('');
+  readonly autoPilotActive = input(false);
+  readonly rouletteWinnerGroupCode = input<string | null>(null);
+  readonly rouletteStartedAt = input<number | null>(null);
+  readonly rouletteDurationMs = input<number | null>(null);
 
   readonly vote = output<string>();
   readonly closeVote = output<void>();
   readonly startClick = output<void>();
   readonly showResults = output<void>();
   readonly enlargeImage = output<{ url: string; title: string; players?: PlayerProfile[] }>();
+
+  readonly rouletteHighlight = signal<string | null>(null);
+
+  constructor() {
+    effect((onCleanup) => {
+      const started = this.rouletteStartedAt();
+      const duration = this.rouletteDurationMs();
+      const winner = this.rouletteWinnerGroupCode();
+      const candidates = this.voteCandidates();
+
+      if (!started || !duration || !winner || candidates.length < 2) {
+        this.rouletteHighlight.set(null);
+        return;
+      }
+
+      const codes = candidates.map((c) => c.groupCode);
+      const endTime = started + duration;
+      let idx = 0;
+      let delay = 90;
+      let timer: ReturnType<typeof setTimeout>;
+
+      const tick = () => {
+        const now = Date.now();
+        if (now >= endTime) {
+          this.rouletteHighlight.set(winner);
+          return;
+        }
+        this.rouletteHighlight.set(codes[idx % codes.length] ?? null);
+        idx += 1;
+        delay = Math.min(550, delay * 1.1);
+        timer = setTimeout(tick, delay);
+      };
+
+      if (Date.now() >= endTime) {
+        this.rouletteHighlight.set(winner);
+        return;
+      }
+
+      tick();
+      onCleanup(() => clearTimeout(timer));
+    });
+  }
+
+  isRouletteActive(): boolean {
+    return Boolean(
+      this.autoPilotActive() &&
+        this.rouletteStartedAt() &&
+        this.rouletteDurationMs() &&
+        this.rouletteWinnerGroupCode(),
+    );
+  }
+
+  isCandidateHighlighted(groupCode: string): boolean {
+    if (this.isRouletteActive()) {
+      return this.rouletteHighlight() === groupCode;
+    }
+    return false;
+  }
 
   onEnlarge(url: string | null, title: string, players?: PlayerProfile[]): void {
     if (!url) return;

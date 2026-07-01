@@ -43,7 +43,6 @@ export const SESSION_DURATION_DEFAULT = 15;
 // coop : pas de timer — sessionDurationMinutes ignoré à la création
 export const COOP_GUESTS_MIN = 2;
 export const COOP_GUESTS_MAX = 7;
-export const COOP_GRID_MAX = 8;
 export const COOP_SESSION_COUNT_MIN = 1;
 export const COOP_SESSION_COUNT_MAX = 4;
 
@@ -56,8 +55,6 @@ export const EVENT_PLAYERS_MAX = 40;
 
 // legacy — plus de validation plafond total partie
 export const MAX_PARTY_DURATION_MINUTES = 60;
-export const SESSION_COUNT_MIN = 1;
-export const SESSION_COUNT_MAX = 5;
 export const SESSION_TRANSITION_SECONDS = 10;
 
 export const LABEL_MIN = 3;
@@ -77,6 +74,13 @@ export const RECONNECT_MARGIN_MINUTES = 15;
 export const MANAGER_DISCONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 // popup d'avertissement envoyé ce délai avant la fermeture
 export const MANAGER_ABSENT_WARNING_MS = 5 * 1000;
+
+// pilote auto compétitif (manager absent) — sync frontend/src/app/core/config/session-config.ts
+export const AUTO_VOTE_CLOSE_MS = 60 * 1000;
+export const AUTO_TIEBREAK_ROULETTE_MS = 7 * 1000;
+export const AUTO_SESSION_START_MS = 10 * 1000;
+export const AUTO_PODIUM_END_MS = 300 * 1000;
+export const COOP_MANAGER_ABSENT_MODAL_MS = 2 * 60 * 1000;
 
 // throttling socket par event
 export const PIXEL_COOLDOWN_MS = 50;

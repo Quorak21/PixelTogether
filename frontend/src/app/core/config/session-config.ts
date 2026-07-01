@@ -3,6 +3,13 @@
 /** Marge ajoutée au chrono compétitif au lancement (lecture modale transition). */
 export const SESSION_TRANSITION_SECONDS = 10;
 
+/** Pilote auto compétitif (manager absent) — miroir backend/config/constants.js */
+export const AUTO_VOTE_CLOSE_MS = 60 * 1000;
+export const AUTO_TIEBREAK_ROULETTE_MS = 7 * 1000;
+export const AUTO_SESSION_START_MS = 10 * 1000;
+export const AUTO_PODIUM_END_MS = 300 * 1000;
+export const COOP_MANAGER_ABSENT_MODAL_MS = 2 * 60 * 1000;
+
 export const GAME_MODE_COOP = 'coop' as const;
 export const GAME_MODE_COMPETITIVE = 'competitive' as const;
 export type GameMode = typeof GAME_MODE_COOP | typeof GAME_MODE_COMPETITIVE;

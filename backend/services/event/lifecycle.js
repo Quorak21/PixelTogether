@@ -4,6 +4,7 @@ import { flushAllEventPreviews, getEventGroupImages } from '../grid/preview.js';
 import { clearSessionTimer } from '../session/sessionLifecycle.js';
 import { purgeEventSessions, updateSessionGroupCode } from '../reconnect/sessionToken.js';
 import { clearManagerDisconnectTimer } from './participants.js';
+import { clearAutoPilotTimers } from './autoPilot.js';
 import { isCoop } from './gameMode.js';
 import { MAX_ACTIVE_EVENTS } from '../../config/constants.js';
 
@@ -124,6 +125,7 @@ export function closeEvent(io, eventId) {
 
   clearSessionTimer(event);
   clearManagerDisconnectTimer(event);
+  clearAutoPilotTimers(event);
   if (event._forcedFinalTimer) {
     clearTimeout(event._forcedFinalTimer);
     event._forcedFinalTimer = null;

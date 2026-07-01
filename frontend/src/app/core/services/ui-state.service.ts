@@ -34,14 +34,11 @@ export class UiStateService {
   );
   readonly currentRole = signal<ParticipantRole | null>(null);
   readonly isManager = computed(() => this.currentRole() === 'manager');
-  readonly inRoom = computed(() => this.waitingMode() || this.gameMode());
   readonly currentProfile = signal<PlayerProfile | null>(null);
-  readonly hasProfile = computed(() => this.currentProfile() !== null);
 
   readonly partyCreationOpen = signal(false);
   readonly partyCreationMode = signal<GameMode>(GAME_MODE_COMPETITIVE);
   readonly partyGameMode = signal<GameMode | null>(null);
-  readonly joinRoomOpen = signal(false);
   readonly joinRoomError = signal<string | null>(null);
   readonly gameCanvasLoading = signal(false);
 
@@ -95,7 +92,14 @@ export class UiStateService {
     secondsLeft: number;
   } | null>(null);
 
+  /** Bannière informative sans fermeture imminente (pilote auto / coop). */
+  readonly managerAbsentBanner = signal<string | null>(null);
+
+  /** Coop : le manager est absent, les joueurs peuvent terminer la session. */
+  readonly coopManagerAbsent = signal(false);
+
   private managerAbsentCountdownId: ReturnType<typeof setInterval> | null = null;
+  private managerAbsentBannerCountdownId: ReturnType<typeof setInterval> | null = null;
 
   readonly selectedColor = signal('#000000');
   readonly colors = signal<string[]>([]);
@@ -363,6 +367,45 @@ export class UiStateService {
     this.managerAbsentWarning.set(null);
   }
 
+  showManagerAbsentBanner(message: string): void {
+    this.stopManagerAbsentBannerCountdown();
+    this.managerAbsentBanner.set(message);
+  }
+
+  /** Bannière podium compétitif : compte à rebours jusqu'à la fermeture auto. */
+  showPodiumEndCountdownBanner(deadlineAt: number): void {
+    this.stopManagerAbsentBannerCountdown();
+
+    const tick = () => {
+      const secs = Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+      const mm = String(Math.floor(secs / 60)).padStart(2, '0');
+      const ss = String(secs % 60).padStart(2, '0');
+      this.managerAbsentBanner.set(`La partie se termine dans ${mm}:${ss}`);
+      if (secs <= 0) {
+        this.stopManagerAbsentBannerCountdown();
+      }
+    };
+
+    tick();
+    this.managerAbsentBannerCountdownId = setInterval(tick, 1000);
+  }
+
+  clearManagerAbsentBanner(): void {
+    this.stopManagerAbsentBannerCountdown();
+    this.managerAbsentBanner.set(null);
+  }
+
+  private stopManagerAbsentBannerCountdown(): void {
+    if (this.managerAbsentBannerCountdownId !== null) {
+      clearInterval(this.managerAbsentBannerCountdownId);
+      this.managerAbsentBannerCountdownId = null;
+    }
+  }
+
+  setCoopManagerAbsent(value: boolean): void {
+    this.coopManagerAbsent.set(value);
+  }
+
   /**
    * Réinitialise totalement l'état de l'UI et redirige hors de la salle d'attente.
    */
@@ -381,6 +424,8 @@ export class UiStateService {
     this.clearSessionMeta();
     this.clearCurrentProfile();
     this.clearGroupTeammates();
+    this.clearManagerAbsentBanner();
+    this.setCoopManagerAbsent(false);
   }
 
   /**
@@ -407,9 +452,9 @@ export class UiStateService {
     this.clearTypingTeammates();
     this.gameCanvasLoading.set(false);
     this.clearGroupFinishState();
+    this.clearManagerAbsentBanner();
+    this.setCoopManagerAbsent(false);
   }
-
-  /** Définit la couleur de dessin sélectionnée. */
   setSelectedColor(color: string): void {
     this.selectedColor.set(color);
   }

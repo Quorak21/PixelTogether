@@ -1,13 +1,11 @@
-import { beginSession } from '../../../services/session/sessionLifecycle.js';
-import { scheduleSessionEnd } from '../../../services/session/sessionTimer.js';
+import { runStartGame } from '../../../services/session/sessionLifecycle.js';
 import { isManager } from '../../../services/event/participants.js';
 import { isCoop, validateStartPlayerCount } from '../../../services/event/gameMode.js';
 import { guardAck } from '../socketGuards.js';
 
 export function registerSessionPhaseHandlers(socket, deps) {
-  const { io, store, lifecycle } = deps;
+  const { store } = deps;
   const { activeEvents, normalizeEventId } = store;
-  const { emitGameStarted } = lifecycle;
 
   socket.on('startGame', (data, callback) => {
     if (!guardAck(callback)) return;
@@ -22,10 +20,6 @@ export function registerSessionPhaseHandlers(socket, deps) {
       return callback({ error: 'Seul le manager peut démarrer la partie.' });
     }
 
-    if (event.activeVote?.status === 'open' || event.activeVote?.status === 'tiebreak') {
-      return callback({ error: 'Terminez le vote avant de démarrer la session.' });
-    }
-
     if (!event.managerProfile) {
       return callback({ error: 'Le manager doit compléter son profil avant de démarrer.' });
     }
@@ -35,26 +29,20 @@ export function registerSessionPhaseHandlers(socket, deps) {
       if (playerCountError) {
         return callback(playerCountError);
       }
-      event.rosterBaselineCount = event.players.length;
+      if (!isCoop(event)) {
+        event.rosterBaselineCount = event.players.length;
+      }
     }
 
-    if (event.status !== 'waiting') {
-      return callback({ error: 'La partie est déjà lancée.' });
+    const result = runStartGame(deps.io, event, deps);
+    if (result.error) {
+      return callback({ error: result.error });
     }
-    event.status = 'started';
+
     if (!event.partyStarted) {
       event.partyStarted = true;
     }
 
-    event.activeVote = null;
-    event.coopWrMode = null;
-    event.theme = event.themes[event.currentSession - 1];
-    event.name = event.theme;
-    beginSession(event, deps);
-    if (!isCoop(event)) {
-      scheduleSessionEnd(event, io);
-    }
-    emitGameStarted(io, event);
     callback({ eventId, status: 'started' });
   });
 }

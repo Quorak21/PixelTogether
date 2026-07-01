@@ -94,14 +94,6 @@ function buildWaitingRoomBase(event, socketId, playerId = null) {
   };
 }
 
-export function buildVotePayload(event, socketId, playerId = null) {
-  const pid = resolvePlayerId(event, socketId, playerId);
-  return {
-    eventId: event.id,
-    ...buildVoteFields(event, pid),
-  };
-}
-
 export function buildSessionEndedPayload(event, socketId, playerId = null) {
   const pid = resolvePlayerId(event, socketId, playerId);
   return {

@@ -17,15 +17,11 @@ export interface SessionTokenData {
 
 @Injectable({ providedIn: 'root' })
 export class SessionTokenService {
-  private readonly _hasValidSession = signal<boolean>(this.hasValidSession());
-  readonly hasSessionSignal = this._hasValidSession.asReadonly();
-
   private readonly _hasPartyBinding = signal<boolean>(this.isBoundToParty());
   /** Token valide encore rattaché à une room (false après kick — join/création OK). */
   readonly hasPartyBindingSignal = this._hasPartyBinding.asReadonly();
 
-  private refreshSessionSignals(): void {
-    this._hasValidSession.set(this.hasValidSession());
+  private refreshPartyBindingSignal(): void {
     this._hasPartyBinding.set(this.isBoundToParty());
   }
 
@@ -36,7 +32,7 @@ export class SessionTokenService {
    */
   save(data: SessionTokenData): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    this.refreshSessionSignals();
+    this.refreshPartyBindingSignal();
   }
 
   /**
@@ -60,7 +56,7 @@ export class SessionTokenService {
    */
   clear(): void {
     localStorage.removeItem(STORAGE_KEY);
-    this.refreshSessionSignals();
+    this.refreshPartyBindingSignal();
   }
 
   /**

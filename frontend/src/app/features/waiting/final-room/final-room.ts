@@ -13,6 +13,7 @@ export class FinalRoomComponent {
   readonly topGrids = input<PodiumGrid[]>([]);
   readonly galleryGrids = input<GalleryGrid[]>([]);
   readonly isManager = input(false);
+  readonly canEndParty = input(false);
   readonly isEndingParty = input(false);
   readonly isDownloadingExport = input(false);
   readonly exportError = input('');

@@ -47,11 +47,18 @@
 
 @if (wrMode() === 'tieBreak') {
   <div class="mb-4 text-center">
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning">
-      Égalité ! Le manager choisit le gagnant.
-    </span>
-    @if (!isManager()) {
-      <p class="mt-2 text-sm text-landing-muted">Les grilles ex æquo sont affichées ci-dessous — seul le manager peut trancher.</p>
+    @if (isRouletteActive()) {
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning">
+        Égalité — tirage au sort…
+      </span>
+      <p class="mt-2 text-sm text-landing-muted">Le gagnant est tiré automatiquement.</p>
+    } @else {
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning">
+        Égalité ! Le manager choisit le gagnant.
+      </span>
+      @if (!isManager()) {
+        <p class="mt-2 text-sm text-landing-muted">Les grilles ex æquo sont affichées ci-dessous — seul le manager peut trancher.</p>
+      }
     }
   </div>
 
@@ -60,7 +67,7 @@
   } @else {
     <div class="flex flex-wrap justify-center gap-4">
       @for (candidate of voteCandidates(); track candidate.groupCode) {
-        @if (isManager()) {
+        @if (isManager() && !autoPilotActive()) {
           <button
             type="button"
             class="w-full max-w-xs overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40 text-left transition-all hover:scale-[1.02] hover:border-brand-violet sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
@@ -81,7 +88,14 @@
             </div>
           </button>
         } @else {
-          <div class="w-full max-w-xs overflow-hidden rounded-xl border-2 border-white/10 bg-slate-950/40 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]">
+          <div
+            class="w-full max-w-xs overflow-hidden rounded-xl border-2 bg-slate-950/40 transition-all sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
+            [class.border-warning]="isCandidateHighlighted(candidate.groupCode)"
+            [class.ring-4]="isCandidateHighlighted(candidate.groupCode)"
+            [class.ring-warning]="isCandidateHighlighted(candidate.groupCode)"
+            [class.scale-[1.03]]="isCandidateHighlighted(candidate.groupCode)"
+            [class.border-white/10]="!isCandidateHighlighted(candidate.groupCode)"
+          >
             <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60">
               @if (candidate.image) {
                 <img [src]="candidate.image" [alt]="candidate.label" class="h-[90%] w-[90%] object-contain" />
@@ -101,7 +115,7 @@
     </div>
   }
 
-  @if (isManager() && voteError()) {
+  @if (isManager() && !autoPilotActive() && voteError()) {
     <p class="mt-4 text-center text-sm text-red-400">{{ voteError() }}</p>
   }
 }
@@ -209,7 +223,7 @@
   </div>
 }
 
-@if (isManager() && wrMode() === 'voting') {
+@if (isManager() && wrMode() === 'voting' && !autoPilotActive()) {
   <div class="mt-6 flex flex-col items-center gap-2">
     <button
       type="button"
@@ -229,7 +243,7 @@
   </div>
 }
 
-@if (isManager() && wrMode() === 'voteResult' && !isLastVote()) {
+@if (isManager() && wrMode() === 'voteResult' && !isLastVote() && !autoPilotActive()) {
   <div class="mt-6 flex flex-col items-center gap-2">
     <button
       type="button"
@@ -257,7 +271,7 @@
   </div>
 }
 
-@if (isManager() && wrMode() === 'voteResult' && isLastVote()) {
+@if (isManager() && wrMode() === 'voteResult' && isLastVote() && !autoPilotActive()) {
   <div class="mt-6 flex flex-col items-center gap-2">
     <button
       type="button"

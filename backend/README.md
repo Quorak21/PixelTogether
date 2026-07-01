@@ -182,7 +182,9 @@ C'est le module de tolérance aux pannes réseau. Il évite qu'un joueur perde s
 * **`remapSocket(event, playerId, newSocketId)`** : Réassocie les nouveaux IDs de socket dans toutes les listes internes (joueurs de la room, joueurs du groupe, session active) après une reconnexion.
   * *Lien avec* : `setSessionConnected` dans [sessionToken.js](file:///h:/Taches/Programmation/PixelTogether/backend/services/reconnect/sessionToken.js).
 * **`clearManagerDisconnectTimer(event)`** : Supprime les timeouts de déconnexion du manager. Appelé si le manager se reconnecte à temps.
-* **`scheduleManagerAbsentClose(io, event, eventId, closeEvent)`** : Déclenche la grâce de reconnexion du manager. Si l'hôte se déconnecte, on lance un premier timer pour envoyer une alerte aux joueurs au bout de 4m45s, puis un second à 5 minutes pour détruire la salle si le manager n'est pas revenu.
+* **`scheduleManagerAbsentClose(io, event, eventId, closeEvent)`** : Déclenche la grâce de reconnexion du manager. Avant le démarrage de la partie : alerte puis fermeture à 5 min. En **compétitif** après `partyStarted` : active le pilote auto (`autoPilot.js`) sans fermer la salle. En **coop** après `partyStarted` : bannière après 2 min + `coopManagerAbsent` (fin de session par tous les joueurs).
+* **`isManagerConnected(event)`** : Indique si la session manager est connectée (via `sessionToken`).
+  * *Lien avec* : [autoPilot.js](services/event/autoPilot.js) pour l'enchaînement vote 60s → roulette 7s → session 10s → podium 300s → `closeEvent`.
   * *Lien avec* : `closeEvent` dans [lifecycle.js](file:///h:/Taches/Programmation/PixelTogether/backend/services/event/lifecycle.js).
 
 ---

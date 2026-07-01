@@ -10,11 +10,11 @@ import {
   isManager,
   removePlayerFromEvent,
 } from '../../services/event/participants.js';
+import { enableAutoPilotOnManagerDisconnect } from '../../services/event/autoPilot.js';
 import { toPublicPlayer } from '../../services/event/payloads.js';
 import { isCoop } from '../../services/event/gameMode.js';
 import {
   finishCurrentSession,
-  emitSessionEnded,
 } from '../../services/session/sessionLifecycle.js';
 import {
   closeVote,
@@ -35,25 +35,18 @@ function removePlayerFromGroups(event, playerId) {
   }
 }
 
-/** Passe la partie au final (podium / galerie) avec ce qui a été fait. */
+/** Passe la partie compétitive au podium avec ce qui a été fait. */
 function progressPartyToFinal(io, event) {
   if (event.status === 'started') {
     finishCurrentSession(io, event);
     event.currentSession = event.sessionCount;
   }
 
-  if (isCoop(event)) {
-    event.currentSession = event.sessionCount;
-    event.coopWrMode = 'gallery';
-    emitSessionEnded(io, event);
-    return;
-  }
-
   if (event.activeVote) {
     if (event.activeVote.status === 'open') {
       closeVote(event);
     }
-    if (event.activeVote.status === 'tiebreak') {
+    if (event.activeVote.status === 'tiebreak' || event.activeVote.status === 'tiebreak_roulette') {
       event.activeVote.status = 'closed';
       event.activeVote.winnerGroupCode = event.activeVote.tiedGroupCodes?.[0] ?? null;
     }
@@ -73,6 +66,10 @@ function progressPartyToFinal(io, event) {
 }
 
 function maybeScheduleForcedFinal(io, event, eventId, activeEvents) {
+  if (isCoop(event)) {
+    return;
+  }
+
   if (!event.partyStarted || event.forcedFinalAt || !event.rosterBaselineCount) {
     return;
   }
@@ -175,7 +172,10 @@ export function registerLifecycleHandlers(socket, deps) {
 
       if (isManager(event, socket)) {
         setSessionConnected(event.managerPlayerId, false);
-        scheduleManagerAbsentClose(io, event, eventId, closeEvent);
+        const mode = scheduleManagerAbsentClose(io, event, eventId, closeEvent);
+        if (mode === 'auto_pilot') {
+          enableAutoPilotOnManagerDisconnect(io, event, eventId, deps);
+        }
         continue;
       }
 

@@ -33,27 +33,19 @@ export class SocketService {
         return '';
     }
   });
-  
-  /** Signal contenant l'identifiant unique du socket (socket.id) de cette session. */
-  readonly socketId = signal<string | undefined>(this.socket.id);
 
   constructor() {
     this.socket.on('connect', () => {
       this.hasConnectedOnce = true;
       this.isConnected.set(true);
       this.connectionStatus.set('connected');
-      this.socketId.set(this.socket.id);
     });
     this.socket.on('disconnect', () => {
       this.isConnected.set(false);
       this.connectionStatus.set('reconnecting');
-      this.socketId.set(undefined);
     });
     this.socket.on('connect_error', () => {
       this.connectionStatus.set(this.hasConnectedOnce ? 'reconnecting' : 'connecting');
-    });
-    this.socket.on('connected', (payload: { socketId: string }) => {
-      this.socketId.set(payload.socketId);
     });
   }
 

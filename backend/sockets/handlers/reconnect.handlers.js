@@ -9,7 +9,9 @@ import {
   remapSocket,
   clearManagerDisconnectTimer,
   findPlayerGroupByPlayerId,
-} from '../../services/event/participants.js';import { isCoop } from '../../services/event/gameMode.js';
+} from '../../services/event/participants.js';
+import { onManagerReconnected } from '../../services/event/autoPilot.js';
+import { isCoop } from '../../services/event/gameMode.js';
 import { getSortedGroups } from '../../store/eventStore.js';
 import { resolveReconnectPhase } from '../../services/event/wrPhase.js';
 
@@ -32,7 +34,7 @@ function attachSessionFields(state, session) {
  * de la partie correspondant à la phase résolue.
  */
 export function handleReconnectSession(socket, data, callback, deps) {
-  const { store, constants, payloads } = deps;
+  const { io, store, constants, payloads } = deps;
   const { activeEvents, groupRoomName } = store;
   const { GRID_SIZE } = constants;
   const { buildWaitingRoomState, buildEventLobbyPayload, buildGridStatePayload } = payloads;
@@ -63,6 +65,7 @@ export function handleReconnectSession(socket, data, callback, deps) {
   setSessionConnected(session.playerId, true, socket.id);
   if (session.role === 'manager') {
     clearManagerDisconnectTimer(event);
+    onManagerReconnected(io, event, session.eventId, deps);
   }
   event.lastActivityAt = Date.now();
 

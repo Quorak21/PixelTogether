@@ -37,6 +37,7 @@ export function buildRecapData(event) {
   const data = {
     mode: coop ? 'coop' : 'competitive',
     partyName: event.partyName ?? 'Partie',
+    managerPseudo: event.managerProfile?.pseudo ?? null,
     participants: (event.players ?? []).map((p) => p.pseudo),
     sessions,
   };
@@ -74,6 +75,9 @@ export function renderRecapTxt(data) {
 
   lines.push('PixelTogether — Récapitulatif de partie');
   lines.push(`Partie : ${data.partyName}`);
+  if (data.managerPseudo) {
+    lines.push(`Manager : ${data.managerPseudo}`);
+  }
   lines.push(`Mode : ${modeLabel}`);
   lines.push('');
 

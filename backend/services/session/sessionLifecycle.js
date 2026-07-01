@@ -2,10 +2,12 @@ import { splitIntoGroups } from '../shuffle/groupShuffle.js';
 import { assignPalettesToGroup } from '../colors/colorSplit.js';
 import { buildSessionEndedPayload } from '../event/payloads.js';
 import { snapshotSessionForVote, snapshotSessionArchive } from '../vote/voteLifecycle.js';
-import { isManager } from '../event/participants.js';
+import { isManager, isRegistered, resolvePlayerId } from '../event/participants.js';
 import { isCoop } from '../event/gameMode.js';
 import { flushAllEventPreviews } from '../grid/preview.js';
 import { clearPartyChat } from '../chat/partyChat.js';
+import { scheduleSessionEnd } from './sessionTimer.js';
+import { onVotePhaseOpened } from '../event/autoPilot.js';
 
 export function clearSessionTimer(event) {
   if (event._sessionTimer) {
@@ -133,6 +135,38 @@ export function finishCurrentSession(io, event) {
   }
 
   emitSessionEnded(io, event);
+
+  if (!isCoop(event)) {
+    onVotePhaseOpened(io, event);
+  }
+}
+
+/**
+ * Démarre une session de dessin (appel manager ou pilote auto).
+ */
+export function runStartGame(io, event, deps) {
+  const voteStatus = event.activeVote?.status;
+  if (voteStatus === 'open' || voteStatus === 'tiebreak' || voteStatus === 'tiebreak_roulette') {
+    return { error: 'Terminez le vote avant de démarrer la session.' };
+  }
+
+  if (event.status !== 'waiting') {
+    return { error: 'La partie est déjà lancée.' };
+  }
+
+  event.status = 'started';
+  event.activeVote = null;
+  event.coopWrMode = null;
+  event.theme = event.themes[event.currentSession - 1];
+  event.name = event.theme;
+  beginSession(event, deps);
+
+  if (!isCoop(event)) {
+    scheduleSessionEnd(event, io);
+  }
+
+  deps.lifecycle.emitGameStarted(io, event);
+  return { ok: true, eventId: event.id };
 }
 
 // arrêt anticipé depuis le lobby manager (équivalent au timer)
@@ -149,8 +183,12 @@ export function handleEndSession(socket, data, callback, deps) {
   }
 
   if (!isManager(event, socket)) {
-    if (typeof callback === 'function') callback({ error: 'Seul le manager peut terminer la session.' });
-    return;
+    const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
+    const coopOverride = isCoop(event) && event.coopManagerAbsent && isRegistered(event, socket.id, playerId);
+    if (!coopOverride) {
+      if (typeof callback === 'function') callback({ error: 'Seul le manager peut terminer la session.' });
+      return;
+    }
   }
 
   if (event.status !== 'started') {

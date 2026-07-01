@@ -1,8 +1,8 @@
 import { getSortedGroups } from '../../store/eventStore.js';
-import { getParticipantRole, isManager } from '../event/participants.js';
+import { getParticipantRole, isManager, isManagerConnected, isRegistered, resolvePlayerId } from '../event/participants.js';
 import { isCoop } from '../event/gameMode.js';
 import { getWrMode as resolveWrMode } from '../event/wrPhase.js';
-import { VOTE_COOLDOWN_MS } from '../../config/constants.js';
+import { VOTE_COOLDOWN_MS, AUTO_TIEBREAK_ROULETTE_MS } from '../../config/constants.js';
 import { guardAck, isRateLimited } from '../../sockets/handlers/socketGuards.js';
 import { clearPartyChat } from '../chat/partyChat.js';
 
@@ -195,13 +195,6 @@ export function buildTopGrids(event, limit = 3) {
 }
 
 /**
- * Détermine le mode d'affichage actuel de la salle d'attente (Waiting Room Mode).
- */
-export function getWrMode(event) {
-  return resolveWrMode(event);
-}
-
-/**
  * Vérifie s'il s'agit du tout dernier vote de la partie (dernière session).
  */
 export function isLastVote(event) {
@@ -219,7 +212,7 @@ export function buildVoteCandidates(event) {
   if (!archive) return [];
 
   const groups =
-    event.activeVote.status === 'tiebreak'
+    event.activeVote.status === 'tiebreak' || event.activeVote.status === 'tiebreak_roulette'
       ? archive.groups.filter((g) => event.activeVote.tiedGroupCodes?.includes(g.groupCode))
       : archive.groups;
 
@@ -278,11 +271,29 @@ export function buildGalleryGrids(event) {
 }
 
 /**
+ * Champs pilote auto / coop manager absent pour les payloads vote.
+ */
+export function buildAutoPilotFields(event) {
+  return {
+    autoPilotActive: Boolean(event.autoPilot?.active),
+    autoPilotPhase: event.autoPilot?.phase ?? null,
+    phaseDeadlineAt: event.autoPilot?.phaseDeadlineAt ?? null,
+    rouletteWinnerGroupCode:
+      event.activeVote?.status === 'tiebreak_roulette'
+        ? (event.activeVote.winnerGroupCode ?? null)
+        : null,
+    rouletteStartedAt: event.activeVote?.rouletteStartedAt ?? null,
+    rouletteDurationMs: event.activeVote?.rouletteDurationMs ?? null,
+    coopManagerAbsent: Boolean(event.coopManagerAbsent),
+  };
+}
+
+/**
  * Construit l'état détaillé des données de vote en fonction de la phase actuelle de la salle d'attente.
  * Retourne des structures spécifiques si l'on est au stade du podium, de la galerie, d'un vote en cours ou clos.
  */
 export function buildVoteFields(event, playerId) {
-  const wrMode = getWrMode(event);
+  const wrMode = resolveWrMode(event);
 
   if (wrMode === 'gallery') {
     return {
@@ -296,6 +307,7 @@ export function buildVoteFields(event, playerId) {
       topGrids: [],
       sessionResultGrid: null,
       galleryGrids: buildGalleryGrids(event),
+      ...buildAutoPilotFields(event),
     };
   }
 
@@ -312,6 +324,7 @@ export function buildVoteFields(event, playerId) {
       topGrids: [],
       sessionResultGrid: grid,
       galleryGrids: [],
+      ...buildAutoPilotFields(event),
     };
   }
 
@@ -327,6 +340,7 @@ export function buildVoteFields(event, playerId) {
       topGrids: buildTopGrids(event),
       sessionResultGrid: null,
       galleryGrids: [],
+      ...buildAutoPilotFields(event),
     };
   }
 
@@ -350,6 +364,7 @@ export function buildVoteFields(event, playerId) {
     topGrids: [],
     sessionResultGrid: null,
     galleryGrids: [],
+    ...buildAutoPilotFields(event),
   };
 }
 
@@ -358,6 +373,10 @@ export function buildVoteFields(event, playerId) {
  * En départage (`tiebreak`), seul le manager enregistré peut trancher.
  */
 export function canParticipateInVote(event, playerId) {
+  if (event.activeVote?.status === 'tiebreak_roulette') {
+    return false;
+  }
+
   if (event.activeVote?.status === 'tiebreak') {
     return playerId === event.managerPlayerId && Boolean(event.managerProfile);
   }
@@ -382,6 +401,7 @@ export function castVote(event, playerId, groupCode) {
   if (status !== 'open' && status !== 'tiebreak') {
     return { error: 'Le vote n\'est pas ouvert.' };
   }
+
 
   if (!canParticipateInVote(event, playerId)) {
     return { error: 'Vous ne pouvez pas voter.' };
@@ -425,8 +445,38 @@ export function castVote(event, playerId, groupCode) {
 }
 
 /**
+ * Lance le tirage au sort serveur en cas d'égalité sans manager.
+ */
+export function startTiebreakRoulette(event, tiedGroups = null) {
+  const archive = getArchiveSession(event, event.activeVote.sessionNumber);
+  const tied = tiedGroups ?? findTiedTopGroups(archive);
+  const codes = tied.map((g) => g.groupCode);
+  const winner = codes[Math.floor(Math.random() * codes.length)];
+
+  event.activeVote.status = 'tiebreak_roulette';
+  event.activeVote.tiedGroupCodes = codes;
+  event.activeVote.votes = {};
+  event.activeVote.winnerGroupCode = winner;
+  event.activeVote.rouletteStartedAt = Date.now();
+  event.activeVote.rouletteDurationMs = AUTO_TIEBREAK_ROULETTE_MS;
+}
+
+/**
+ * Applique le gagnant de la roulette et clôt le vote.
+ */
+export function finishTiebreakRoulette(event) {
+  if (event.activeVote?.status !== 'tiebreak_roulette') return;
+
+  const winner = event.activeVote.winnerGroupCode;
+  if (winner) {
+    applyVoteDelta(event, winner, 1);
+  }
+  event.activeVote.status = 'closed';
+}
+
+/**
  * Clôture le vote normal : gagnant unique → résultat immédiat ;
- * égalité → phase `tiebreak` (grilles ex æquo, départage par le manager).
+ * égalité → phase `tiebreak` (manager) ou `tiebreak_roulette` (auto).
  */
 export function closeVote(event) {
   if (!event.activeVote || event.activeVote.status !== 'open') {
@@ -437,6 +487,11 @@ export function closeVote(event) {
   const tied = findTiedTopGroups(archive);
 
   if (tied.length > 1) {
+    if (!isManagerConnected(event)) {
+      startTiebreakRoulette(event, tied);
+      return { ok: true, roulette: true };
+    }
+
     event.activeVote.status = 'tiebreak';
     event.activeVote.tiedGroupCodes = tied.map((g) => g.groupCode);
     event.activeVote.votes = {};
@@ -620,7 +675,15 @@ export function handleEndParty(socket, data, callback, deps) {
   }
 
   if (!isManager(event, socket)) {
-    return callback({ error: 'Seul le manager peut terminer la partie.' });
+    const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
+    const coopOverride =
+      isCoop(event) &&
+      event.coopManagerAbsent &&
+      event.coopWrMode === 'gallery' &&
+      isRegistered(event, socket.id, playerId);
+    if (!coopOverride) {
+      return callback({ error: 'Seul le manager peut terminer la partie.' });
+    }
   }
 
   if (isCoop(event)) {

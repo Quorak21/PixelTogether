@@ -1,5 +1,11 @@
-import { AVATAR_COLOR_REGEX, MANAGER_DISCONNECT_TIMEOUT_MS, MANAGER_ABSENT_WARNING_MS } from '../../config/constants.js';
-import { setSessionConnected } from '../reconnect/sessionToken.js';
+import {
+  AVATAR_COLOR_REGEX,
+  MANAGER_DISCONNECT_TIMEOUT_MS,
+  MANAGER_ABSENT_WARNING_MS,
+  COOP_MANAGER_ABSENT_MODAL_MS,
+} from '../../config/constants.js';
+import { getSessionByPlayerId, setSessionConnected } from '../reconnect/sessionToken.js';
+import { isCoop } from './gameMode.js';
 
 /**
  * Vérifie si la couleur passée correspond bien au format hexadécimal attendu pour un avatar.
@@ -167,6 +173,12 @@ export function remapSocket(event, playerId, newSocketId) {
  * Annule les minuteurs de déconnexion du manager.
  * Si le manager revient à temps, on stoppe la procédure de fermeture automatique.
  */
+export function isManagerConnected(event) {
+  if (!event.managerPlayerId) return false;
+  const session = getSessionByPlayerId(event.managerPlayerId);
+  return Boolean(session?.connected);
+}
+
 export function clearManagerDisconnectTimer(event) {
   if (event._managerDisconnectTimer) {
     clearTimeout(event._managerDisconnectTimer);
@@ -175,6 +187,10 @@ export function clearManagerDisconnectTimer(event) {
   if (event._managerDisconnectWarningTimer) {
     clearTimeout(event._managerDisconnectWarningTimer);
     event._managerDisconnectWarningTimer = null;
+  }
+  if (event._coopAbsentTimer) {
+    clearTimeout(event._coopAbsentTimer);
+    event._coopAbsentTimer = null;
   }
   event.managerDisconnectedAt = null;
 }
@@ -189,6 +205,32 @@ export function clearManagerDisconnectTimer(event) {
 export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
   clearManagerDisconnectTimer(event);
   event.managerDisconnectedAt = Date.now();
+
+  if (event.partyStarted) {
+    if (!isCoop(event)) {
+      event.autoPilot = { active: true };
+      if (!event.showingResults) {
+        io.to(eventId).emit('managerAbsentBanner', {
+          eventId,
+          roomId: eventId,
+          message: 'Le manager est absent — la partie continue automatiquement.',
+          mode: 'competitive',
+        });
+      }
+      return 'auto_pilot';
+    }
+
+    event._coopAbsentTimer = setTimeout(() => {
+      event._coopAbsentTimer = null;
+      event.coopManagerAbsent = true;
+      io.to(eventId).emit('managerAbsentCoop', {
+        eventId,
+        roomId: eventId,
+        message: 'Le manager est absent — les joueurs peuvent terminer la session à tout moment.',
+      });
+    }, COOP_MANAGER_ABSENT_MODAL_MS);
+    return 'coop_wait';
+  }
 
   const warningDelay = Math.max(0, MANAGER_DISCONNECT_TIMEOUT_MS - MANAGER_ABSENT_WARNING_MS);
 
@@ -209,4 +251,6 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
     });
     closeEvent(io, eventId);
   }, MANAGER_DISCONNECT_TIMEOUT_MS);
+
+  return 'close';
 }
