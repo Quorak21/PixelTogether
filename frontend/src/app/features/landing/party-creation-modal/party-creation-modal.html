@@ -4,7 +4,7 @@
   <div
     class="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-y-auto rounded-2xl border border-white/[0.08] bg-slate-950/95 p-6 shadow-2xl backdrop-blur-xl md:p-8"
     role="dialog" aria-modal="true" aria-labelledby="party-creation-title">
-    <button type="button" (click)="ui.partyCreationOpen.set(false)"
+    <button type="button" (click)="close()"
       class="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-landing-muted transition-all hover:bg-white/10 hover:text-white hover:rotate-90 md:right-6 md:top-6"
       aria-label="Fermer">
       ✕
@@ -32,7 +32,7 @@
           placeholder="Ex. Team Building Automne 2026" maxlength="30" autocomplete="off" autocapitalize="off"
           spellcheck="false"
           class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
-          [class.border-error]="isInvalid('partyName')" required />
+          [class.border-error]="showErrors() && form.controls.partyName.invalid" required />
       </section>
 
       <section class="rounded-xl border border-white/[0.06] bg-slate-900/40 p-4 backdrop-blur-sm">
@@ -51,7 +51,7 @@
             <input id="session-count" type="number" formControlName="sessionCount" [min]="sessionCountMin()"
               [max]="sessionCountMax()" step="1"
               class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
-              [class.border-error]="isInvalid('sessionCount')" required />
+              [class.border-error]="showErrors() && form.controls.sessionCount.invalid" required />
             <span class="text-xs text-landing-muted">De {{ sessionCountMin() }} à {{ sessionCountMax() }}
               sessions</span>
           </div>
@@ -65,7 +65,7 @@
               <input id="session-duration" type="number" formControlName="sessionDurationMinutes"
                 [min]="sessionDurationMin" [max]="sessionDurationMax" step="1"
                 class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 pr-14 text-white transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
-                [class.border-error]="isInvalid('sessionDurationMinutes')" required />
+                [class.border-error]="showErrors() && form.controls.sessionDurationMinutes.invalid" required />
               <span
                 class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-landing-muted"
                 aria-hidden="true">
@@ -101,7 +101,7 @@
             <input [id]="'party-theme-' + $index" type="text" [formControlName]="$index" [placeholder]="themePlaceholder($index)"
               maxlength="30" autocomplete="off" autocapitalize="off" spellcheck="false"
               class="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder-slate-600 transition-all duration-200 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
-              [class.border-error]="isThemeInvalid($index)" required />
+              [class.border-error]="showErrors() && themeControl.invalid" required />
           </div>
           }
         </div>
@@ -118,10 +118,18 @@
       </div>
       }
 
-      <button type="submit" [disabled]="!canSubmit()"
+      <button type="submit" [disabled]="isSubmitting()"
         class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_4px_25px_rgba(99,102,241,0.5)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:hover:scale-100">
         Créer la partie
       </button>
+
+      @if (showErrors() && formErrors().length) {
+      <ul class="flex flex-col gap-1.5 rounded-xl border border-error/30 bg-error/5 px-4 py-3 text-sm text-red-400">
+        @for (msg of formErrors(); track msg) {
+        <li>{{ msg }}</li>
+        }
+      </ul>
+      }
 
       @if (error()) {
       <p class="text-center text-sm text-red-400">{{ error() }}</p>

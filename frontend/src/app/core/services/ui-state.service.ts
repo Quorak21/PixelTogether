@@ -5,6 +5,7 @@ import {
   GroupTransitionPayload,
   ParticipantRole,
   PlayerProfile,
+  PublicPlayer,
 } from '../../types/entities';
 import { GAME_MODE_COOP, GAME_MODE_COMPETITIVE } from '../config/session-config';
 
@@ -104,6 +105,8 @@ export class UiStateService {
   readonly selectedColor = signal('#000000');
   readonly colors = signal<string[]>([]);
   readonly groupTeammates = signal<GroupPlayer[]>([]);
+  readonly groupVisitors = signal<PublicPlayer[]>([]);
+  readonly managerPlayerId = signal<string | null>(null);
   readonly typingTeammateIds = signal<ReadonlySet<string>>(new Set());
 
   private typingHideTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -261,9 +264,20 @@ export class UiStateService {
     this.groupTeammates.set(teammates);
   }
 
+  /** Spectateurs présents dans la room du groupe (compétitif). */
+  setGroupVisitors(visitors: PublicPlayer[]): void {
+    this.groupVisitors.set(visitors);
+  }
+
+  setManagerPlayerId(playerId: string | null): void {
+    this.managerPlayerId.set(playerId);
+  }
+
   /** Vide la liste des coéquipiers du groupe. */
   clearGroupTeammates(): void {
     this.groupTeammates.set([]);
+    this.groupVisitors.set([]);
+    this.managerPlayerId.set(null);
   }
 
   /** Indique si un coéquipier est en train d'écrire dans le chat de groupe. */

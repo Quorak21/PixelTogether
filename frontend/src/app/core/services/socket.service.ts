@@ -10,9 +10,12 @@ export type ConnectionStatus = 'connected' | 'connecting' | 'reconnecting';
  */
 @Injectable({ providedIn: 'root' })
 export class SocketService {
+  private static readonly BANNER_DELAY_MS = 2_000;
+
   private readonly apiUrl = getApiUrl();
   private readonly socket: Socket = io(this.apiUrl, { autoConnect: true });
   private hasConnectedOnce = false;
+  private bannerTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Signal réactif indiquant si le socket est actuellement connecté au backend. */
   readonly isConnected = signal(this.socket.connected);
@@ -21,6 +24,9 @@ export class SocketService {
   readonly connectionStatus = signal<ConnectionStatus>(
     this.socket.connected ? 'connected' : 'connecting',
   );
+
+  /** Bannière connexion : visible seulement après 2 s de déconnexion (évite le flash au chargement). */
+  readonly showConnectionBanner = signal(false);
 
   /** Message utilisateur dérivé du statut de connexion. */
   readonly connectionMessage = computed(() => {
@@ -39,14 +45,45 @@ export class SocketService {
       this.hasConnectedOnce = true;
       this.isConnected.set(true);
       this.connectionStatus.set('connected');
+      this.hideConnectionBanner();
     });
     this.socket.on('disconnect', () => {
       this.isConnected.set(false);
       this.connectionStatus.set('reconnecting');
+      this.scheduleConnectionBanner();
     });
     this.socket.on('connect_error', () => {
       this.connectionStatus.set(this.hasConnectedOnce ? 'reconnecting' : 'connecting');
+      this.scheduleConnectionBanner();
     });
+
+    if (this.connectionStatus() !== 'connected') {
+      this.scheduleConnectionBanner();
+    }
+  }
+
+  /** Lance le minuteur avant d'afficher la bannière ; réinitialise si la connexion fluctue. */
+  private scheduleConnectionBanner(): void {
+    this.showConnectionBanner.set(false);
+    this.clearBannerTimer();
+    this.bannerTimer = setTimeout(() => {
+      this.bannerTimer = null;
+      if (this.connectionStatus() !== 'connected') {
+        this.showConnectionBanner.set(true);
+      }
+    }, SocketService.BANNER_DELAY_MS);
+  }
+
+  private hideConnectionBanner(): void {
+    this.clearBannerTimer();
+    this.showConnectionBanner.set(false);
+  }
+
+  private clearBannerTimer(): void {
+    if (this.bannerTimer !== null) {
+      clearTimeout(this.bannerTimer);
+      this.bannerTimer = null;
+    }
   }
 
   /**

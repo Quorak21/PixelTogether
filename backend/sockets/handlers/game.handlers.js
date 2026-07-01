@@ -9,12 +9,50 @@ import {
 } from '../../services/session/groupAccess.js';
 import { markPlayerFinished } from '../../services/session/groupFinish.js';
 
+function upsertGroupVisitor(group, visitor) {
+  if (!group.visitors) {
+    group.visitors = [];
+  }
+  const index = group.visitors.findIndex(
+    (entry) =>
+      entry.socketId === visitor.socketId ||
+      (visitor.playerId && entry.playerId === visitor.playerId),
+  );
+  if (index >= 0) {
+    group.visitors[index] = visitor;
+    return;
+  }
+  group.visitors.push(visitor);
+}
+
+function removeGroupVisitor(group, socketId, playerId) {
+  if (!group.visitors?.length) {
+    return;
+  }
+  group.visitors = group.visitors.filter(
+    (entry) =>
+      entry.socketId !== socketId && !(playerId && entry.playerId === playerId),
+  );
+}
+
+function broadcastGroupVisitors(io, store, event, groupCode) {
+  const { groupRoomName, getGroup } = store;
+  const group = getGroup(event, groupCode);
+  if (!group) return;
+  const roomName = groupRoomName(event.id, groupCode);
+  io.to(roomName).emit('groupVisitorsUpdated', {
+    eventId: event.id,
+    groupCode,
+    visitors: group.visitors ?? [],
+  });
+}
+
 // rejoint la room socket du groupe et renvoie gridState (pixels + couleurs assignées)
 function handleJoinGroup(socket, data, deps) {
   const { io, store, constants, payloads, participants } = deps;
   const { activeEvents, normalizeEventId, normalizeGroupCode, groupRoomName, getGroup } = store;
   const { GRID_SIZE, CHAT_MAX_MESSAGES } = constants;
-  const { buildGridStatePayload, toChatMessage } = payloads;
+  const { buildGridStatePayload, toChatMessage, toSpectatorPublicPlayer } = payloads;
   const { findPlayerGroupByPlayerId, isManager, getParticipantPseudo } = participants;
 
   const eventId = normalizeEventId(data?.eventId ?? data?.roomId);
@@ -88,6 +126,8 @@ function handleJoinGroup(socket, data, deps) {
           oldGroup.chatMessages.shift();
         }
         io.to(oldRoomName).emit('receiveMessage', toChatMessage(event, oldGroup, leaveEntry));
+        removeGroupVisitor(oldGroup, socket.id, playerId);
+        broadcastGroupVisitors(io, store, event, oldGroupCode);
       }
     }
   }
@@ -114,6 +154,8 @@ function handleJoinGroup(socket, data, deps) {
       group.chatMessages.shift();
     }
     io.to(roomName).emit('receiveMessage', toChatMessage(event, group, joinEntry));
+    upsertGroupVisitor(group, toSpectatorPublicPlayer(event, socket, socket.data.playerId));
+    broadcastGroupVisitors(io, store, event, groupCode);
   }
 
   const gridState = buildGridStatePayload(event, groupCode, socket, GRID_SIZE);
@@ -449,6 +491,8 @@ export function registerGameHandlers(socket, deps) {
           group.chatMessages.shift();
         }
         io.to(roomName).emit('receiveMessage', toChatMessage(event, group, leaveEntry));
+        removeGroupVisitor(group, socket.id, playerId);
+        broadcastGroupVisitors(io, store, event, groupCode);
       } else if (isMember) {
         socket.to(roomName).emit('exitGame', { socketId: socket.id });
       }
@@ -492,6 +536,8 @@ export function registerGameHandlers(socket, deps) {
         group.chatMessages.shift();
       }
       io.to(roomName).emit('receiveMessage', toChatMessage(event, group, leaveEntry));
+      removeGroupVisitor(group, socket.id, playerId);
+      broadcastGroupVisitors(io, store, event, groupCode);
     }
   });
 }

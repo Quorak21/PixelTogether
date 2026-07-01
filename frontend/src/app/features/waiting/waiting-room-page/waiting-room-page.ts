@@ -134,6 +134,7 @@ export class WaitingRoomPageComponent {
   readonly rouletteWinnerGroupCode = signal<string | null>(null);
   readonly rouletteStartedAt = signal<number | null>(null);
   readonly rouletteDurationMs = signal<number | null>(null);
+  readonly voteParticipation = signal<{ cast: number; eligible: number } | null>(null);
   private readonly clockNow = signal(Date.now());
   readonly enlargedImage = signal<{ url: string; title: string; players?: PlayerProfile[] } | null>(null);
   readonly urlCopied = signal(false);
@@ -778,6 +779,9 @@ export class WaitingRoomPageComponent {
     }
     if (state.rouletteDurationMs !== undefined) {
       this.rouletteDurationMs.set(state.rouletteDurationMs ?? null);
+    }
+    if (state.voteParticipation !== undefined) {
+      this.voteParticipation.set(state.voteParticipation ?? null);
     }
     if (state.coopManagerAbsent !== undefined) {
       this.ui.setCoopManagerAbsent(Boolean(state.coopManagerAbsent));

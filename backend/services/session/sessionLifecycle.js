@@ -45,6 +45,7 @@ function beginCoopSession(event, deps) {
     players: buildCoopGroupMembers(event),
     pixels: {},
     chatMessages: [],
+    visitors: [],
     image: null,
   };
 
@@ -78,6 +79,7 @@ export function beginSession(event, deps) {
       players: members.map((p) => ({ ...p })),
       pixels: {},
       chatMessages: [],
+      visitors: [],
       image: null,
       finishedPlayerIds: [],
       finished: false,

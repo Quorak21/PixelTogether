@@ -14,15 +14,18 @@ import { SessionTokenService } from '../../core/services/session-token.service';
 import {
   EndSessionPayload,
   EndSessionResponse,
+  GroupVisitorsUpdatedPayload,
   LeavePartyPayload,
   LeavePartyResponse,
   LeaveWaitingRoomResponse,
   PlayerTypingPayload,
 } from '../../types/socket-payloads';
+import { PublicPlayer } from '../../types/entities';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder';
 import { SessionTimerBadgeComponent } from '../session-timer-badge/session-timer-badge';
 
 type PartyConfirmAction = 'leave' | 'close';
+type HoverPopoverKind = 'group' | 'visitors';
 
 @Component({
   selector: 'app-navbar',
@@ -49,10 +52,33 @@ export class NavbarComponent {
       this.ui.setTeammateTyping(data.socketId, data.active);
     };
 
+    const onGroupVisitorsUpdated = (data: GroupVisitorsUpdatedPayload) => {
+      if (!this.ui.gameMode()) {
+        return;
+      }
+      const eventId = this.resolveEventId();
+      if (
+        !eventId ||
+        data.eventId !== eventId ||
+        data.groupCode !== this.ui.currentGroupCode()
+      ) {
+        return;
+      }
+      this.ui.setGroupVisitors(data.visitors ?? []);
+    };
+
     this.destroyRef.onDestroy(
       this.socket.on<PlayerTypingPayload>('playerTyping', onPlayerTyping),
     );
+    this.destroyRef.onDestroy(
+      this.socket.on<GroupVisitorsUpdatedPayload>(
+        'groupVisitorsUpdated',
+        onGroupVisitorsUpdated,
+      ),
+    );
   }
+
+  readonly hoverPopover = signal<HoverPopoverKind | null>(null);
 
   readonly otherTeammates = computed(() => {
     if (!this.ui.gameMode() || this.ui.isCoopParty()) {
@@ -65,6 +91,28 @@ export class NavbarComponent {
       (mate) => mate.playerId !== myPlayerId && mate.socketId !== myId,
     );
   });
+
+  readonly coopGroupMembers = computed((): PublicPlayer[] => {
+    if (!this.ui.gameMode() || !this.ui.isCoopParty()) {
+      return [];
+    }
+    const myPlayerId = this.sessionToken.read()?.playerId;
+    const myId = this.socket.id();
+    return this.ui.groupTeammates().filter(
+      (mate) => mate.playerId !== myPlayerId && mate.socketId !== myId,
+    );
+  });
+
+  readonly showCoopGroupButton = computed(
+    () => this.ui.gameMode() && this.ui.isCoopParty() && this.coopGroupMembers().length > 0,
+  );
+
+  readonly showVisitorsBadge = computed(
+    () =>
+      this.ui.gameMode() &&
+      this.ui.isCompetitiveParty() &&
+      this.ui.groupVisitors().length > 0,
+  );
 
   readonly showCoopEndSession = computed(
     () =>
@@ -111,6 +159,21 @@ export class NavbarComponent {
   readonly partyConfirmAction = signal<PartyConfirmAction>('leave');
   readonly isPartyActionPending = signal(false);
   readonly partyActionError = signal('');
+
+  openHoverPopover(kind: HoverPopoverKind): void {
+    this.hoverPopover.set(kind);
+  }
+
+  closeHoverPopover(): void {
+    this.hoverPopover.set(null);
+  }
+
+  isPartyManager(playerId?: string): boolean {
+    if (!playerId) {
+      return false;
+    }
+    return playerId === this.ui.managerPlayerId();
+  }
 
   onDocumentClick(event: MouseEvent): void {
     if (!this.profileMenuOpen()) {
@@ -170,7 +233,7 @@ export class NavbarComponent {
       }
 
       if (this.isGroupingPhase() && this.ui.isManager()) {
-        this.leaveWaitingRoomView();
+        this.openPartyConfirm('close');
         return;
       }
 

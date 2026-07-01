@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { closeVote, castVote } from './voteLifecycle.js';
+import { closeVote, castVote, buildVoteFields } from './voteLifecycle.js';
 import { issueSession, purgePlayerSession } from '../reconnect/sessionToken.js';
 
 function makeEvent(archiveGroups, activeVoteOverrides = {}, { managerConnected = false } = {}) {
@@ -78,4 +78,17 @@ test('castVote — joueur refusé en tiebreak, manager tranche', () => {
   assert.strictEqual(event.activeVote.winnerGroupCode, 'B');
   const groupB = event.sessionArchive[0].groups.find((g) => g.groupCode === 'B');
   assert.strictEqual(groupB.voteCount, 3);
+});
+
+test('buildVoteFields — voteParticipation pendant le vote ouvert', () => {
+  const event = makeEvent([
+    { groupCode: 'A', groupIndex: 1, label: 'G1', voteCount: 0, players: [] },
+    { groupCode: 'B', groupIndex: 2, label: 'G2', voteCount: 0, players: [] },
+  ]);
+  event.partyStarted = true;
+  event.activeVote.votes = { 'p-1': 'A' };
+
+  const fields = buildVoteFields(event, 'p-1');
+  assert.strictEqual(fields.wrMode, 'voting');
+  assert.deepStrictEqual(fields.voteParticipation, { cast: 1, eligible: 2 });
 });

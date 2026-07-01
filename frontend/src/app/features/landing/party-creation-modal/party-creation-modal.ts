@@ -8,7 +8,6 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { startWith } from 'rxjs';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
@@ -27,7 +26,6 @@ import {
   SESSION_DURATION_DEFAULT,
   SESSION_DURATION_MAX,
   SESSION_DURATION_MIN,
-  coopGridOccupancy,
   totalPlayDurationMinutes,
 } from '../../../core/config/session-config';
 import { GameMode } from '../../../types/entities';
@@ -50,6 +48,8 @@ export class PartyCreationModalComponent {
 
   readonly error = signal('');
   readonly isSubmitting = signal(false);
+  readonly showErrors = signal(false);
+  readonly formErrors = signal<string[]>([]);
   readonly COMPETITIVE_PLAYERS_MIN = COMPETITIVE_PLAYERS_MIN;
 
   readonly sessionDurationMin = SESSION_DURATION_MIN;
@@ -70,7 +70,6 @@ export class PartyCreationModalComponent {
   });
 
   readonly creationMode = computed(() => this.ui.partyCreationMode());
-
   readonly isCoop = computed(() => this.creationMode() === GAME_MODE_COOP);
 
   readonly modalTitle = computed(() =>
@@ -95,11 +94,6 @@ export class PartyCreationModalComponent {
     initialValue: this.form.getRawValue(),
   });
 
-  private readonly formStatus = toSignal(
-    this.form.statusChanges.pipe(startWith(this.form.status)),
-    { initialValue: this.form.status },
-  );
-
   readonly totalDurationMinutes = computed(() => {
     this.formValues();
     if (this.isCoop()) return 0;
@@ -109,22 +103,21 @@ export class PartyCreationModalComponent {
     );
   });
 
-  readonly canSubmit = computed(() => {
-    this.formValues();
-    this.formStatus();
-    this.creationMode();
-    return this.form.valid && !this.isSubmitting();
-  });
-
   constructor() {
     effect(() => {
       if (!this.ui.partyCreationOpen()) return;
       preloadGameRoutes();
+      this.resetForm();
       this.applyModeDefaults(this.ui.partyCreationMode());
     });
 
     this.form.controls.sessionCount.valueChanges.subscribe((count) => {
       this.syncThemeFields(count);
+    });
+
+    this.form.valueChanges.subscribe(() => {
+      this.showErrors.set(false);
+      this.formErrors.set([]);
     });
   }
 
@@ -132,14 +125,9 @@ export class PartyCreationModalComponent {
     return this.form.controls.themes;
   }
 
-  isInvalid(name: 'partyName' | 'sessionCount' | 'sessionDurationMinutes'): boolean {
-    const control = this.form.controls[name];
-    return control.invalid && (control.dirty || control.touched);
-  }
-
-  isThemeInvalid(index: number): boolean {
-    const control = this.themes.at(index);
-    return control.invalid && (control.dirty || control.touched);
+  close(): void {
+    this.resetForm();
+    this.ui.partyCreationOpen.set(false);
   }
 
   themePlaceholder(index: number): string {
@@ -148,8 +136,13 @@ export class PartyCreationModalComponent {
   }
 
   async createParty(): Promise<void> {
-    if (!this.canSubmit()) {
-      this.form.markAllAsTouched();
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    if (this.form.invalid) {
+      this.showErrors.set(true);
+      this.formErrors.set(this.collectFormErrors());
       return;
     }
 
@@ -187,11 +180,73 @@ export class PartyCreationModalComponent {
     this.reconnect.saveFromNewGrid(response);
     this.ui.setPartyGameMode(mode);
 
-    this.ui.partyCreationOpen.set(false);
+    this.close();
     this.ui.setRole('manager');
     this.ui.joinWaitingRoom(response.id);
     void this.router.navigateByUrl(`/room/${response.id}`);
     this.isSubmitting.set(false);
+  }
+
+  private collectFormErrors(): string[] {
+    const errors: string[] = [];
+
+    const name = this.form.controls.partyName;
+    if (name.hasError('required')) {
+      errors.push('Veuillez renseigner le nom de la partie.');
+    } else if (name.hasError('minlength')) {
+      errors.push('Le nom de la partie doit contenir au moins 3 caractères.');
+    } else if (name.hasError('maxlength')) {
+      errors.push('Le nom de la partie ne peut pas dépasser 30 caractères.');
+    }
+
+    const count = this.form.controls.sessionCount;
+    if (count.hasError('required')) {
+      errors.push('Veuillez renseigner le nombre de sessions.');
+    } else if (count.hasError('min') || count.hasError('max')) {
+      errors.push(
+        `Le nombre de sessions doit être entre ${this.sessionCountMin()} et ${this.sessionCountMax()}.`,
+      );
+    }
+
+    if (!this.isCoop()) {
+      const duration = this.form.controls.sessionDurationMinutes;
+      if (duration.hasError('required')) {
+        errors.push('Veuillez renseigner la durée d\'une session.');
+      } else if (duration.hasError('min') || duration.hasError('max')) {
+        errors.push(
+          `La durée d'une session doit être entre ${SESSION_DURATION_MIN} et ${SESSION_DURATION_MAX} minutes.`,
+        );
+      }
+    }
+
+    this.themes.controls.forEach((theme, index) => {
+      const label = this.themes.length > 1 ? `Session ${index + 1} — ` : '';
+      if (theme.hasError('required')) {
+        errors.push(`${label}Veuillez renseigner le thème.`);
+      } else if (theme.hasError('minlength')) {
+        errors.push(`${label}Le thème doit contenir au moins 3 caractères.`);
+      } else if (theme.hasError('maxlength')) {
+        errors.push(`${label}Le thème ne peut pas dépasser 30 caractères.`);
+      }
+    });
+
+    return errors;
+  }
+
+  private resetForm(): void {
+    this.form.reset({
+      partyName: '',
+      sessionCount: SESSION_COUNT_DEFAULT,
+      sessionDurationMinutes: SESSION_DURATION_DEFAULT,
+    });
+    this.themes.clear();
+    this.themes.push(this.createThemeControl());
+    this.error.set('');
+    this.isSubmitting.set(false);
+    this.showErrors.set(false);
+    this.formErrors.set([]);
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
   }
 
   private applyModeDefaults(mode: GameMode): void {

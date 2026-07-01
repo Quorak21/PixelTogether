@@ -14,7 +14,11 @@
     <div class="absolute -bottom-32 -right-20 h-[440px] w-[440px] animate-mesh-pulse rounded-full bg-brand-coral blur-[120px]"></div>
   </div>
 
-  <div class="relative z-[2] grid min-h-0 flex-1 grid-cols-[1fr_20rem]">
+  <div
+    class="relative z-[2] grid min-h-0 flex-1"
+    [class.grid-cols-1]="isLoading() || pageError()"
+    [class.grid-cols-[1fr_20rem]]="!isLoading() && !pageError()"
+  >
     <div
       class="flex min-h-0 flex-col items-center justify-center overflow-y-auto p-4 transition-all duration-300"
       [class.md:p-8]="roomPhase() !== 'final'"
@@ -341,6 +345,7 @@
               [rouletteWinnerGroupCode]="rouletteWinnerGroupCode()"
               [rouletteStartedAt]="rouletteStartedAt()"
               [rouletteDurationMs]="rouletteDurationMs()"
+              [voteParticipation]="voteParticipation()"
               (vote)="handleVote($event)"
               (closeVote)="handleCloseVote()"
               (startClick)="handleStartClick()"

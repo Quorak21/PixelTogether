@@ -39,6 +39,8 @@ export class LandingPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly error = signal('');
+  readonly showErrors = signal(false);
+  readonly formErrors = signal<string[]>([]);
   readonly infoModal = signal<InfoModalKind | null>(null);
   readonly isResuming = signal(false);
   readonly serverMaxCapReached = signal(false);
@@ -58,6 +60,11 @@ export class LandingPageComponent implements OnInit {
         this.error.set(externalError);
         this.ui.joinRoomError.set(null);
       }
+    });
+
+    this.form.valueChanges.subscribe(() => {
+      this.showErrors.set(false);
+      this.formErrors.set([]);
     });
   }
 
@@ -86,7 +93,13 @@ export class LandingPageComponent implements OnInit {
   }
 
   joinRoom(): void {
-    if (this.hasActiveSession() || this.form.invalid) {
+    if (this.hasActiveSession()) {
+      return;
+    }
+
+    if (this.form.invalid) {
+      this.showErrors.set(true);
+      this.formErrors.set(this.collectFormErrors());
       return;
     }
 
@@ -94,13 +107,33 @@ export class LandingPageComponent implements OnInit {
     const code = this.form.controls.code.value.trim().toUpperCase();
 
     if (!ROOM_CODE_REGEX.test(code)) {
-      this.error.set('Code invalide. Vérifie les 6 caractères.');
+      this.showErrors.set(true);
+      this.formErrors.set([
+        'Caractères non valides dans le code (I, O, 0 et 1 sont interdits).',
+      ]);
       return;
     }
 
+    this.showErrors.set(false);
+    this.formErrors.set([]);
     this.ui.joinWaitingRoom(code);
     void this.router.navigateByUrl(`/room/${code}`);
     this.form.reset();
+  }
+
+  private collectFormErrors(): string[] {
+    const errors: string[] = [];
+    const code = this.form.controls.code;
+
+    if (code.hasError('required')) {
+      errors.push('Veuillez renseigner le code de la partie.');
+    } else if (code.hasError('minlength') || code.hasError('maxlength')) {
+      errors.push('Le code doit contenir exactement 6 caractères.');
+    } else if (code.hasError('pattern')) {
+      errors.push('Caractères non valides. Utilisez uniquement des lettres et des chiffres.');
+    }
+
+    return errors;
   }
 
   private async tryResumeSession(): Promise<void> {

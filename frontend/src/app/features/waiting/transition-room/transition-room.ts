@@ -53,6 +53,7 @@ export class TransitionRoomComponent {
   readonly rouletteWinnerGroupCode = input<string | null>(null);
   readonly rouletteStartedAt = input<number | null>(null);
   readonly rouletteDurationMs = input<number | null>(null);
+  readonly voteParticipation = input<{ cast: number; eligible: number } | null>(null);
 
   readonly vote = output<string>();
   readonly closeVote = output<void>();

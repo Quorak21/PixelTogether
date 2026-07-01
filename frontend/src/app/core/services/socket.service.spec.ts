@@ -41,18 +41,41 @@ describe('SocketService', () => {
   it('lifecycle connecting → connected → reconnecting → connected', () => {
     const service = new SocketService();
     expect(service.connectionStatus()).toBe('connecting');
+    expect(service.showConnectionBanner()).toBe(false);
 
     const socket = getMockSocket();
     socket.id = 'sock-1';
     getHandler('connect')?.();
     expect(service.connectionStatus()).toBe('connected');
+    expect(service.showConnectionBanner()).toBe(false);
 
     getHandler('disconnect')?.();
     expect(service.connectionStatus()).toBe('reconnecting');
+    expect(service.showConnectionBanner()).toBe(false);
 
     socket.id = 'sock-2';
     getHandler('connect')?.();
     expect(service.connectionStatus()).toBe('connected');
+    expect(service.showConnectionBanner()).toBe(false);
+  });
+
+  it('affiche la bannière seulement après 2 s de déconnexion', () => {
+    vi.useFakeTimers();
+    const service = new SocketService();
+
+    getHandler('disconnect')?.();
+    expect(service.showConnectionBanner()).toBe(false);
+
+    vi.advanceTimersByTime(1_999);
+    expect(service.showConnectionBanner()).toBe(false);
+
+    vi.advanceTimersByTime(1);
+    expect(service.showConnectionBanner()).toBe(true);
+
+    getHandler('connect')?.();
+    expect(service.showConnectionBanner()).toBe(false);
+
+    vi.useRealTimers();
   });
 
   it('on() returns an unsubscribe function', () => {

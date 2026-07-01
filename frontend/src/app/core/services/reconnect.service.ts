@@ -298,6 +298,8 @@ export class ReconnectService {
     this.ui.groupLabel.set(data.groupLabel);
     this.ui.setSessionEndsAt(data.sessionEndsAt);
     this.ui.setGroupTeammates(data.teammates ?? []);
+    this.ui.setGroupVisitors(data.groupVisitors ?? []);
+    this.ui.setManagerPlayerId(data.managerPlayerId ?? null);
     if (data.sessionCount !== undefined && data.currentSession !== undefined) {
       this.ui.setSessionMeta(data.sessionCount, data.currentSession, true);
     }

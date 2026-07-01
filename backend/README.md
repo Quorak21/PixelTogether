@@ -264,6 +264,9 @@ Voici comment se déroule une partie de A à Z à travers les échanges de messa
 * **`drawPixel`** (Serveur ➔ Équipe) : Le serveur répercute le pixel uniquement aux membres de cette équipe.
 * **`groupPreviewUpdated`** (Serveur ➔ Manager) : Le serveur envoie l'image mise à jour à l'écran de contrôle du manager.
 * **`sendMessage`** (Joueur ➔ Serveur) / **`receiveMessage`** (Serveur ➔ Équipe) : Gèrent le chat interne de l'équipe.
+* **`gridState`** (Serveur ➔ Client) : État initial du canvas ; inclut `groupVisitors` (spectateurs présents dans la room : manager, joueurs ayant fini ailleurs).
+* **`groupVisitorsUpdated`** (Serveur ➔ Équipe) : Liste à jour des spectateurs quand l'un rejoint ou quitte la discussion du groupe.
+* **`chatTyping`** (Joueur ➔ Serveur) / **`playerTyping`** (Serveur ➔ Équipe) : Indicateur « en train d'écrire » dans le chat de groupe.
 
 ### 5. Fin d'une manche (Session)
 * **`sessionEnded`** (Serveur ➔ Salon) : Le temps est écoulé, le manager clique sur « Terminer la session », ou **toutes les grilles compétitives sont terminées**. Le serveur bloque le dessin et redirige tout le monde vers la salle d'attente.

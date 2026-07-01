@@ -28,6 +28,29 @@ export function toGroupPlayer(player) {
   };
 }
 
+/** Profil public d'un spectateur (manager ou joueur hors groupe) pour la navbar. */
+export function toSpectatorPublicPlayer(event, socket, playerId = null) {
+  const pid = playerId ?? resolveSocketPlayerId(event, socket) ?? socket.data?.playerId;
+  const pseudo = getParticipantPseudo(event, socket.id, null, pid);
+  let avatarColor = null;
+
+  if (pid === event.managerPlayerId || socket.id === event.manager) {
+    avatarColor = event.managerProfile?.avatarColor ?? null;
+  } else {
+    const player = event.players.find(
+      (entry) => entry.playerId === pid || entry.socketId === socket.id,
+    );
+    avatarColor = player?.avatarColor ?? null;
+  }
+
+  return toPublicPlayer({
+    socketId: socket.id,
+    playerId: pid,
+    pseudo,
+    avatarColor: avatarColor ?? '#6366F1',
+  });
+}
+
 export function toChatMessage(event, group, entry) {
   let avatarColor = entry.avatarColor;
   if (!avatarColor && event) {
@@ -161,6 +184,8 @@ export function buildGridStatePayload(event, groupCode, socket, gridSize) {
     finishedCount: group.finishedPlayerIds?.length ?? 0,
     totalCount: group.players.length,
     hasMarkedFinished: playerFinished,
+    groupVisitors: group.visitors ?? [],
+    managerPlayerId: event.managerPlayerId ?? undefined,
   };
 }
 

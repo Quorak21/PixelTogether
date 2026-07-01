@@ -13,6 +13,12 @@
 
 ## Entrées
 
+- **ADD-53 / FF-12** — **Popover membres navbar** : coop — bouton « Groupe » (survol, liste participants sauf soi, tag en train d'écrire) ; compét — barre coéquipiers conservée + badge « +X » pour visiteurs (manager, joueurs finis ailleurs) ; back `group.visitors` + `groupVisitorsUpdated`.
+
+- **ADD-50** — **Zoom + vote par cœur** : phase vote — clic image → zoom (flux coop/final), ❤️ sur miniature pour voter ; compteur `x / y` pour le manager (`voteParticipation` back).
+
+- **ADD-49** — **Validation formulaires** : bordure rouge sur champs invalides (après interaction ou tentative d'envoi) sur création de partie, onboarding et code salon ; reset complet du formulaire création à la fermeture / réouverture (fix comp → coop).
+
 - **ADD-48** — **Quitter / fermer la partie** : sortie douce WR groupement (token conservé) ; `leaveParty` définitif avec disclaimer (navbar logo + dropdown pseudo) ; manager ferme via dropdown ; seuil 50 % (compétitif seul) → modale countdown puis podium.
 
 - **ADD-46** — **Gestion du blanc adjacent** : blanc peint `#fefefe` (distinct du fond `#ffffff`) ; grille de contours conditionnels sur le canvas — pas d'arête entre deux blancs adjacents ; util `canvas-grid.util.ts` + sync palette back/front.

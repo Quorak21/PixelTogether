@@ -289,6 +289,17 @@ export function buildAutoPilotFields(event) {
 }
 
 /**
+ * Nombre de votants ayant déposé un bulletin / électeurs éligibles (phase vote ouverte).
+ */
+export function buildVoteParticipation(event) {
+  if (!event.activeVote || event.activeVote.status !== 'open') return null;
+
+  const eligible = event.players.length + (event.managerProfile ? 1 : 0);
+  const cast = Object.keys(event.activeVote.votes ?? {}).length;
+  return { cast, eligible };
+}
+
+/**
  * Construit l'état détaillé des données de vote en fonction de la phase actuelle de la salle d'attente.
  * Retourne des structures spécifiques si l'on est au stade du podium, de la galerie, d'un vote en cours ou clos.
  */
@@ -364,6 +375,7 @@ export function buildVoteFields(event, playerId) {
     topGrids: [],
     sessionResultGrid: null,
     galleryGrids: [],
+    voteParticipation: wrMode === 'voting' ? buildVoteParticipation(event) : null,
     ...buildAutoPilotFields(event),
   };
 }

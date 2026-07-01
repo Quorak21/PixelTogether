@@ -125,17 +125,27 @@
           <h2 class="text-lg font-bold text-white">Rejoindre une partie</h2>
           <p class="text-sm text-landing-muted">Entrez le code fourni par votre manager</p>
         </div>
-        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="flex w-full flex-col gap-3 sm:max-w-md sm:flex-row sm:items-center" autocomplete="off">
-          <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"
-            autocapitalize="characters" spellcheck="false"
-            class="w-full flex-1 text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3.5 uppercase tracking-[0.2em] text-lg font-black text-white placeholder-slate-600 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20" />
-          @if (error()) {
-          <p class="text-sm text-red-400 w-full sm:order-last">{{ error() }}</p>
+        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="flex w-full flex-col gap-3 sm:max-w-md" autocomplete="off">
+          <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"
+              autocapitalize="characters" spellcheck="false"
+              class="w-full flex-1 text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3.5 uppercase tracking-[0.2em] text-lg font-black text-white placeholder-slate-600 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+              [class.border-error]="showErrors() && form.controls.code.invalid" />
+            <button type="submit"
+              class="inline-flex shrink-0 items-center justify-center rounded-xl border border-brand-violet px-6 py-3.5 font-semibold text-brand-violet hover:bg-brand-violet/10 sm:w-auto w-full">
+              Rejoindre
+            </button>
+          </div>
+          @if (showErrors() && formErrors().length) {
+          <ul class="flex flex-col gap-1.5 rounded-xl border border-error/30 bg-error/5 px-4 py-3 text-sm text-red-400">
+            @for (msg of formErrors(); track msg) {
+            <li>{{ msg }}</li>
+            }
+          </ul>
           }
-          <button type="submit"
-            class="inline-flex shrink-0 items-center justify-center rounded-xl border border-brand-violet px-6 py-3.5 font-semibold text-brand-violet hover:bg-brand-violet/10 sm:w-auto w-full">
-            Rejoindre
-          </button>
+          @if (error()) {
+          <p class="text-sm text-red-400">{{ error() }}</p>
+          }
         </form>
       </div>
     </div>

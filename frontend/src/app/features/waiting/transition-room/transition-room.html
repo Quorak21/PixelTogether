@@ -16,22 +16,41 @@
   } @else {
     <div class="flex flex-wrap justify-center gap-4">
       @for (candidate of voteCandidates(); track candidate.groupCode) {
-        <button
-          type="button"
-          class="w-full max-w-xs overflow-hidden rounded-xl border-2 text-left transition-all hover:scale-[1.02] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
+        <div
+          class="w-full max-w-xs overflow-hidden rounded-xl border-2 text-left transition-all sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
           [class.border-brand-violet]="myVote() === candidate.groupCode"
           [class.ring-2]="myVote() === candidate.groupCode"
           [class.ring-brand-violet]="myVote() === candidate.groupCode"
           [class.border-white/10]="myVote() !== candidate.groupCode"
           [class.bg-slate-950/40]="myVote() !== candidate.groupCode"
-          (click)="vote.emit(candidate.groupCode)"
         >
-          <div class="flex aspect-square w-full items-center justify-center bg-slate-950/60">
+          <div
+            class="relative flex aspect-square w-full cursor-zoom-in items-center justify-center bg-slate-950/60"
+            (click)="onEnlarge(candidate.image, candidate.label, candidate.players)"
+          >
             @if (candidate.image) {
-              <img [src]="candidate.image" [alt]="candidate.label" class="h-[90%] w-[90%] object-contain" />
+              <img
+                [src]="candidate.image"
+                [alt]="candidate.label"
+                class="h-[90%] w-[90%] object-contain"
+                style="image-rendering: pixelated; image-rendering: crisp-edges;"
+              />
             } @else {
               <span class="text-5xl opacity-30">▦</span>
             }
+            <button
+              type="button"
+              class="absolute top-2 right-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95"
+              [class.border-brand-violet]="myVote() === candidate.groupCode"
+              [class.bg-brand-violet/30]="myVote() === candidate.groupCode"
+              [class.scale-110]="myVote() === candidate.groupCode"
+              [class.border-white/20]="myVote() !== candidate.groupCode"
+              [class.bg-black/50]="myVote() !== candidate.groupCode"
+              (click)="vote.emit(candidate.groupCode); $event.stopPropagation()"
+              aria-label="Voter"
+            >
+              <span class="text-lg leading-none" [class.opacity-40]="myVote() !== candidate.groupCode">❤️</span>
+            </button>
           </div>
           <div class="flex flex-col gap-1 p-3">
             <h3 class="font-bold text-white">{{ candidate.label }}</h3>
@@ -39,7 +58,7 @@
               {{ candidate.voteCount }} vote{{ candidate.voteCount > 1 ? 's' : '' }}
             </p>
           </div>
-        </button>
+        </div>
       }
     </div>
   }
@@ -225,6 +244,11 @@
 
 @if (isManager() && wrMode() === 'voting' && !autoPilotActive()) {
   <div class="mt-6 flex flex-col items-center gap-2">
+    @if (voteParticipation(); as participation) {
+      <span class="font-mono text-sm font-semibold text-white/90">
+        {{ participation.cast }} / {{ participation.eligible }}
+      </span>
+    }
     <button
       type="button"
       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-warning/50 bg-warning/10 px-6 py-3.5 font-semibold text-warning transition-all hover:bg-warning/20 disabled:opacity-50"

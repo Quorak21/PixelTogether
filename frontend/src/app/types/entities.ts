@@ -72,6 +72,7 @@ export interface VoteStateFields {
   rouletteStartedAt?: number | null;
   rouletteDurationMs?: number | null;
   coopManagerAbsent?: boolean;
+  voteParticipation?: { cast: number; eligible: number } | null;
 }
 
 export interface PlayerProfile {
@@ -142,6 +143,8 @@ export interface GridStatePayload {
   finishedCount?: number;
   totalCount?: number;
   hasMarkedFinished?: boolean;
+  groupVisitors?: PublicPlayer[];
+  managerPlayerId?: string;
 }
 
 // push fin de session — renvoie tout le monde en WR avec wrMode voting

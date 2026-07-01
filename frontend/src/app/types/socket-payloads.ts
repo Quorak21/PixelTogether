@@ -8,6 +8,7 @@ import {
   GroupTransitionPlayerPayload,
   ParticipantRole,
   PlayerProfile,
+  PublicPlayer,
   ReconnectPhase,
   RoomStatus,
   SessionEndedPayload,
@@ -258,6 +259,12 @@ export interface ChatTypingPayload {
 export interface PlayerTypingPayload {
   socketId: string;
   active: boolean;
+}
+
+export interface GroupVisitorsUpdatedPayload {
+  eventId: string;
+  groupCode: string;
+  visitors: PublicPlayer[];
 }
 
 export interface ChatMessagePayload {
