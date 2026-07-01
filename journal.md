@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-54** — **Placeholder joueur en inscription** : carte fantôme « Inscription… » dans la grille WR dès qu'un visiteur rejoint sans valider l'onboarding ; back `event.pendingPlayers` + `pendingPlayers` dans `waitingRoomState` / `waitingRoomUpdated`.
+
 - **ADD-53 / FF-12** — **Popover membres navbar** : coop — bouton « Groupe » (survol, liste participants sauf soi, tag en train d'écrire) ; compét — barre coéquipiers conservée + badge « +X » pour visiteurs (manager, joueurs finis ailleurs) ; back `group.visitors` + `groupVisitorsUpdated`.
 
 - **ADD-50** — **Zoom + vote par cœur** : phase vote — clic image → zoom (flux coop/final), ❤️ sur miniature pour voter ; compteur `x / y` pour le manager (`voteParticipation` back).

@@ -20,7 +20,8 @@ const mockDeps = {
     PSEUDO_REGEX: /^.{3,20}$/s,
   },
   payloads: {
-    buildWaitingRoomState: () => ({ players: [] }),
+    buildWaitingRoomState: () => ({ players: [], pendingPlayers: [] }),
+    buildWaitingRoomLists: () => ({ players: [], pendingPlayers: [] }),
     toPublicPlayer: (p) => p,
   },
   participants: {

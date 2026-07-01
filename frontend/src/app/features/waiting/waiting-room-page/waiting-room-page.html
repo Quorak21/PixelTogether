@@ -256,6 +256,7 @@
                     <div class="min-h-[10rem]">
                       <app-wr-gathering
                         [players]="players()"
+                        [pendingPlayers]="visiblePendingPlayers()"
                         [isManager]="ui.isManager()"
                         [canStart]="canStart()"
                         [isStarting]="isStarting()"
@@ -324,6 +325,7 @@
             <app-transition-room
               [wrMode]="wrMode()"
               [players]="players()"
+              [pendingPlayers]="visiblePendingPlayers()"
               [voteCandidates]="voteCandidates()"
               [myVote]="myVote()"
               [winner]="voteWinner()"

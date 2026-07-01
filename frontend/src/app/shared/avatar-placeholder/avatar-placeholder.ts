@@ -10,4 +10,6 @@ import { LucideUser } from '@lucide/angular';
 export class AvatarPlaceholderComponent {
   readonly color = input.required<string>();
   readonly size = input<'sm' | 'md' | 'lg'>('md');
+  /** Fantôme neutre pour visiteur en cours d'inscription. */
+  readonly ghost = input(false);
 }

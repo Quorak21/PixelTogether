@@ -23,6 +23,7 @@ import {
   VoteCandidate,
   VoteStateFields,
   PlayerProfile,
+  PendingWaitingRoomPlayer,
   WaitingRoomPlayer,
   WrMode,
 } from '../../../types/entities';
@@ -113,6 +114,7 @@ export class WaitingRoomPageComponent {
   readonly currentSession = signal(1);
   readonly partyStarted = signal(false);
   readonly players = signal<WaitingRoomPlayer[]>([]);
+  readonly pendingPlayers = signal<PendingWaitingRoomPlayer[]>([]);
   readonly managerProfile = signal<PlayerProfile | null>(null);
   readonly isRegistered = signal(false);
   readonly isLoading = signal(true);
@@ -319,6 +321,14 @@ export class WaitingRoomPageComponent {
   });
   readonly roomUrl = computed(() => `${window.location.origin}/room/${this.roomId()}`);
   readonly showOnboarding = computed(() => this.onboardingOpen() && !this.isRegistered());
+  readonly visiblePendingPlayers = computed(() => {
+    const myPlayerId = this.sessionToken.read()?.playerId;
+    const pending = this.pendingPlayers();
+    if (!myPlayerId) {
+      return pending;
+    }
+    return pending.filter((entry) => entry.playerId !== myPlayerId);
+  });
 
   constructor() {
     const id = this.roomId();
@@ -720,6 +730,7 @@ export class WaitingRoomPageComponent {
     this.ui.setSessionMeta(state.sessionCount, state.currentSession, Boolean(state.partyStarted));
     this.ui.setPartyGameMode(state.gameMode);
     this.players.set(state.players);
+    this.pendingPlayers.set(state.pendingPlayers ?? []);
     this.managerProfile.set(state.managerProfile);
     this.isRegistered.set(state.isRegistered);
     this.onboardingOpen.set(!state.isRegistered);
@@ -814,6 +825,7 @@ export class WaitingRoomPageComponent {
   private bindSocketListeners(): void {
     const onUpdated = (payload: WaitingRoomUpdatedPayload) => {
       this.players.set(payload.players);
+      this.pendingPlayers.set(payload.pendingPlayers ?? []);
     };
 
     const onGameStarted = (payload: GameStartedPayload) => { // push serveur post-startGame, pas l'ack de startGame

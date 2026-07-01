@@ -254,3 +254,34 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
 
   return 'close';
 }
+
+/** Visiteur en salle d'attente sans pseudo validé (onboarding ouvert). */
+export function toPublicPendingPlayer({ playerId, socketId }) {
+  return { playerId, socketId };
+}
+
+export function addPendingPlayer(event, { playerId, socketId }) {
+  if (!event.pendingPlayers) {
+    event.pendingPlayers = [];
+  }
+  const index = event.pendingPlayers.findIndex((entry) => entry.playerId === playerId);
+  const entry = { playerId, socketId };
+  if (index >= 0) {
+    event.pendingPlayers[index] = entry;
+  } else {
+    event.pendingPlayers.push(entry);
+  }
+}
+
+export function removePendingPlayer(event, { playerId = null, socketId = null } = {}) {
+  if (!event.pendingPlayers?.length) {
+    return false;
+  }
+  const before = event.pendingPlayers.length;
+  event.pendingPlayers = event.pendingPlayers.filter(
+    (entry) =>
+      !(playerId && entry.playerId === playerId) &&
+      !(socketId && entry.socketId === socketId),
+  );
+  return event.pendingPlayers.length !== before;
+}

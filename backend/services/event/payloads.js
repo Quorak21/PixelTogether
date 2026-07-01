@@ -4,6 +4,7 @@ import {
   isRegistered,
   getParticipantPseudo,
   resolvePlayerId,
+  toPublicPendingPlayer,
 } from './participants.js';
 import { buildVoteFields } from '../vote/voteLifecycle.js';
 import { isCoop } from './gameMode.js';
@@ -93,6 +94,13 @@ export function toChatMessage(event, group, entry) {
   };
 }
 
+export function buildWaitingRoomLists(event) {
+  return {
+    players: event.players.map(toPublicPlayer),
+    pendingPlayers: (event.pendingPlayers ?? []).map(toPublicPendingPlayer),
+  };
+}
+
 function buildWaitingRoomBase(event, socketId, playerId = null) {
   const pid = resolvePlayerId(event, socketId, playerId);
   const role = getParticipantRole(event, socketId, pid);
@@ -111,7 +119,7 @@ function buildWaitingRoomBase(event, socketId, playerId = null) {
     status: event.status,
     role,
     managerProfile: event.managerProfile,
-    players: event.players.map(toPublicPlayer),
+    ...buildWaitingRoomLists(event),
     isRegistered: isRegistered(event, socketId, pid),
     playerId: pid,
   };

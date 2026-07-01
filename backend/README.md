@@ -175,7 +175,7 @@ C'est le module de tolérance aux pannes réseau. Il évite qu'un joueur perde s
 * **`resolvePlayerId(event, socketId, playerId)`** : Retrouve le playerId unique d'un participant connecté à partir de son socket temporaire actuel.
 * **`getParticipantRole(event, socketId, playerId)`** : Retourne `'manager'` ou `'player'`.
 * **`isManager(event, socket)`** : Raccourci retournant true si le socket ou playerId correspond à l'hôte créateur de la partie.
-* **`isRegistered(event, socketId, playerId)`** : Indique si le joueur a complété son inscription (pseudo + avatar) et figure dans la liste `event.players`.
+* **`isRegistered(event, socketId, playerId)`** : Indique si le joueur a complété son inscription (pseudo + avatar) et figure dans la liste `event.players`. Les visiteurs en attente d'onboarding sont dans `event.pendingPlayers` (socket + playerId, sans pseudo).
 * **`getParticipantPseudo(event, socketId, group, playerId)`** : Récupère le pseudo d'un joueur.
 * **`removePlayerFromEvent(event, socketId, playerId)`** : Retire un joueur de la liste de l'événement s'il s'en va.
 * **`findPlayerGroup(event, socketId, playerId)`** / **`findPlayerGroupByPlayerId(event, playerId)`** : Retrouvent dans quel groupe (équipe de dessin) est actuellement affecté le joueur.
@@ -243,11 +243,11 @@ Voici comment se déroule une partie de A à Z à travers les échanges de messa
 * **Confirmation** (Serveur ➔ Manager) : Le serveur renvoie le code unique de salon (ex: `AJDKSL`) et le jeton (`token`) de reconnexion.
 
 ### 2. Inscription des joueurs (Salle d'attente)
-* **`enterWaitingRoom`** (Joueur ➔ Serveur) : Le joueur entre le code du salon pour s'y connecter. L'ack `waitingRoomState` inclut `themes` (liste complète des thèmes configurés) en plus de `theme` (thème de la session courante).
+* **`enterWaitingRoom`** (Joueur ➔ Serveur) : Le joueur entre le code du salon pour s'y connecter. L'ack `waitingRoomState` inclut `themes` (liste complète des thèmes configurés) en plus de `theme` (thème de la session courante), ainsi que `pendingPlayers` (visiteurs en salle sans pseudo validé).
 * **`registerPlayer`** (Joueur ➔ Serveur) : Le joueur s'inscrit en choisissant son pseudo et son avatar.
 * **`kickPlayer`** (Manager ➔ Serveur) : Expulse un joueur de la salle d'attente (détache le token, compteur de kicks sur le token). Ack `{ ok }` ou `{ error }`.
 * **`playerKicked`** (Serveur ➔ Joueur expulsé) : Notification de kick avec `{ roomId, message, banned }`.
-* **`waitingRoomUpdated`** (Serveur ➔ Salon) : Diffuse à tout le monde la liste des joueurs connectés pour mettre à jour l'écran d'attente.
+* **`waitingRoomUpdated`** (Serveur ➔ Salon) : Diffuse à tout le monde les listes `players` (inscrits) et `pendingPlayers` (en cours d'inscription) pour mettre à jour l'écran d'attente.
 
 ### 3. Démarrage du jeu
 * **`startGame`** (Manager ➔ Serveur) : Le manager clique sur "Lancer la partie".

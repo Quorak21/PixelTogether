@@ -13,6 +13,7 @@ import {
   RoomStatus,
   SessionEndedPayload,
   VoteStateFields,
+  PendingWaitingRoomPlayer,
   WaitingRoomPlayer,
 } from './entities';
 
@@ -79,6 +80,7 @@ export interface WaitingRoomStatePayload extends VoteStateFields, SessionFields 
   role: ParticipantRole;
   managerProfile: PlayerProfile | null;
   players: WaitingRoomPlayer[];
+  pendingPlayers: PendingWaitingRoomPlayer[];
   isRegistered: boolean;
   error?: string;
 }
@@ -96,6 +98,7 @@ export interface RegisterPlayerResponse extends WaitingRoomStatePayload {
 
 export interface WaitingRoomUpdatedPayload {
   players: WaitingRoomPlayer[];
+  pendingPlayers: PendingWaitingRoomPlayer[];
 }
 
 export interface StartGamePayload {

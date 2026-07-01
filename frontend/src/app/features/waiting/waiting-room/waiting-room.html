@@ -1,4 +1,4 @@
-@if (players().length === 0) {
+@if (players().length === 0 && pendingPlayers().length === 0) {
   <p class="py-8 text-center text-landing-muted">En attente des premiers joueurs…</p>
 } @else {
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -8,6 +8,9 @@
         [canKick]="isManager()"
         (kick)="kickClick.emit($event)"
       />
+    }
+    @for (pending of pendingPlayers(); track pending.socketId) {
+      <app-pending-player-card />
     }
   </div>
 }

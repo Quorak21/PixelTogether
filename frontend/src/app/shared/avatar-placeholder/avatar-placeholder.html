@@ -4,8 +4,9 @@
     'w-8 h-8': size() === 'sm',
     'w-12 h-12': size() === 'md',
     'w-16 h-16': size() === 'lg',
+    'border border-dashed border-white/20 bg-white/10 opacity-50': ghost(),
   }"
-  [style.backgroundColor]="color()"
+  [style.backgroundColor]="ghost() ? null : color()"
 >
   <svg
     lucideUser
@@ -14,6 +15,7 @@
       'w-4 h-4': size() === 'sm',
       'w-6 h-6': size() === 'md',
       'w-8 h-8': size() === 'lg',
+      'text-white/40': ghost(),
     }"
     aria-hidden="true"
   ></svg>

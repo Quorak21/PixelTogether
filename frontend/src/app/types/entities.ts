@@ -95,6 +95,12 @@ export interface WaitingRoomPlayer extends PlayerProfile {
   role: 'player';
 }
 
+/** Visiteur en salle sans pseudo validé (onboarding ouvert). */
+export interface PendingWaitingRoomPlayer {
+  socketId: string;
+  playerId: string;
+}
+
 // carte lobby manager — preview + joueurs d'un groupe
 export interface EventGroupCard {
   eventId: string;

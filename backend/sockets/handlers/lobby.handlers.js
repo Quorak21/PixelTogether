@@ -189,6 +189,7 @@ export function registerLobbyHandlers(socket, deps) {
       partyStarted: false,
       managerProfile: null,
       players: [],
+      pendingPlayers: [],
       groups: {},
       sessionArchive: [],
       activeVote: null,

@@ -39,7 +39,6 @@ Fonctionnalités indispensables et prioritaires pour la V1.
 - **ADD-51** — **Amélioration de la documentation sur landing page** : Améliorer la documentation et les textes explicatifs sur la page d'accueil pour guider les utilisateurs.
 - UI => Sur le podium, plutot qu'ecrire session + theme en dessous. Mettre juste le theme
 - **ADD-52** — **Améliorer le final coop** : Améliorer la galerie et la présentation finale de la partie en mode coopératif.
-- **ADD-54** — **Placeholder joueur en inscription** : dans la waiting room, afficher un avatar placeholder dès qu'un visiteur a rejoint la salle mais n'a pas encore validé son pseudo (modale onboarding ouverte). Le manager voit qu'une personne est en train de s'inscrire et évite de lancer la partie sans elle.
 
 ## FF
 

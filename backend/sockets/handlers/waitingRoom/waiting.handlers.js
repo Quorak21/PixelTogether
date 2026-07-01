@@ -19,6 +19,8 @@ import {
   removePlayerFromEvent,
   isManager,
   resolvePlayerId,
+  addPendingPlayer,
+  removePendingPlayer,
 } from '../../../services/event/participants.js';
 import { validateGuestRegistration } from '../../../services/event/gameMode.js';
 import { guardAck } from '../socketGuards.js';
@@ -130,7 +132,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
   const { io, store, constants, payloads } = deps;
   const { activeEvents, normalizeEventId } = store;
   const { PSEUDO_MIN, PSEUDO_MAX, PSEUDO_REGEX } = constants;
-  const { buildWaitingRoomState, toPublicPlayer } = payloads;
+  const { buildWaitingRoomState, buildWaitingRoomLists } = payloads;
 
   socket.on('enterWaitingRoom', (data, callback) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
@@ -163,7 +165,19 @@ export function registerWaitingPhaseHandlers(socket, deps) {
       return;
     }
 
-    const state = entry.state;
+    let state = entry.state;
+    const playerId = state.playerId ?? socket.data?.playerId;
+    if (
+      playerId &&
+      !isManager(event, socket) &&
+      !isRegistered(event, socket.id, playerId)
+    ) {
+      addPendingPlayer(event, { playerId, socketId: socket.id });
+      const lists = buildWaitingRoomLists(event);
+      state = { ...state, ...lists };
+      socket.to(eventId).emit('waitingRoomUpdated', lists);
+    }
+
     socket.emit('waitingRoomState', state);
     if (typeof callback === 'function') callback({ ...state });
   });
@@ -230,8 +244,10 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     socket.data.eventId = eventId;
     socket.data.playerId = playerId;
 
+    removePendingPlayer(event, { playerId });
+
     const state = buildWaitingRoomState(event, socket.id, playerId);
-    socket.to(eventId).emit('waitingRoomUpdated', { players: state.players });
+    socket.to(eventId).emit('waitingRoomUpdated', buildWaitingRoomLists(event));
     callback({ ...state });
   });
 
@@ -283,9 +299,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     }
 
     event.lastActivityAt = Date.now();
-    io.to(eventId).emit('waitingRoomUpdated', {
-      players: event.players.map(toPublicPlayer),
-    });
+    io.to(eventId).emit('waitingRoomUpdated', buildWaitingRoomLists(event));
     callback({ ok: true });
   });
 
@@ -309,6 +323,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
     const session = playerId ? getSessionByPlayerId(playerId) : null;
     const removed = removePlayerFromEvent(event, socket.id, playerId);
+    const removedPending = removePendingPlayer(event, { playerId, socketId: socket.id });
 
     if (session) {
       detachSessionFromEvent(session, event);
@@ -318,10 +333,8 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     socket.data.eventId = undefined;
     socket.data.playerId = undefined;
 
-    if (removed) {
-      io.to(eventId).emit('waitingRoomUpdated', {
-        players: event.players.map(toPublicPlayer),
-      });
+    if (removed || removedPending) {
+      io.to(eventId).emit('waitingRoomUpdated', buildWaitingRoomLists(event));
     }
 
     if (typeof callback === 'function') {

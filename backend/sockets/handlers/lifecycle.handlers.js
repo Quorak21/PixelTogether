@@ -9,9 +9,10 @@ import {
   scheduleManagerAbsentClose,
   isManager,
   removePlayerFromEvent,
+  removePendingPlayer,
 } from '../../services/event/participants.js';
 import { enableAutoPilotOnManagerDisconnect } from '../../services/event/autoPilot.js';
-import { toPublicPlayer } from '../../services/event/payloads.js';
+import { buildWaitingRoomLists } from '../../services/event/payloads.js';
 import { isCoop } from '../../services/event/gameMode.js';
 import {
   finishCurrentSession,
@@ -155,9 +156,7 @@ export function registerLifecycleHandlers(socket, deps) {
     socket.data.playerId = undefined;
     socket.data.role = undefined;
 
-    io.to(eventId).emit('waitingRoomUpdated', {
-      players: event.players.map(toPublicPlayer),
-    });
+    io.to(eventId).emit('waitingRoomUpdated', buildWaitingRoomLists(event));
 
     callback({ ok: true });
 
@@ -168,13 +167,25 @@ export function registerLifecycleHandlers(socket, deps) {
   socket.on('disconnect', () => {
     for (const eventId in activeEvents) {
       const event = activeEvents[eventId];
-      const playerId = resolvePlayerId(event, socket.id);
+      const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
 
       if (isManager(event, socket)) {
         setSessionConnected(event.managerPlayerId, false);
         const mode = scheduleManagerAbsentClose(io, event, eventId, closeEvent);
         if (mode === 'auto_pilot') {
           enableAutoPilotOnManagerDisconnect(io, event, eventId, deps);
+        }
+        continue;
+      }
+
+      const removedPending = removePendingPlayer(event, {
+        playerId: playerId ?? undefined,
+        socketId: socket.id,
+      });
+      if (removedPending && !event.partyStarted) {
+        io.to(eventId).emit('waitingRoomUpdated', buildWaitingRoomLists(event));
+        if (playerId) {
+          setSessionConnected(playerId, false);
         }
         continue;
       }

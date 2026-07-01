@@ -8,12 +8,14 @@ import {
 } from '@angular/core';
 import {
   GalleryGrid,
+  PendingWaitingRoomPlayer,
   PlayerProfile,
   VoteCandidate,
   WaitingRoomPlayer,
   WrMode,
 } from '../../../types/entities';
 import { PlayerCardComponent } from '../player-card/player-card';
+import { PendingPlayerCardComponent } from '../pending-player-card/pending-player-card';
 
 export interface TransitionWinner {
   groupCode: string;
@@ -25,13 +27,14 @@ export interface TransitionWinner {
 
 @Component({
   selector: 'app-transition-room',
-  imports: [PlayerCardComponent],
+  imports: [PlayerCardComponent, PendingPlayerCardComponent],
   templateUrl: './transition-room.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TransitionRoomComponent {
   readonly wrMode = input.required<WrMode>();
   readonly players = input<WaitingRoomPlayer[]>([]);
+  readonly pendingPlayers = input<PendingWaitingRoomPlayer[]>([]);
   readonly voteCandidates = input<VoteCandidate[]>([]);
   readonly myVote = input<string | null>(null);
   readonly winner = input<TransitionWinner | null>(null);
