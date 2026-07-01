@@ -742,6 +742,7 @@ export class WaitingRoomPageComponent {
   private applyVoteState(state: Partial<VoteStateFields>): void {
     if (state.wrMode) {
       this.wrMode.set(state.wrMode);
+      this.ui.setWaitingRoomMode(state.wrMode);
     }
     if (state.voteCandidates) {
       this.voteCandidates.set(state.voteCandidates);

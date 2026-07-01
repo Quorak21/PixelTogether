@@ -272,7 +272,7 @@
   } @else {
     <div class="mb-8 select-none space-y-2 text-center">
       <span class="inline-flex items-center gap-1.5 rounded-full border border-brand-coral/30 bg-brand-coral/25 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-coral">
-        🎉 Partie Terminée ! Galerie finale
+        Partie terminée ! Galerie finale
       </span>
     </div>
 
@@ -309,7 +309,7 @@
             <span class="rounded bg-brand-violet/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-violet">
               Session {{ grid.sessionNumber }}
             </span>
-            <h4 class="truncate text-base font-extrabold text-white">{{ grid.theme }}</h4>
+            <h4 class="truncate text-base font-extrabold text-[#A5B4FC]">{{ grid.theme }}</h4>
           </div>
         </div>
       }
@@ -319,9 +319,6 @@
 
 @if (wrMode() === 'podium' || wrMode() === 'gallery') {
   <div class="mt-6 flex flex-col items-center gap-2">
-    <p class="text-center text-xs text-landing-muted">
-      Téléchargez vos créations avant la fermeture de la session.
-    </p>
     <button
       type="button"
       class="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-xl border border-brand-violet/50 bg-brand-violet/10 px-6 py-3.5 font-semibold text-[#A5B4FC] transition-all hover:bg-brand-violet/20 disabled:opacity-50"

@@ -6,6 +6,7 @@ import {
   ParticipantRole,
   PlayerProfile,
   PublicPlayer,
+  WrMode,
 } from '../../types/entities';
 import { GAME_MODE_COOP, GAME_MODE_COMPETITIVE } from '../config/session-config';
 
@@ -28,6 +29,7 @@ export class UiStateService {
   readonly sessionCount = signal(1);
   readonly currentSession = signal(1);
   readonly partyStarted = signal(false);
+  readonly waitingRoomMode = signal<WrMode | null>(null);
   
   /** Libellé calculé pour afficher l'état d'avancement des manches (ex: "Session 2/5"). */
   readonly sessionLabel = computed(
@@ -122,6 +124,7 @@ export class UiStateService {
     this.currentGroupCode.set(null);
     this.waitingMode.set(true);
     this.gameMode.set(false);
+    this.waitingRoomMode.set('players');
   }
 
   /**
@@ -420,6 +423,10 @@ export class UiStateService {
     this.coopManagerAbsent.set(value);
   }
 
+  setWaitingRoomMode(mode: WrMode | null): void {
+    this.waitingRoomMode.set(mode);
+  }
+
   /**
    * Réinitialise totalement l'état de l'UI et redirige hors de la salle d'attente.
    */
@@ -440,6 +447,7 @@ export class UiStateService {
     this.clearGroupTeammates();
     this.clearManagerAbsentBanner();
     this.setCoopManagerAbsent(false);
+    this.waitingRoomMode.set(null);
   }
 
   /**
@@ -468,6 +476,7 @@ export class UiStateService {
     this.clearGroupFinishState();
     this.clearManagerAbsentBanner();
     this.setCoopManagerAbsent(false);
+    this.waitingRoomMode.set(null);
   }
   setSelectedColor(color: string): void {
     this.selectedColor.set(color);

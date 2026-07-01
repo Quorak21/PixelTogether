@@ -20,7 +20,11 @@
         @if (ui.partyModeLabel()) {
           <span class="truncate text-xs text-brand-violet/90">{{ ui.partyModeLabel() }}</span>
         }
-        @if (ui.sessionCount() > 1 || ui.partyStarted()) {
+        @if (ui.waitingRoomMode() === 'podium' || ui.waitingRoomMode() === 'gallery') {
+          <span class="truncate text-xs text-landing-muted">
+            Partie terminée
+          </span>
+        } @else if (ui.sessionCount() > 1 || ui.partyStarted()) {
           <span class="truncate text-xs text-landing-muted">
             {{ ui.sessionLabel() }}@if (ui.gameTheme()) { — {{ ui.gameTheme() }} }
           </span>

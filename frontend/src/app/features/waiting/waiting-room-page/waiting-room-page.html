@@ -50,34 +50,38 @@
         [class.max-w-6xl]="roomPhase() === 'final'"
       >
         <!-- En-tête de la session -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/10 pb-5 animate-fade-in">
-          <div class="text-left">
-            @if (roomPhase() === 'waiting') {
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-violet/10 px-2.5 py-0.5 text-xs font-semibold text-[#A5B4FC] border border-brand-violet/20 mb-2">
-                Lobby de préparation
-              </span>
-            } @else if (roomPhase() === 'transition') {
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-semibold text-brand-coral border border-brand-coral/20 mb-2">
-                Phase d'interclassement
-              </span>
-            } @else if (roomPhase() === 'final') {
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success border border-success/20 mb-2">
-                Résultats & Classement
-              </span>
-            }
-            
+        @if (roomPhase() === 'final') {
+          <div class="flex flex-col items-center text-center border-b border-white/10 pb-6 animate-fade-in w-full">
             @if (partyName()) {
-              <h1 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text pb-1 text-2xl font-black tracking-tight text-transparent md:text-3xl">
+              <h1 class="font-display text-3xl md:text-5xl font-black tracking-tight text-[#A5B4FC] pb-1">
                 {{ partyName() }}
               </h1>
             }
-            @if (partySubtitle()) {
-              <p class="text-sm text-landing-muted font-light mt-1">« {{ partySubtitle() }} »</p>
-            }
           </div>
+        } @else {
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/10 pb-5 animate-fade-in">
+            <div class="text-left">
+              @if (roomPhase() === 'waiting') {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-violet/10 px-2.5 py-0.5 text-xs font-semibold text-[#A5B4FC] border border-brand-violet/20 mb-2">
+                  Lobby de préparation
+                </span>
+              } @else if (roomPhase() === 'transition') {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-semibold text-brand-coral border border-brand-coral/20 mb-2">
+                  Phase d'interclassement
+                </span>
+              }
+              
+              @if (partyName()) {
+                <h1 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text pb-1 text-2xl font-black tracking-tight text-transparent md:text-3xl">
+                  {{ partyName() }}
+                </h1>
+              }
+              @if (partySubtitle()) {
+                <p class="text-sm text-landing-muted font-light mt-1">« {{ partySubtitle() }} »</p>
+              }
+            </div>
 
-          <!-- Code d'accès avec boutons copier/partager (uniquement si pas phase finale) -->
-          @if (roomPhase() !== 'final') {
+            <!-- Code d'accès avec boutons copier/partager (uniquement si pas phase finale) -->
             <div class="flex items-center gap-3 bg-slate-950/40 border border-white/5 rounded-xl px-4 py-2.5 shrink-0 self-start md:self-auto">
               <div class="flex flex-col items-start">
                 <span class="text-[9px] font-bold uppercase tracking-wider text-landing-muted">Code d'accès</span>
@@ -117,8 +121,8 @@
                 }
               </div>
             </div>
-          }
-        </div>
+          </div>
+        }
 
         <!-- Contenu principal -->
         <div class="min-h-[12rem]">

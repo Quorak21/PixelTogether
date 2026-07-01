@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-52** — **Améliorer le final coop** : Retrait du badge redondant « Résultats & Classement » et du texte de téléchargement. Centrage, agrandissement et suppression du dégradé sur le titre de la partie. Affichage des avatars/initiales des coéquipiers sur les cartes de la galerie finale en mode coopératif.
+
 - **ADD-54** — **Placeholder joueur en inscription** : carte fantôme « Inscription… » dans la grille WR dès qu'un visiteur rejoint sans valider l'onboarding ; back `event.pendingPlayers` + `pendingPlayers` dans `waitingRoomState` / `waitingRoomUpdated`.
 
 - **ADD-53 / FF-12** — **Popover membres navbar** : coop — bouton « Groupe » (survol, liste participants sauf soi, tag en train d'écrire) ; compét — barre coéquipiers conservée + badge « +X » pour visiteurs (manager, joueurs finis ailleurs) ; back `group.visitors` + `groupVisitorsUpdated`.

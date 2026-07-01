@@ -37,8 +37,6 @@ Pas de tâches info pour le moment
 Fonctionnalités indispensables et prioritaires pour la V1.
 
 - **ADD-51** — **Amélioration de la documentation sur landing page** : Améliorer la documentation et les textes explicatifs sur la page d'accueil pour guider les utilisateurs.
-- UI => Sur le podium, plutot qu'ecrire session + theme en dessous. Mettre juste le theme
-- **ADD-52** — **Améliorer le final coop** : Améliorer la galerie et la présentation finale de la partie en mode coopératif.
 
 ## FF
 
