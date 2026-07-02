@@ -31,17 +31,15 @@ Pas de tâches moyennes pour le moment
 
 Pas de tâches info pour le moment
 
+## Questionnement, problèmatiques
 
-## Features minimum
-
-Fonctionnalités indispensables et prioritaires pour la V1.
-
-- **ADD-51** — **Amélioration de la documentation sur landing page** : Améliorer la documentation et les textes explicatifs sur la page d'accueil pour guider les utilisateurs.
+- La limitation des couleurs pourraient exclure passivement certains joueurs s'ils ont des couleurs inutiles. Particulierement en coop a 8 joueur. (pret ?) 
 
 ## FF
 
 Idées, évolutions et améliorations secondaires — tri libre.
 
+- **FF-00** - **Logs conservé** Créer un systeme de conservation des logs pour chaque partie a des fins statistiques, uniquement date, heures, durée de la partie, nombre d'user, si la partie est arrivée au bout et sinon qu'est ce qui a provoquer la fin de la partie. Export automatique dans un document perso que je peux accèder depuis n'importe ou comme mon google cloud ou autre service plus simple
 - **FF-01** — **Emojis d'émotion sur l'avatar** : réactions émotionnelles sur l'avatar.
 - **FF-02** — **Composant modales warning** : composant unique pour toutes les modales de type « warning ».
 - **FF-03** — **Config manager avancée** : taille de grille, pool 20–30 couleurs.
@@ -54,3 +52,4 @@ Idées, évolutions et améliorations secondaires — tri libre.
 - **FF-11** — **Choix de musique manager** : pistes prédéfinies sélectionnables par le manager.
 - **FF-13** — **Monétisation** : **mode démo** — 2–4 joueurs (manager inclus) ; **partie payante** — facturation à la minute (durée session × nombre de sessions) — **coop** : 2–16 joueurs (32 couleurs) ; **compét** : 6–40 joueurs. **À ne pas oublier** : disclaimer remboursement sur la modale « Fermer la partie » manager (ADD-48).
 - **FF-14** — **Pixels posés par joueur dans le récap** : dans le récap final (`recap.txt` / export ZIP, et **FF-08** si PDF), afficher le nombre de pixels placés par joueur (par session et/ou total partie). S'appuyer sur `buildRecapData` — compter côté back à la fin de session ou agréger depuis l'état grille.
+- **FF-15** - **Traduction** Donner la possibilité de passer en anglais

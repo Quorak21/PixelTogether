@@ -1,0 +1,46 @@
+<div #scrollContainer class="h-full overflow-y-auto bg-landing-bg px-6 py-10 md:px-10">
+  @if (doc(); as doc) {
+    <div class="flex items-start gap-4 md:gap-6">
+      <aside class="sticky top-6 w-52 shrink-0">
+        <a
+          routerLink="/"
+          class="inline-flex items-center gap-2 text-sm text-landing-muted transition-colors hover:text-white"
+        >
+          <svg lucideArrowLeft class="size-4" aria-hidden="true"></svg>
+          Retour à l'accueil
+        </a>
+
+        <nav
+          class="mt-6 rounded-xl border border-white/[0.08] bg-slate-950/60 p-4"
+          aria-label="Table des matières"
+        >
+          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-landing-muted">Table des matières</p>
+          <ul class="space-y-1">
+            @for (entry of doc.toc; track entry.id) {
+              <li [class.pl-2]="entry.level === 2" [class.pl-4]="entry.level === 3">
+                <a
+                  [href]="'#' + entry.id"
+                  (click)="scrollTo(entry.id, $event)"
+                  class="block rounded px-2 py-1 text-sm text-landing-muted hover:bg-white/[0.05] hover:text-white"
+                  [class.font-semibold]="entry.level === 1"
+                >
+                  {{ entry.title }}
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="min-w-0 flex-1">
+        <h1 class="text-center font-display text-3xl font-black text-indigo-400">{{ docPageTitle }}</h1>
+
+        <article
+          class="doc-prose mt-8 rounded-xl border border-white/[0.08] bg-slate-950/40 p-6 md:p-8"
+          (click)="onArticleClick($event)"
+          [innerHTML]="doc.html"
+        ></article>
+      </div>
+    </div>
+  }
+</div>

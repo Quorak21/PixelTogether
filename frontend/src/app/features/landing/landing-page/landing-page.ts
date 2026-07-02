@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LucideCrown, LucideUsers, LucidePalette } from '@lucide/angular';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
@@ -13,13 +13,14 @@ import { preloadGameRoutes } from '../../../core/utils/preload-game';
 
 const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 
-export type InfoModalKind = 'why' | 'docs';
+export type InfoModalKind = 'why';
 
 // entrée app : reprise auto si token valide, sinon join / création
 @Component({
   selector: 'app-landing-page',
   imports: [
     PartyCreationModalComponent,
+    RouterLink,
     ReactiveFormsModule,
     LucideCrown,
     LucideUsers,

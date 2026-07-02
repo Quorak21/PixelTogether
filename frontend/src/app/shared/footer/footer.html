@@ -1,15 +1,9 @@
 <div
-  class="relative flex h-10 flex-col items-center justify-center gap-0.5 overflow-hidden border-t border-white/[0.06] bg-[#0F172A]/80 backdrop-blur-md md:h-14"
->
+  class="relative flex h-10 flex-col items-center justify-center gap-0.5 overflow-hidden border-t border-white/[0.06] bg-[#0F172A]/80 backdrop-blur-md md:h-14">
   <div class="relative z-[2] flex items-center gap-2">
     <button type="button" (click)="isFullscreen.set(true)">
-      <img
-        ngSrc="assets/images/logoDokkCorp.png"
-        width="24"
-        height="24"
-        alt="Logo de la Dokk Corp."
-        class="h-5 w-5 opacity-70 md:h-6 md:w-6"
-      />
+      <img ngSrc="assets/images/logoDokkCorp.png" width="24" height="24" alt="Logo de la Dokk Corp."
+        class="h-5 w-5 opacity-70 md:h-6 md:w-6" />
     </button>
     <h2 class="text-sm font-medium text-[#64748B] md:text-base">Dokk Corp. &copy; 2026</h2>
   </div>
@@ -19,26 +13,18 @@
 </div>
 
 @if (isFullscreen()) {
-  <div
-    class="fixed inset-0 z-[100] flex cursor-pointer flex-col items-center justify-center bg-black/95 transition-opacity duration-300"
-    (click)="isFullscreen.set(false)"
-    title="Fermer"
-  >
-    <div class="mb-12 flex flex-col items-center">
-      <h1
-        class="animate-bounce text-5xl font-black uppercase tracking-widest text-brand-violet drop-shadow-[0_0_30px_rgba(99,102,241,0.6)] md:text-7xl"
-      >
-        L'ELITE
-      </h1>
-      <h2 class="mt-6 text-3xl font-bold tracking-wider text-white drop-shadow-xl md:text-5xl">Dokk Corp.</h2>
-    </div>
-
-    <img
-      ngSrc="assets/images/logoDokkCorp.png"
-      width="600"
-      height="600"
-      alt="Dokk Corp Logo Fullscreen"
-      class="h-[50vh] w-[50vw] animate-pulse object-contain opacity-50 drop-shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all duration-500 hover:scale-105 hover:opacity-100"
-    />
+<div
+  class="fixed inset-0 z-[100] flex cursor-pointer flex-col items-center justify-center bg-black/95 transition-opacity duration-300"
+  (click)="isFullscreen.set(false)" title="Fermer">
+  <div class="mb-12 flex flex-col items-center">
+    <h1
+      class="animate-bounce text-5xl font-black uppercase tracking-widest text-brand-violet drop-shadow-[0_0_30px_rgba(99,102,241,0.6)] md:text-7xl">
+      L'ELITE
+    </h1>
+    <h2 class="mt-6 text-3xl font-bold tracking-wider text-white drop-shadow-xl md:text-5xl">Dokk Corp.</h2>
   </div>
+
+  <img ngSrc="assets/images/logoDokkCorp.png" width="600" height="600" alt="Dokk Corp Logo Fullscreen"
+    class="h-[50vh] w-[50vw] animate-pulse object-contain opacity-50 drop-shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all duration-500 hover:scale-105 hover:opacity-100" />
+</div>
 }

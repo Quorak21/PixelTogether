@@ -161,13 +161,13 @@
         Pourquoi utiliser Pixel Together ?
       </button>
 
-      <button type="button" (click)="openInfoModal('docs')"
+      <a routerLink="/documentation"
         class="inline-flex items-center gap-3 text-sm text-landing-muted transition-all duration-200 hover:text-white hover:scale-[1.02] group">
         <span
           class="h-2.5 w-2.5 shrink-0 animate-pill-pulse rounded-full bg-brand-coral shadow-[0_0_8px_rgba(244,63,94,0.5)] [animation-delay:0.6s] group-hover:shadow-[0_0_12px_rgba(244,63,94,0.7)]"
           aria-hidden="true"></span>
         Documentation
-      </button>
+      </a>
     </div>
 
   </div>
@@ -250,75 +250,6 @@
             collaborateur qui a participé aux œuvres les plus plébiscitées. Le manager peut récupérer toutes les grilles
             créées pour avoir un souvenir éternel du travail d'équipe de la team.
           </p>
-        </div>
-      </div>
-
-    </div>
-
-    }
-
-    @case ('docs') {
-
-    <div class="flex flex-col gap-1.5 pr-10 mb-8">
-      <div
-        class="inline-flex self-start items-center gap-1.5 rounded-full bg-brand-coral/10 border border-brand-coral/20 px-2.5 py-0.5 text-[10px] font-bold text-brand-coral uppercase tracking-wider">
-        Guide Pratique
-      </div>
-      <h2 class="font-display text-2xl font-black text-white md:text-3xl tracking-tight">Documentation</h2>
-      <p class="text-sm text-landing-muted md:text-base">
-        Mode d'emploi pour lancer et animer une session Pixel Together.
-      </p>
-    </div>
-
-    <div
-      class="relative flex flex-col gap-6 pl-2 before:absolute before:left-[21px] before:top-2 before:bottom-2 before:w-[2px] before:bg-white/[0.06] text-sm leading-relaxed text-landing-muted md:text-base">
-
-      <div class="relative flex gap-4 items-start group">
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-violet to-[#5558E8] text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
-          01
-        </div>
-        <div class="pt-1.5">
-          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Créer une session</h3>
-          <p class="text-xs md:text-sm text-slate-300">Le manager configure la partie (nom, thème, durée) et obtient un
-            code à partager à l'équipe.</p>
-        </div>
-      </div>
-
-      <div class="relative flex gap-4 items-start group">
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
-          02
-        </div>
-        <div class="pt-1.5">
-          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Inviter l'équipe</h3>
-          <p class="text-xs md:text-sm text-slate-300">Les participants rejoignent via le code depuis la page d'accueil,
-            puis choisissent leur pseudo.</p>
-        </div>
-      </div>
-
-      <div class="relative flex gap-4 items-start group">
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
-          03
-        </div>
-        <div class="pt-1.5">
-          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Collaborer</h3>
-          <p class="text-xs md:text-sm text-slate-300">À chaque session, les équipes sont mélangées et reçoivent des
-            palettes de couleurs exclusives également redistribuées pour dessiner sur la grille partagée.</p>
-        </div>
-      </div>
-
-      <div class="relative flex gap-4 items-start group">
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-coral to-rose-600 text-white font-black text-sm border-4 border-slate-950 shadow-md transition-transform group-hover:scale-105">
-          04
-        </div>
-        <div class="pt-1.5">
-          <h3 class="mb-1 text-base font-bold text-white tracking-tight">Voter & podium</h3>
-          <p class="text-xs md:text-sm text-slate-300">À chaque fin de manche, votez pour la meilleure création de
-            session. À la fin, découvrez le classement des collaborateurs les plus plébiscités, et le manager peut
-            récupérer les grilles.</p>
         </div>
       </div>
 

@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-51** — **Documentation utilisateur** : page `/documentation` (TOC, rendu Markdown via `marked`, swatches palette `{color:#hex}`) alimentée par `public/documentation.md` ; lien depuis la landing ; titre centralisé ; relecture et correction du contenu (modes, rôles, chat, export ZIP).
+
 - **ADD-52** — **Améliorer le final coop** : Retrait du badge redondant « Résultats & Classement » et du texte de téléchargement. Centrage, agrandissement et suppression du dégradé sur le titre de la partie. Affichage des avatars/initiales des coéquipiers sur les cartes de la galerie finale en mode coopératif.
 
 - **ADD-54** — **Placeholder joueur en inscription** : carte fantôme « Inscription… » dans la grille WR dès qu'un visiteur rejoint sans valider l'onboarding ; back `event.pendingPlayers` + `pendingPlayers` dans `waitingRoomState` / `waitingRoomUpdated`.
