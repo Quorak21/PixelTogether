@@ -1,0 +1,26 @@
+<div class="px-4 py-3 bg-transparent text-white">
+  <div class="flex flex-wrap items-center gap-4">
+    @if (ui.gameTheme()) {
+      <div class="flex items-center gap-2 bg-brand-violet/15 border border-brand-violet/30 px-3.5 py-1.5 rounded-xl shrink-0 select-none">
+        <span class="text-xs font-bold text-[#A5B4FC] uppercase tracking-wider">Thème</span>
+        <span class="text-base font-bold uppercase tracking-wide text-white">{{ ui.gameTheme() }}</span>
+      </div>
+    }
+    <div class="flex flex-wrap items-center justify-center gap-3.5 flex-1">
+      @for (color of ui.colors(); track color) {
+        <button
+          type="button"
+          [title]="color"
+          class="w-9 h-9 shrink-0 rounded-full border-2 cursor-pointer transition-all hover:scale-110 active:scale-95"
+          [class.border-brand-violet]="ui.selectedColor() === color"
+          [class.scale-115]="ui.selectedColor() === color"
+          [class.shadow-[0_0_12px_rgba(99,102,241,0.5)]]="ui.selectedColor() === color"
+          [class.border-white/20]="ui.selectedColor() !== color"
+          [class.shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]]="color === paintedWhite"
+          [style.backgroundColor]="color"
+          (click)="selectColor(color)"
+        ></button>
+      }
+    </div>
+  </div>
+</div>

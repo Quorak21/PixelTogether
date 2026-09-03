@@ -1,0 +1,52 @@
+# --- Dépendances (Le plus important, c'est très lourd) ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build & Dist ---
+dist/
+build/
+coverage/
+frontend/dist/
+frontend/.angular/cache/
+
+# --- Variables d'environnement (SÉCURITÉ MAXIMALE) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Logs et Debug ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# --- Fichiers Système & Editeurs ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Agent & suivi interne (hors repo public) ---
+# Sync 2 PC à part : ces chemins restent locaux pour Cursor.
+AGENTS.md
+.cursor/
+.cursorrules
+.agents/
+.clinerules
+.clinerules/
+CLAUDE.md
+GEMINI.md
+
+# --- Fichiers Temporaires Word (Vu sur ton screen) ---
+# Ça évite de commiter les fichiers cachés bizarres quand ton Word est ouvert
+~$*.docx
+~$*.doc

@@ -1,0 +1,78 @@
+<div class="flex flex-col h-full min-h-0 bg-transparent text-white">
+  <!-- Header du chat -->
+  <div class="flex items-center gap-2.5 shrink-0 px-4 py-3 bg-slate-950/40 border-b border-white/10 select-none">
+    <span class="text-base-content/80 shrink-0">💬</span>
+    @if (scope() === 'party') {
+      <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">Global</span>
+    } @else if (ui.isCoopParty()) {
+      <div class="flex min-w-0 items-baseline gap-1.5">
+        <span class="shrink-0 text-xs font-bold uppercase tracking-wider text-[#A5B4FC]">Thème :</span>
+        <span
+          class="truncate text-base font-bold uppercase tracking-wide text-white"
+          [title]="ui.gameTheme()"
+        >{{ ui.gameTheme() }}</span>
+      </div>
+    } @else {
+      <span class="font-bold text-sm tracking-wide text-[#A5B4FC]">{{ ui.groupLabel() || 'Chat' }}</span>
+    }
+  </div>
+
+  <!-- Zone de messages -->
+  <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-2 bg-slate-950/20">
+    @if (chatMessages().length === 0) {
+      <div class="flex flex-col items-center justify-center h-full text-sm italic text-landing-muted">
+        <span class="text-3xl mb-2 opacity-20">💬</span>
+        <p>Aucun message pour le moment.</p>
+      </div>
+    } @else {
+      @for (msg of chatMessages(); track $index) {
+        <div class="flex items-start gap-1 text-sm min-w-0">
+          @if (msg.role === 'system') {
+            <span class="text-slate-400 italic min-w-0 break-all flex items-center gap-1.5">
+              <span>📢</span>
+              <span class="font-bold not-italic shrink-0" [style.color]="pseudoColor(msg)">
+                @if (msg.systemRole === 'manager') { 👑 }
+                {{ msg.pseudo }}
+              </span>
+              <span>{{ msg.message }}</span>
+            </span>
+          } @else {
+            <span class="font-bold mr-2 shrink-0" [style.color]="pseudoColor(msg)">
+              @if (isManagerMessage(msg)) { 👑 }
+              {{ msg.pseudo }}:
+            </span>
+            <span class="text-white/90 break-all min-w-0">{{ msg.message }}</span>
+          }
+        </div>
+      }
+    }
+    <div #messagesEnd></div>
+  </div>
+
+  @if (!hideFooter) {
+    <div class="shrink-0 border-t border-white/10 bg-slate-950/40 px-4 py-3">
+      <form (ngSubmit)="sendMessage()" class="flex w-full items-center gap-2" autocomplete="off">
+        <div class="relative flex-1 min-w-0">
+          <input
+            type="text"
+            [(ngModel)]="inputValue"
+            name="chatInput"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="w-full rounded-xl border border-white/10 bg-slate-950/60 py-2.5 pl-4 pr-10 text-sm text-white placeholder-slate-500 focus:border-brand-violet focus:outline-none focus:ring-1 focus:ring-brand-violet/50"
+            placeholder="Écrire un message..."
+            maxlength="200"
+          />
+          <button
+            type="submit"
+            class="absolute right-1.5 top-1/2 inline-flex h-7 w-7 min-h-[1.75rem] -translate-y-1/2 items-center justify-center rounded-lg bg-brand-violet text-xs font-medium text-white shadow-md transition-colors hover:bg-brand-violet/90 disabled:pointer-events-none disabled:opacity-50"
+            [disabled]="!inputValue.trim()"
+          >
+            ➤
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

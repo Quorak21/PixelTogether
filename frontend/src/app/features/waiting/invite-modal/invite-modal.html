@@ -1,0 +1,59 @@
+@if (open()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-xl">
+      <h2 class="mb-2 text-xl font-bold text-white">Inviter des joueurs</h2>
+      <p class="mb-4 text-sm text-landing-muted">
+        Affiche le code en stream ou partage le lien pour rejoindre la salle d'attente.
+      </p>
+
+      <div class="mb-6 flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-4">
+        <span class="text-xs font-medium uppercase tracking-widest text-landing-muted">Code de la partie</span>
+        <p class="select-all font-mono text-4xl font-bold tracking-[0.35em] text-brand-violet md:text-5xl">
+          {{ roomCode() }}
+        </p>
+        <button
+          type="button"
+          class="mt-1 inline-flex items-center justify-center gap-2 rounded-lg px-2 py-1 text-xs font-medium text-landing-muted transition-colors hover:bg-white/5 hover:text-white"
+          (click)="copyCode()"
+        >
+          @if (copiedCode()) {
+            Code copié !
+          } @else {
+            Copier le code
+          }
+        </button>
+      </div>
+
+      <p class="mb-2 text-sm text-landing-muted">Lien direct</p>
+      <div class="flex gap-2">
+        <input
+          type="text"
+          class="flex-1 rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 font-mono text-sm text-white focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+          [value]="roomUrl()"
+          readonly
+        />
+        <button
+          type="button"
+          class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-4 py-2 font-semibold text-white transition-all hover:scale-[1.02]"
+          (click)="copyUrl()"
+        >
+          @if (copiedUrl()) {
+            Copié !
+          } @else {
+            Copier
+          }
+        </button>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2 font-medium text-landing-muted transition-colors hover:bg-white/5 hover:text-white"
+          (click)="close()"
+        >
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+}

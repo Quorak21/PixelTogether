@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "frontend:dev": "npm run start --prefix frontend",
+    "frontend:build": "npm run build --prefix frontend",
+    "backend:dev": "npm run dev --prefix backend",
+    "backend:start": "npm run start --prefix backend"
+  }
+}

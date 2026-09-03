@@ -1,0 +1,18 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { PAINTED_WHITE } from '../../../core/config/session-config';
+import { UiStateService } from '../../../core/services/ui-state.service';
+
+// affiche ui.colors() — le back refuse tout pixel hors assignedColors
+@Component({
+  selector: 'app-color-palette',
+  templateUrl: './color-palette.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ColorPaletteComponent {
+  readonly ui = inject(UiStateService);
+  readonly paintedWhite = PAINTED_WHITE;
+
+  selectColor(color: string): void {
+    this.ui.setSelectedColor(color);
+  }
+}

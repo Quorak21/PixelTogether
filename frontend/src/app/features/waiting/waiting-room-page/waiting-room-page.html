@@ -1,0 +1,486 @@
+<div
+  class="relative flex h-full min-h-full w-full flex-col overflow-y-auto bg-landing-bg
+         before:pointer-events-none before:absolute before:inset-0 before:z-0 before:opacity-[0.035]
+         before:bg-[image:repeating-linear-gradient(#fff_0_1px,transparent_1px_100%),repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_100%)]
+         before:bg-[length:20px_20px] before:content-['']"
+  [class.blur-sm]="showOnboarding()"
+  [class.pointer-events-none]="showOnboarding()"
+  [class.select-none]="showOnboarding()"
+>
+  <app-grid-pixel-splash />
+
+  <div class="pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden="true">
+    <div class="absolute -left-40 -top-40 h-[520px] w-[520px] animate-mesh-pulse rounded-full bg-brand-violet blur-[120px]"></div>
+    <div class="absolute -bottom-32 -right-20 h-[440px] w-[440px] animate-mesh-pulse rounded-full bg-brand-coral blur-[120px]"></div>
+  </div>
+
+  <div
+    class="relative z-[2] grid min-h-0 flex-1"
+    [class.grid-cols-1]="isLoading() || pageError()"
+    [class.grid-cols-[1fr_20rem]]="!isLoading() && !pageError()"
+  >
+    <div
+      class="flex min-h-0 flex-col items-center justify-center overflow-y-auto p-4 transition-all duration-300"
+      [class.md:p-8]="roomPhase() !== 'final'"
+      [class.md:p-4]="roomPhase() === 'final'"
+    >
+    @if (isLoading()) {
+      <span class="inline-block size-8 animate-spin rounded-full border-2 border-brand-violet border-t-transparent"></span>
+    } @else if (pageError()) {
+      <div class="flex flex-col items-center justify-center gap-4 text-center">
+        <p class="text-lg text-red-400">{{ pageError() }}</p>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3 font-semibold text-white transition-all hover:scale-[1.02]"
+          (click)="goHome()"
+        >
+          Retour à l'accueil
+        </button>
+      </div>
+    } @else {
+      <div
+        class="flex w-full flex-col rounded-2xl border border-white/10 bg-slate-900/40 shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300"
+        [class.gap-6]="roomPhase() !== 'final'"
+        [class.gap-4]="roomPhase() === 'final'"
+        [class.p-6]="roomPhase() !== 'final'"
+        [class.p-4]="roomPhase() === 'final'"
+        [class.md:p-8]="roomPhase() !== 'final'"
+        [class.md:p-5]="roomPhase() === 'final'"
+        [class.max-w-4xl]="roomPhase() !== 'final'"
+        [class.max-w-6xl]="roomPhase() === 'final'"
+      >
+        <!-- En-tête de la session -->
+        @if (roomPhase() === 'final') {
+          <div class="flex flex-col items-center text-center border-b border-white/10 pb-6 animate-fade-in w-full">
+            @if (partyName()) {
+              <h1 class="font-display text-3xl md:text-5xl font-black tracking-tight text-[#A5B4FC] pb-1">
+                {{ partyName() }}
+              </h1>
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/10 pb-5 animate-fade-in">
+            <div class="text-left">
+              @if (roomPhase() === 'waiting') {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-violet/10 px-2.5 py-0.5 text-xs font-semibold text-[#A5B4FC] border border-brand-violet/20 mb-2">
+                  Lobby de préparation
+                </span>
+              } @else if (roomPhase() === 'transition') {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-semibold text-brand-coral border border-brand-coral/20 mb-2">
+                  Phase d'interclassement
+                </span>
+              }
+              
+              @if (partyName()) {
+                <h1 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text pb-1 text-2xl font-black tracking-tight text-transparent md:text-3xl">
+                  {{ partyName() }}
+                </h1>
+              }
+              @if (partySubtitle()) {
+                <p class="text-sm text-landing-muted font-light mt-1">« {{ partySubtitle() }} »</p>
+              }
+            </div>
+
+            <!-- Code d'accès avec boutons copier/partager (uniquement si pas phase finale) -->
+            <div class="flex items-center gap-3 bg-slate-950/40 border border-white/5 rounded-xl px-4 py-2.5 shrink-0 self-start md:self-auto">
+              <div class="flex flex-col items-start">
+                <span class="text-[9px] font-bold uppercase tracking-wider text-landing-muted">Code d'accès</span>
+                <span class="font-mono text-lg font-bold tracking-widest text-white selection:bg-brand-violet/30">{{ roomId() }}</span>
+              </div>
+              <div class="flex items-center gap-1 border-l border-white/10 pl-3">
+                <!-- Bouton Copier le lien d'invitation -->
+                <button 
+                  type="button"
+                  (click)="copyRoomUrl()" 
+                  class="p-2 rounded-lg hover:bg-white/10 text-landing-muted hover:text-white transition-all active:scale-95 flex items-center justify-center border border-white/0 hover:border-white/5"
+                  [attr.title]="urlCopied() ? 'Lien d\'invitation copié !' : 'Copier le lien d\'invitation'"
+                >
+                  @if (urlCopied()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  }
+                </button>
+
+                <!-- Bouton Ouvrir l'invitation / Présentation (Manager uniquement) -->
+                @if (ui.isManager()) {
+                  <button 
+                    type="button"
+                    (click)="openInvite()" 
+                    class="p-2 rounded-lg hover:bg-white/10 text-landing-muted hover:text-white transition-all active:scale-95 flex items-center justify-center border border-white/0 hover:border-white/5"
+                    title="Afficher le code en grand pour présentation / stream"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Contenu principal -->
+        <div class="min-h-[12rem]">
+          @if (roomPhase() === 'waiting') {
+            <!-- Affichage Split pour le Lobby d'Attente -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[16rem]">
+              
+              <!-- Colonne Gauche : Programme des thèmes -->
+              <div class="md:col-span-5 flex flex-col animate-fade-in">
+                @if (showThemeProgram()) {
+                  <div class="rounded-xl border border-white/[0.06] bg-slate-950/30 p-5 flex-1 flex flex-col justify-between gap-4">
+                    <div>
+                      <h3 class="text-xs font-semibold uppercase tracking-widest text-landing-muted mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        Programme de la partie
+                      </h3>
+                      
+                      <div class="space-y-3 my-2">
+                        @for (entry of themeSchedule(); track entry.index; let i = $index) {
+                          <div 
+                            class="relative flex items-start gap-3.5 p-3.5 rounded-xl border transition-all duration-300"
+                            [class.bg-brand-violet/5]="entry.status === 'current'"
+                            [class.border-brand-violet/20]="entry.status === 'current'"
+                            [class.shadow-[0_0_15px_-3px_rgba(99,102,241,0.15)]]="entry.status === 'current'"
+                            [class.bg-slate-950/20]="entry.status !== 'current'"
+                            [class.border-brand-violet/10]="entry.status === 'upcoming' && i === firstUpcomingIndex()"
+                            [class.border-white/5]="entry.status === 'upcoming' && i !== firstUpcomingIndex()"
+                            [class.border-success/15]="entry.status === 'done'"
+                            [class.opacity-60]="entry.status === 'done'"
+                          >
+                            <!-- Left side: Status badge/Icon -->
+                            <div class="flex flex-col items-center justify-center shrink-0">
+                              @if (entry.status === 'done') {
+                                <div class="flex size-7 items-center justify-center rounded-full bg-success/10 border border-success/30 text-success shadow-inner">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              } @else if (entry.status === 'current') {
+                                <div class="flex size-7 items-center justify-center rounded-full bg-brand-violet/20 border border-brand-violet/40 text-brand-violet relative">
+                                  <span class="absolute inset-0 rounded-full bg-brand-violet/30 animate-ping opacity-75"></span>
+                                  <span class="relative flex h-2.5 w-2.5 rounded-full bg-brand-violet shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span>
+                                </div>
+                              } @else if (i === firstUpcomingIndex()) {
+                                <div class="flex size-7 items-center justify-center rounded-full bg-brand-violet/10 border border-brand-violet/30 text-[#A5B4FC]">
+                                  <span class="h-2 w-2 rounded-full bg-brand-violet"></span>
+                                </div>
+                              } @else {
+                                <div class="flex size-7 items-center justify-center rounded-full bg-slate-950/40 border border-white/10 text-landing-muted">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                  </svg>
+                                </div>
+                              }
+                            </div>
+
+                            <!-- Right side: Session Meta & Label -->
+                            <div class="flex-1 min-w-0 text-left">
+                              <div class="flex items-center justify-between gap-2 mb-0.5">
+                                <span 
+                                  class="font-mono text-[9px] uppercase tracking-wider font-bold"
+                                  [class.text-[#A5B4FC]]="entry.status === 'current'"
+                                  [class.text-success]="entry.status === 'done'"
+                                  [class.text-[#A5B4FC]]="entry.status === 'upcoming' && i === firstUpcomingIndex()"
+                                  [class.text-landing-muted]="entry.status === 'upcoming' && i !== firstUpcomingIndex()"
+                                >
+                                  Session {{ entry.index }}
+                                </span>
+                                
+                                <!-- Small status badge -->
+                                @if (entry.status === 'current') {
+                                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-brand-violet/20 text-[#A5B4FC] border border-brand-violet/30">
+                                    En cours
+                                  </span>
+                                } @else if (entry.status === 'done') {
+                                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-success/15 text-success/90 border border-success/20">
+                                    Terminé
+                                  </span>
+                                } @else if (i === firstUpcomingIndex()) {
+                                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-brand-violet/25 text-[#A5B4FC] border border-brand-violet/35">
+                                    Suivant
+                                  </span>
+                                } @else {
+                                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-white/5 text-landing-muted border border-white/5">
+                                    À venir
+                                  </span>
+                                }
+                              </div>
+                              
+                              <p 
+                                class="text-sm font-semibold truncate transition-colors"
+                                [class.text-white]="entry.status === 'current'"
+                                [class.text-white/80]="entry.status === 'upcoming'"
+                                [class.text-landing-muted]="entry.status === 'done'"
+                              >
+                                {{ entry.label }}
+                              </p>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="rounded-xl border border-white/[0.06] bg-slate-950/30 p-5 flex-1 flex flex-col items-center justify-center text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-landing-muted/30 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <p class="text-xs text-landing-muted">Aucun thème programmé.</p>
+                  </div>
+                }
+              </div>
+
+              <!-- Colonne Droite : Participants & Lancement -->
+              <div class="md:col-span-7 flex flex-col">
+                <div class="rounded-xl border border-white/[0.06] bg-slate-950/30 p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
+                      <h3 class="text-xs font-semibold uppercase tracking-widest text-landing-muted flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Joueurs Connectés
+                      </h3>
+                    </div>
+
+                    @if (isRoomFull()) {
+                      <p class="mb-4 text-center text-xs font-medium text-red-400">
+                        La salle ne peut pas accueillir de joueurs supplémentaires.
+                      </p>
+                    }
+
+                    <div class="min-h-[10rem]">
+                      <app-wr-gathering
+                        [players]="players()"
+                        [pendingPlayers]="visiblePendingPlayers()"
+                        [isManager]="ui.isManager()"
+                        [canStart]="canStart()"
+                        [isStarting]="isStarting()"
+                        [startError]="startError()"
+                        [partyStarted]="partyStarted()"
+                        [startButtonLabel]="startButtonLabel()"
+                        (startClick)="handleStartClick()"
+                        (openInvite)="openInvite()"
+                        (kickClick)="handleKickPlayer($event)"
+                      ></app-wr-gathering>
+                    </div>
+                  </div>
+
+                  @if (ui.isManager()) {
+                    <div class="mt-5 border-t border-white/5 pt-5 flex flex-col gap-3">
+                      <!-- Progress & status info -->
+                      <div class="flex items-center justify-between text-xs">
+                        <span class="font-semibold text-landing-muted">Statut de préparation</span>
+                        <span 
+                          class="font-bold flex items-center gap-1.5"
+                          [class.text-success]="playerCountReady()"
+                          [class.text-[#A5B4FC]]="!playerCountReady()"
+                        >
+                          @if (playerCountReady()) {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Prêt à démarrer
+                          } @else {
+                            <span class="relative flex h-1.5 w-1.5">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-violet opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-violet"></span>
+                            </span>
+                            Attente de joueurs
+                          }
+                        </span>
+                      </div>
+                      
+                      <!-- Visual progress bar -->
+                      <div class="h-2 w-full bg-slate-950/60 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                        <div 
+                          class="h-full rounded-full transition-all duration-500 ease-out"
+                          [class.bg-gradient-to-r]="true"
+                          [class.from-success]="playerCountReady()"
+                          [class.to-[#10B981]]="playerCountReady()"
+                          [class.from-brand-violet]="!playerCountReady()"
+                          [class.to-brand-coral]="!playerCountReady()"
+                          [style.width.%]="startProgressPercent()"
+                        ></div>
+                      </div>
+                      
+                      <!-- Details -->
+                      <div class="flex items-center justify-between text-[11px] text-landing-muted">
+                        <span>Requis : {{ isCoop() ? 'min. ' + (minPlayersRequired() + 1) : 'min. ' + minPlayersRequired() }} participants</span>
+                        <span class="font-mono font-semibold text-white/90">
+                          {{ managerPlayerCounter() }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+            </div>
+          } @else if (roomPhase() === 'transition') {
+            <app-transition-room
+              [wrMode]="wrMode()"
+              [players]="players()"
+              [pendingPlayers]="visiblePendingPlayers()"
+              [voteCandidates]="voteCandidates()"
+              [myVote]="myVote()"
+              [winner]="voteWinner()"
+              [winnerImage]="winnerImage()"
+              [sessionTheme]="gameTheme()"
+              [sessionResultGrid]="sessionResultGrid()"
+              [isManager]="ui.isManager()"
+              [isCoop]="isCoop()"
+              [canStart]="canStart()"
+              [isStarting]="isStarting()"
+              [isClosingVote]="isClosingVote()"
+              [isShowingResults]="isShowingResults()"
+              [isLastVote]="isLastVote()"
+              [startButtonLabel]="startButtonLabel()"
+              [startError]="startError()"
+              [voteError]="voteError()"
+              [partyError]="partyError()"
+              [autoPilotActive]="autoPilotActive()"
+              [rouletteWinnerGroupCode]="rouletteWinnerGroupCode()"
+              [rouletteStartedAt]="rouletteStartedAt()"
+              [rouletteDurationMs]="rouletteDurationMs()"
+              [voteParticipation]="voteParticipation()"
+              (vote)="handleVote($event)"
+              (closeVote)="handleCloseVote()"
+              (startClick)="handleStartClick()"
+              (showResults)="handleShowResults()"
+              (enlargeImage)="openImageEnlarge($event.url, $event.title, $event.players)"
+            ></app-transition-room>
+          } @else if (roomPhase() === 'final') {
+            <app-final-room
+              [wrMode]="wrMode()"
+              [topPlayers]="topPlayers()"
+              [topGrids]="topGrids()"
+              [galleryGrids]="galleryGrids()"
+              [isManager]="ui.isManager()"
+              [canEndParty]="isCoop() && ui.coopManagerAbsent()"
+              [isEndingParty]="isEndingParty()"
+              [isDownloadingExport]="isDownloadingExport()"
+              [exportError]="exportError()"
+              [partyError]="partyError()"
+              (downloadExport)="handleDownloadExport()"
+              (endParty)="handleEndParty()"
+              (enlargeImage)="openImageEnlarge($event.url, $event.title, $event.players)"
+            ></app-final-room>
+          }
+        </div>
+
+        @if (showWaitingStatusBar()) {
+          <div class="rounded-xl bg-brand-violet/10 border border-brand-violet/20 px-5 py-3 text-center">
+            <p class="font-medium text-sm text-[#A5B4FC] flex items-center justify-center gap-2">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-violet opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-violet"></span>
+              </span>
+              {{ waitingTitle() }}
+            </p>
+            @if (waitingSubtitle()) {
+              <p class="mt-1 text-xs text-landing-muted">{{ waitingSubtitle() }}</p>
+            }
+          </div>
+        }
+
+        @if (roomPhase() !== 'final') {
+          <div class="flex items-center justify-between border-t border-white/[0.06] pt-4 text-xs text-landing-muted">
+            <span class="inline-flex items-center gap-1.5">
+              <svg lucideUsers class="h-3.5 w-3.5" aria-hidden="true"></svg>
+              {{ playerCount() }} Connecté{{ playerCount() > 1 ? 's' : '' }}
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <svg lucideLayers class="h-3.5 w-3.5" aria-hidden="true"></svg>
+            {{ ui.sessionLabel() }}
+            </span>
+          </div>
+        }
+      </div>
+    }
+    </div>
+
+    @if (!isLoading() && !pageError()) {
+      <aside
+        class="flex min-h-0 flex-col overflow-hidden border-l border-white/10 bg-slate-950/20 backdrop-blur-md"
+      >
+        <app-chatbox scope="party" [eventId]="roomId()" class="h-full min-h-0" />
+      </aside>
+    }
+  </div>
+</div>
+
+<app-onboarding-modal
+  [open]="showOnboarding()"
+  [isManager]="ui.isManager()"
+  [error]="onboardingError()"
+  (submitProfile)="handleRegister($event)"
+/>
+
+<app-invite-modal [open]="inviteOpen()" [roomCode]="roomId()" [roomUrl]="roomUrl()" (closed)="closeInvite()" />
+
+@if (!partyStarted()) {
+  <app-start-confirm-modal
+    [open]="startConfirmOpen()"
+    [title]="startConfirmTitle()"
+    [hint]="startConfirmHint()"
+    [error]="startError()"
+    [isSubmitting]="isStarting()"
+    (confirmed)="confirmStart()"
+    (closed)="closeStartConfirm()"
+  />
+}
+
+@if (enlargedImage(); as img) {
+  <div
+    class="fixed inset-0 z-50 flex animate-fade-in flex-col items-center justify-center bg-black/95 p-4 backdrop-blur-md transition-all duration-300 md:p-8"
+    (click)="closeImageEnlarge()"
+  >
+    <button
+      type="button"
+      class="absolute right-4 top-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white shadow-lg transition-all hover:scale-105 hover:bg-white/20 active:scale-95"
+      (click)="closeImageEnlarge(); $event.stopPropagation()"
+      aria-label="Fermer"
+    >
+      <span class="text-2xl font-light">✕</span>
+    </button>
+
+    <div
+      class="relative flex max-h-[85vh] max-w-full animate-scale-up flex-col items-center justify-center gap-4"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="overflow-hidden rounded-2xl border border-white/15 bg-slate-950/80 p-2 shadow-2xl shadow-brand-violet/20">
+        <img
+          [src]="img.url"
+          [alt]="img.title"
+          class="max-h-[75vh] max-w-[90vw] rounded-xl object-contain shadow-inner"
+          style="image-rendering: pixelated; image-rendering: crisp-edges;"
+        />
+      </div>
+      <div class="max-w-md rounded-xl border border-white/10 bg-slate-900/80 px-5 py-3 text-center backdrop-blur-sm shadow-xl">
+        <h4 class="text-lg font-bold tracking-wide text-white">{{ img.title }}</h4>
+        @if (img.players && img.players.length > 0) {
+          <div class="mt-3 border-t border-white/10 pt-3">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-landing-muted block mb-2">Artistes ayant contribué</span>
+            <div class="flex flex-wrap justify-center gap-2">
+              @for (player of img.players; track player.pseudo) {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-950/50 border border-white/5 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                  <span class="h-2 w-2 rounded-full" [style.background-color]="player.avatarColor"></span>
+                  {{ player.pseudo }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

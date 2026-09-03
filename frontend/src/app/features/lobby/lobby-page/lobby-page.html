@@ -1,0 +1,106 @@
+@if (transitionActive() && ui.groupTransition()) {
+  <app-group-transition-modal (dismissed)="onTransitionDismissed()" />
+}
+
+<div
+  class="relative flex h-full min-h-full w-full flex-col overflow-y-auto bg-landing-bg
+         before:pointer-events-none before:absolute before:inset-0 before:z-0 before:opacity-[0.035]
+         before:bg-[image:repeating-linear-gradient(#fff_0_1px,transparent_1px_100%),repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_100%)]
+         before:bg-[length:20px_20px] before:content-['']"
+  [class.pointer-events-none]="transitionActive() && ui.groupTransition()"
+  [class.blur-sm]="transitionActive() && ui.groupTransition()"
+>
+  <div class="pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden="true">
+    <div class="absolute -left-40 -top-40 h-[520px] w-[520px] animate-mesh-pulse rounded-full bg-brand-violet blur-[120px]"></div>
+    <div class="absolute -bottom-32 -right-20 h-[440px] w-[440px] animate-mesh-pulse rounded-full bg-brand-coral blur-[120px]"></div>
+  </div>
+
+  <div class="relative z-[2] flex flex-1 flex-col items-center p-4 md:p-8">
+    <div class="w-full max-w-7xl flex flex-col gap-6">
+      
+      <!-- En-tête Supervision -->
+      <div class="flex flex-col gap-6 rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-lg backdrop-blur-xl">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div class="min-w-0 flex-1">
+            <h1 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-3xl font-black tracking-tight text-transparent md:text-4xl pb-2">
+              {{ lobbyTitle() }}
+            </h1>
+            <p class="mt-1.5 text-sm font-medium text-landing-muted">
+              Thème : <span class="text-white">{{ managerTheme() }}</span>
+              — <span class="text-[#A5B4FC]">{{ ui.sessionLabel() }}</span>
+            </p>
+          </div>
+
+          @if (!isPlayerLobby() && managerGroups().length > 0) {
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-error/50 bg-error/10 px-6 py-3 font-semibold text-error transition-all hover:bg-error/20 disabled:opacity-50 lg:self-center"
+              [disabled]="isEndingSession()"
+              (click)="openEndSessionConfirm()"
+            >
+              {{ endSessionButtonLabel() }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Grille des groupes -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+        @for (group of managerGroups(); track group.groupCode) {
+          <app-room-card
+            [group]="group"
+            [image]="group.image ?? ''"
+            (joinGroup)="joinGroup(group)"
+          />
+        }
+      </div>
+
+      @if (managerGroups().length === 0) {
+        <div class="flex-1 flex flex-col items-center justify-center text-landing-muted italic py-20 bg-slate-900/20 rounded-2xl border border-white/5">
+          <span class="text-6xl mb-4 opacity-20">▦</span>
+          @if (isPlayerLobby()) {
+          <p class="text-lg">Tous les groupes ont terminé — passage à la phase suivante…</p>
+          } @else {
+          <p class="text-lg">Aucune sous-partie active.</p>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de fin de session -->
+@if (endSessionConfirmOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-xl">
+      <div class="flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-white">{{ endSessionButtonLabel() }} ?</h2>
+        @if (endSessionError()) {
+          <p class="text-red-400 text-sm">{{ endSessionError() }}</p>
+        }
+        <div class="flex justify-end gap-3 mt-4">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-2.5 font-medium text-landing-muted transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+            (click)="closeEndSessionConfirm()"
+            [disabled]="isEndingSession()"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-coral to-[#E11D48] px-5 py-2.5 font-semibold text-white transition-all hover:scale-[1.02] disabled:opacity-50"
+            [disabled]="isEndingSession()"
+            (click)="confirmEndSession()"
+          >
+            @if (isEndingSession()) {
+              <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+            } @else {
+              Confirmer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
