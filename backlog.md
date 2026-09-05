@@ -25,7 +25,7 @@ Pas de tâches élevées pour le moment
 
 ### MOYEN
 
-Pas de tâches moyennes pour le moment
+- **ADD-55** — **Favicon PixelTogether** : l’icône d’onglet est redevenue le favicon Angular par défaut (`frontend/public/favicon.ico` / `index.html`). Remettre l’icône PixelTogether (et vérifier qu’un `ng` / rebuild ne la réécrase pas).
 
 ### INFO
 
