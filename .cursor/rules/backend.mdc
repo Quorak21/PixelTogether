@@ -1,0 +1,20 @@
+---
+description: Conventions Node / Socket.io du backend PixelTogether
+globs: backend/**
+alwaysApply: false
+---
+
+# Backend
+
+- Logique dans `services/`, handlers légers. Pas de BDD — `store/eventStore.js`.
+- Changement structurel → mettre à jour `backend/README.md`.
+
+- WR / vote / export : `sockets/handlers/waitingRoom/` (`waiting`, `session`, `transition`, `final`, `export`) + `services/event/wrPhase.js`
+- Jeu : `sockets/handlers/game.handlers.js`
+- Lobby : `sockets/handlers/lobby.handlers.js`
+- Reconnect : `sockets/handlers/reconnect.handlers.js`
+- Payloads : `services/event/payloads.js`
+- Constantes : `config/constants.js`
+- État : `store/eventStore.js`
+
+Ne pas lire `frontend/`. Type ou event front inconnu → sous-agent `explore` sur `frontend/src/app/types/` et `core/services/socket.service.ts`.

@@ -1,0 +1,21 @@
+---
+description: Conventions Angular / Tailwind du frontend PixelTogether
+globs: frontend/**
+alwaysApply: false
+---
+
+# Frontend
+
+- Composants standalone, `OnPush`, `inject()`, signals, `@if` / `@for`. Couple `.ts` + `.html` — pas de `styleUrl` ni de `.css` composant.
+- Tailwind dans les HTML seulement. Thème Nord : `frontend/src/styles.css`.
+- URLs API : `runtime-config.ts` / `environment.ts` — jamais en dur dans un composant.
+- Nouveau composant ou feature : MCP Angular CLI (`list_projects` puis `get_best_practices`) s'il est branché ; sinon copier un composant voisin.
+
+Racine app : `frontend/src/app/`
+- `features/waiting/` — WR (page orchestrateur + waiting / transition / final)
+- `features/game/` — canvas, palette
+- `features/lobby/`, `features/landing/`, `features/documentation/`
+- `core/services/` — socket, ui-state, reconnect, session-token
+- `types/socket-payloads.ts`, `types/entities.ts`
+
+Ne pas lire `backend/`. Event, payload ou constante inconnus → sous-agent `explore` sur `backend/`.

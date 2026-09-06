@@ -1,0 +1,14 @@
+---
+description: Sync du contrat Socket.io front / back
+globs: frontend/src/app/types/**,frontend/src/app/core/services/socket.service.ts,backend/services/event/payloads.js,backend/sockets/**,backend/config/constants.js
+alwaysApply: false
+---
+
+# Contrat socket
+
+Changement d'event ou de payload → les deux côtés dans le même chantier :
+- Front : `frontend/src/app/types/socket-payloads.ts` (+ `entities.ts` si modèle partagé)
+- Back : handler concerné + `backend/services/event/payloads.js`
+- Constante métier partagée → `backend/config/constants.js` et miroir `frontend/src/app/core/config/session-config.ts`
+
+Signaler explicitement le contrat modifié en fin de tâche.
