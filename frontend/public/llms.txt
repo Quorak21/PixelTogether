@@ -6,8 +6,8 @@ PixelTogether est une activité de team building B2B par session. Un manager con
 
 ## Docs
 
-- [Site](https://pixeltogether.ch/) : créer ou rejoindre une partie
-- [Documentation](https://pixeltogether.ch/documentation) : modes, rôles, chat, votes, données
+- [Site](https://www.pixeltogether.ch/) : créer ou rejoindre une partie
+- [Documentation](https://www.pixeltogether.ch/documentation) : modes, rôles, chat, votes, données
 
 ## Contact
 

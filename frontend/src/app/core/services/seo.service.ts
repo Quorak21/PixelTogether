@@ -3,7 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 
-export const SITE_ORIGIN = 'https://pixeltogether.ch';
+export const SITE_ORIGIN = 'https://www.pixeltogether.ch';
 const OG_IMAGE = `${SITE_ORIGIN}/assets/images/og-1200x630.png`;
 const DEFAULT_DESCRIPTION =
   'Team building collaboratif en pixel-art. Palette exclusive par joueur, vote, zéro compte.';

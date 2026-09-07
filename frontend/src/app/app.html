@@ -69,6 +69,32 @@
       </p>
     </div>
 
+    @if (socket.showConnectionBanner()) {
+      <div
+        class="flex-none border-b border-amber-500/20 bg-amber-950/35 px-4 py-1 text-center"
+        role="status"
+        aria-live="polite"
+      >
+        <p
+          class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] leading-tight text-amber-200/90"
+        >
+          @if (socket.connectionStatus() !== 'unavailable') {
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400 animate-ping" aria-hidden="true"></span>
+          }
+          <span>{{ socket.connectionMessage() }}</span>
+          @if (socket.connectionStatus() === 'unavailable') {
+            <button
+              type="button"
+              (click)="socket.retryConnect()"
+              class="rounded-md border border-amber-400/40 px-2 py-0.5 text-[10px] font-semibold text-amber-100 transition-colors hover:bg-amber-400/10"
+            >
+              Réessayer
+            </button>
+          }
+        </p>
+      </div>
+    }
+
     <header class="relative z-50 flex-none">
       <app-navbar />
     </header>
@@ -79,28 +105,6 @@
         role="status"
       >
         {{ bannerMessage }}
-      </div>
-    }
-
-    @if (socket.showConnectionBanner()) {
-      <div
-        class="fixed inset-x-0 top-24 z-[60] flex items-center justify-center gap-3 border-b border-amber-500/30 bg-slate-950/95 px-4 py-2.5 text-sm text-amber-200 shadow-lg backdrop-blur-sm"
-        role="status"
-        aria-live="polite"
-      >
-        @if (socket.connectionStatus() !== 'unavailable') {
-          <span class="h-2 w-2 shrink-0 rounded-full bg-amber-400 animate-ping" aria-hidden="true"></span>
-        }
-        <span>{{ socket.connectionMessage() }}</span>
-        @if (socket.connectionStatus() === 'unavailable') {
-          <button
-            type="button"
-            (click)="socket.retryConnect()"
-            class="shrink-0 rounded-lg border border-amber-400/50 px-3 py-1 text-xs font-semibold text-amber-100 transition-colors hover:bg-amber-400/10"
-          >
-            Réessayer
-          </button>
-        }
       </div>
     }
 
