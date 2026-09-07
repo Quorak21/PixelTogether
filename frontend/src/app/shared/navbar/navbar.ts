@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgOptimizedImage } from '@angular/common';
 import { SocketService } from '../../core/services/socket.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { SessionTokenService } from '../../core/services/session-token.service';
@@ -29,7 +30,7 @@ type HoverPopoverKind = 'group' | 'visitors';
 
 @Component({
   selector: 'app-navbar',
-  imports: [AvatarPlaceholderComponent, SessionTimerBadgeComponent],
+  imports: [AvatarPlaceholderComponent, SessionTimerBadgeComponent, NgOptimizedImage],
   templateUrl: './navbar.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

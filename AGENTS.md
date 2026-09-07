@@ -8,7 +8,7 @@ Teambuilding B2B éphémère par session :
 
 **Stack** : Angular 21 (signals, standalone, OnPush) + Tailwind 4 · Node/Express + Socket.io (mémoire) · Vitest / node:test
 
-**Suivi** : `backlog.md` (en cours + FF) · `journal.md` (terminé, une ligne)
+**Suivi** : `backlog.md` (en cours + FF + **MON-** à part) · `journal.md` (terminé, une ligne)
 
 `npm run frontend:dev` · `npm run backend:dev`
 

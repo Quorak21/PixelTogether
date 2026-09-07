@@ -1,4 +1,4 @@
-<div class="relative flex h-full min-h-full w-full flex-col overflow-y-auto bg-landing-bg
+<div class="relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-landing-bg
          before:pointer-events-none before:absolute before:inset-0 before:z-0 before:opacity-[0.035]
          before:bg-[image:repeating-linear-gradient(#fff_0_1px,transparent_1px_100%),repeating-linear-gradient(90deg,#fff_0_1px,transparent_1px_100%)]
          before:bg-[length:20px_20px] before:content-['']">
@@ -14,20 +14,20 @@
     </div>
   </div>
 
-  <div class="relative z-[2] flex flex-1 flex-col items-center justify-center gap-12 px-4 py-12 md:gap-14 md:py-16">
+  <div class="relative z-[2] flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-2 [@media(min-height:900px)]:gap-5 [@media(min-height:900px)]:py-4">
 
     <!-- Section Hero -->
-    <div class="flex flex-col items-center gap-6 text-center">
+    <div class="flex flex-col items-center gap-1.5 text-center [@media(min-height:900px)]:gap-3">
       <!-- Titre pixel-art haut de gamme -->
       <h1
-        class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-5xl font-black leading-tight tracking-tighter text-transparent md:text-8xl pb-3 md:pb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
+        class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-3xl font-black leading-none tracking-tighter text-transparent [@media(min-height:800px)]:text-4xl [@media(min-height:950px)]:text-6xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
         Pixel Together
       </h1>
 
       <!-- Description épurée -->
-      <p class="max-w-xl text-base leading-relaxed text-landing-muted md:text-lg">
-        Unissez vos ressources. Créez sans limites.<br>
-        Partagez vos assets, libérez votre créativité.
+      <p class="max-w-xl text-xs leading-snug text-landing-muted [@media(min-height:800px)]:text-sm [@media(min-height:950px)]:text-base [@media(min-height:950px)]:leading-relaxed">
+        Team building collaboratif en pixel-art.<br>
+        Palette exclusive par joueur, vote, zéro compte.
       </p>
     </div>
 
@@ -57,16 +57,16 @@
 
       <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div
-          class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)]">
+          class="group flex flex-col items-center gap-2 rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-3 text-center shadow-[0_0_35px_-8px_rgba(99,102,241,0.22)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-violet/60 hover:shadow-[0_0_50px_-10px_rgba(99,102,241,0.35)] [@media(min-height:900px)]:gap-3 [@media(min-height:900px)]:p-5">
           <div class="flex w-full items-center justify-center">
             <div
-              class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-violet/20 text-brand-violet transition-all duration-300 group-hover:scale-110">
-              <svg lucidePalette class="h-7 w-7" aria-hidden="true"></svg>
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-violet/20 text-brand-violet transition-all duration-300 group-hover:scale-110 [@media(min-height:900px)]:h-11 [@media(min-height:900px)]:w-11">
+              <svg lucidePalette class="h-5 w-5 [@media(min-height:900px)]:h-6 [@media(min-height:900px)]:w-6" aria-hidden="true"></svg>
             </div>
           </div>
-          <h2 class="font-display text-xl font-black text-white uppercase">Coopératif</h2>
+          <h2 class="font-display text-base font-black text-white uppercase [@media(min-height:900px)]:text-lg">Coopératif</h2>
           
-          <div class="flex flex-wrap justify-center gap-2 my-2.5">
+          <div class="flex flex-wrap justify-center gap-1.5">
             <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-3 py-1 text-xs font-semibold text-brand-violet">
               3-8 joueurs (Manager-joueur)
             </span>
@@ -82,21 +82,21 @@
           </div>
           
           <button type="button" (click)="openCreateModal('coop')" [disabled]="serverMaxCapReached()"
-            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
+            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-6 py-2 font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none [@media(min-height:900px)]:py-2.5">
             Créer une partie coop
           </button>
         </div>
 
         <div
-          class="group flex flex-col items-center gap-5 rounded-2xl border border-brand-coral/30 bg-slate-900/40 p-8 text-center shadow-[0_0_35px_-8px_rgba(244,63,94,0.15)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-brand-coral/50">
+          class="group flex flex-col items-center gap-2 rounded-2xl border border-brand-coral/30 bg-slate-900/40 p-3 text-center shadow-[0_0_35px_-8px_rgba(244,63,94,0.15)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-coral/50 [@media(min-height:900px)]:gap-3 [@media(min-height:900px)]:p-5">
           <div class="flex w-full items-center justify-center">
-            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-brand-coral/20 text-brand-coral group-hover:scale-110 transition-all">
-              <svg lucideCrown class="h-7 w-7" aria-hidden="true"></svg>
+            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-coral/20 text-brand-coral group-hover:scale-110 transition-all [@media(min-height:900px)]:h-11 [@media(min-height:900px)]:w-11">
+              <svg lucideCrown class="h-5 w-5 [@media(min-height:900px)]:h-6 [@media(min-height:900px)]:w-6" aria-hidden="true"></svg>
             </div>
           </div>
-          <h2 class="font-display text-xl font-black text-white uppercase">Compétitif</h2>
+          <h2 class="font-display text-base font-black text-white uppercase [@media(min-height:900px)]:text-lg">Compétitif</h2>
           
-          <div class="flex flex-wrap justify-center gap-2 my-2.5">
+          <div class="flex flex-wrap justify-center gap-1.5">
             <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-3 py-1 text-xs font-semibold text-brand-coral">
               Min. 6 joueurs (groupes aléatoires)
             </span>
@@ -112,27 +112,27 @@
           </div>
           
           <button type="button" (click)="openCreateModal('competitive')" [disabled]="serverMaxCapReached()"
-            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-6 py-3.5 font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
+            class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-6 py-2 font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none [@media(min-height:900px)]:py-2.5">
             Créer une partie compétitive
           </button>
         </div>
       </div>
 
       <div
-        class="group relative flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-slate-900/40 p-8 shadow-xl backdrop-blur-xl sm:flex-row sm:items-center">
-        <svg lucideUsers class="absolute right-6 top-6 h-6 w-6 text-landing-muted sm:static sm:shrink-0" aria-hidden="true"></svg>
-        <div class="flex flex-col gap-1 pr-8 sm:flex-1">
-          <h2 class="text-lg font-bold text-white">Rejoindre une partie</h2>
-          <p class="text-sm text-landing-muted">Entrez le code fourni par votre manager</p>
+        class="group relative flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-slate-900/40 px-5 py-3 shadow-xl backdrop-blur-xl sm:flex-row sm:items-center [@media(min-height:900px)]:gap-3 [@media(min-height:900px)]:px-6 [@media(min-height:900px)]:py-4">
+        <svg lucideUsers class="absolute right-6 top-4 h-5 w-5 text-landing-muted sm:static sm:shrink-0" aria-hidden="true"></svg>
+        <div class="flex flex-col gap-0.5 pr-8 sm:flex-1">
+          <h2 class="text-base font-bold text-white">Rejoindre une partie</h2>
+          <p class="text-xs text-landing-muted">Entrez le code fourni par votre manager</p>
         </div>
-        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="flex w-full flex-col gap-3 sm:max-w-md" autocomplete="off">
-          <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+        <form [formGroup]="form" (ngSubmit)="joinRoom()" class="flex w-full flex-col gap-2 sm:max-w-md" autocomplete="off">
+          <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
             <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"
               autocapitalize="characters" spellcheck="false"
-              class="w-full flex-1 text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3.5 uppercase tracking-[0.2em] text-lg font-black text-white placeholder-slate-600 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20"
+              class="w-full flex-1 text-center rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 uppercase tracking-[0.2em] text-base font-black text-white placeholder-slate-600 focus:border-brand-violet focus:outline-none focus:ring-4 focus:ring-brand-violet/20 [@media(min-height:900px)]:py-2.5"
               [class.border-error]="showErrors() && form.controls.code.invalid" />
             <button type="submit"
-              class="inline-flex shrink-0 items-center justify-center rounded-xl border border-brand-violet px-6 py-3.5 font-semibold text-brand-violet hover:bg-brand-violet/10 sm:w-auto w-full">
+              class="inline-flex shrink-0 items-center justify-center rounded-xl border border-brand-violet px-6 py-2 font-semibold text-brand-violet hover:bg-brand-violet/10 sm:w-auto w-full [@media(min-height:900px)]:py-2.5">
               Rejoindre
             </button>
           </div>
@@ -152,7 +152,7 @@
   }
 
     <!-- Liens vers les informations et documentation -->
-    <div class="flex flex-col sm:flex-row items-center gap-6 md:gap-8 mt-4">
+    <div class="flex flex-col sm:flex-row items-center gap-3 [@media(min-height:900px)]:gap-8">
       <button type="button" (click)="openInfoModal('why')"
         class="inline-flex items-center gap-3 text-sm text-landing-muted transition-all duration-200 hover:text-white hover:scale-[1.02] group">
         <span

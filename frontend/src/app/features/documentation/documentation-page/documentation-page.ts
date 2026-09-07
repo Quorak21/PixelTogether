@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, PLATFORM_ID, signal, viewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
@@ -20,12 +21,16 @@ interface DocView {
 export class DocumentationPageComponent {
   private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly scrollContainer = viewChild.required<ElementRef<HTMLElement>>('scrollContainer');
 
   readonly docPageTitle = DOC_PAGE_TITLE;
   readonly doc = signal<DocView | null>(null);
 
   constructor() {
+    if (!this.isBrowser) {
+      return;
+    }
     this.http.get('/documentation.md', { responseType: 'text' }).subscribe((source) => {
       const parsed = parseDocumentation(source);
       this.doc.set({

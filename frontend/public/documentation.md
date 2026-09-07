@@ -136,4 +136,4 @@ Tout le reste : PixelTogether veille à ce que vos parties restent privées et n
 
 # Contact
 
-Pour toute question, tout retour de bug ou autre demande, vous pouvez nous écrire à jaipasencorecreerledomaine@cestmoche.ch
+Pour toute question, tout retour de bug ou autre demande, vous pouvez nous écrire à [hello@pixeltogether.ch](mailto:hello@pixeltogether.ch)

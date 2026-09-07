@@ -6,35 +6,61 @@ import { LobbyPageComponent } from './features/lobby/lobby-page/lobby-page';
 import { roomGuard } from './core/guards/room.guard';
 import { sessionGuard } from './core/guards/session.guard';
 
+const LANDING_DESCRIPTION =
+  'Team building collaboratif en pixel-art. Palette exclusive par joueur, vote, zéro compte.';
+
+const PRIVATE_SEO = {
+  robots: 'noindex,nofollow',
+  canonicalPath: '/',
+};
+
 // parcours : / → /room → /lobby ou /game → retour /room entre sessions
 export const routes: Routes = [
   {
     path: '',
     component: LandingPageComponent,
+    title: 'PixelTogether — Team building pixel-art',
+    data: {
+      description: LANDING_DESCRIPTION,
+      robots: 'index,follow',
+      canonicalPath: '/',
+    },
   },
   {
     path: 'documentation',
     component: DocumentationPageComponent,
+    title: 'Documentation | PixelTogether',
+    data: {
+      description:
+        'Documentation de PixelTogether : modes coopératif et compétitif, rôles, chat, votes et conservation des données.',
+      robots: 'index,follow',
+      canonicalPath: '/documentation',
+    },
   },
   {
     path: 'room/:roomId',
     component: WaitingRoomPageComponent,
     canActivate: [roomGuard],
+    title: 'PixelTogether',
+    data: PRIVATE_SEO,
   },
   {
     path: 'lobby/:eventId',
     component: LobbyPageComponent,
     canActivate: [sessionGuard],
+    title: 'PixelTogether',
+    data: PRIVATE_SEO,
   },
   {
     path: 'game/:eventId/:groupCode',
     loadChildren: () =>
       import('./features/game/game.routes').then((m) => m.GAME_ROUTES),
     canActivate: [sessionGuard],
+    title: 'PixelTogether',
+    data: PRIVATE_SEO,
   },
   {
     path: '**',
     redirectTo: '',
   },
 ];
-

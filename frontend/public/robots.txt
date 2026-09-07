@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /documentation
+Disallow: /room/
+Disallow: /lobby/
+Disallow: /game/
+
+Sitemap: https://pixeltogether.ch/sitemap.xml

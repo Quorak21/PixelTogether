@@ -14,6 +14,7 @@ function getMockSocket() {
     on: ReturnType<typeof vi.fn>;
     off: ReturnType<typeof vi.fn>;
     emit: ReturnType<typeof vi.fn>;
+    connect: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -73,6 +74,44 @@ describe('SocketService', () => {
     expect(service.showConnectionBanner()).toBe(true);
 
     getHandler('connect')?.();
+    expect(service.showConnectionBanner()).toBe(false);
+
+    vi.useRealTimers();
+  });
+
+  it('passe en unavailable après 12 s sans connect', () => {
+    vi.useFakeTimers();
+    const service = new SocketService();
+
+    vi.advanceTimersByTime(2_000);
+    expect(service.showConnectionBanner()).toBe(true);
+    expect(service.connectionStatus()).toBe('connecting');
+    expect(service.connectionMessage()).toBe('Connexion au serveur en cours…');
+
+    vi.advanceTimersByTime(10_000);
+    expect(service.connectionStatus()).toBe('unavailable');
+    expect(service.connectionMessage()).toBe('Serveur indisponible.');
+    expect(service.showConnectionBanner()).toBe(true);
+
+    getHandler('connect_error')?.();
+    expect(service.connectionStatus()).toBe('unavailable');
+
+    vi.useRealTimers();
+  });
+
+  it('retryConnect relance une tentative et connect() rétablit le statut', () => {
+    vi.useFakeTimers();
+    const service = new SocketService();
+    vi.advanceTimersByTime(12_000);
+    expect(service.connectionStatus()).toBe('unavailable');
+
+    const socket = getMockSocket();
+    service.retryConnect();
+    expect(service.connectionStatus()).toBe('connecting');
+    expect(socket.connect).toHaveBeenCalled();
+
+    getHandler('connect')?.();
+    expect(service.connectionStatus()).toBe('connected');
     expect(service.showConnectionBanner()).toBe(false);
 
     vi.useRealTimers();

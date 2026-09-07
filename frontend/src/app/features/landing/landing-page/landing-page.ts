@@ -70,6 +70,9 @@ export class LandingPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if ((globalThis as { ngServerMode?: boolean }).ngServerMode) {
+      return;
+    }
     preloadGameRoutes();
     void this.tryResumeSession();
     this.destroyRef.onDestroy(this.socket.on('serverCapacity', this.onServerCapacity));

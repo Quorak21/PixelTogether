@@ -3,6 +3,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/navbar/navbar';
 import { FooterComponent } from './shared/footer/footer';
 import { SocketService } from './core/services/socket.service';
+import { SeoService } from './core/services/seo.service';
 import { UiStateService } from './core/services/ui-state.service';
 import { SessionTokenService } from './core/services/session-token.service';
 import { LucideMonitor } from '@lucide/angular';
@@ -57,6 +58,7 @@ export class App {
   readonly isUnsupportedDevice = signal(false);
 
   constructor() {
+    inject(SeoService);
     this.isUnsupportedDevice.set(this.checkDeviceSupport());
 
     const onWarning = (payload: ManagerAbsentWarningPayload) => {

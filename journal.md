@@ -13,6 +13,18 @@
 
 ## Entrées
 
+- **ADD-67** — **SEO avancé** : prerender `/` et `/documentation`, carte OG 1200×630 temporaire, socket/SEO safe hors navigateur. Search Console à faire à la main (propriété domaine + sitemap). Logo définitif → **FF-18**.
+
+- **ADD-63** — **Serveur indisponible** : après 12 s sans `connect`, bannière « Serveur indisponible. » + Réessayer (plus le spinner infini).
+
+- **ADD-57** — **SEO + GEO** : meta / OG / Twitter / JSON-LD, `robots.txt` + `sitemap.xml` + `llms.txt`, titres par route, noindex des salles, copy landing teambuilding.
+
+- **ADD-58** — **Bandeau bêta** : barre discrète au-dessus de la navbar, badge Bêta + mailto `hello@pixeltogether.ch`.
+
+- **ADD-55** — **Favicon + logo navbar** : icônes et navbar depuis `logoPixel500.png` ; Dokk Corp reste au footer.
+
+- **ADD-60** — **CORS pixeltogether.ch** : origines `https://pixeltogether.ch` + `www` ; `pixel.dokkcorp.ch` retiré. L’API socket reste `api.pixel.dokkcorp.ch` (DNS encore au VPS ; `api.pixeltogether.ch` n’existe pas).
+
 - **ADD-56** — **Logs JSONL** : `party.started` / `party.ended` / `error` dans `events.jsonl` (une ligne par event, sans PII) ; `closeEvent(reason)` ; dossier VPS `/var/log/pixeltogether` bind-monté.
 
 - **CONFIG-02** — **Règles Cursor scoped** : `AGENTS.md` mince (always-on) ; conventions front / back / socket dans `.cursor/rules/*.mdc` (globs) ; suppression de `.cursorrules` et des mentions Hermes ; sous-agent `explore` pour une info de l'autre côté.

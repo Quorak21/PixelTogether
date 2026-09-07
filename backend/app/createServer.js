@@ -11,6 +11,33 @@ import * as lifecycle from '../services/event/lifecycle.js';
 import { registerSocketHandlers } from '../sockets/register.js';
 import { registerExportRoute } from './exportRoute.js';
 
+function allowedOrigins() {
+  const origins = [
+    'http://localhost:4200',
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL2,
+  ]
+    .filter(Boolean)
+    .map((origin) => origin.replace(/\/$/, ''));
+
+  // apex ↔ www pour le domaine campagne (évite un 3e env)
+  const extra = [];
+  for (const origin of origins) {
+    try {
+      const url = new URL(origin);
+      if (url.hostname === 'pixeltogether.ch') {
+        extra.push(`${url.protocol}//www.pixeltogether.ch`);
+      } else if (url.hostname === 'www.pixeltogether.ch') {
+        extra.push(`${url.protocol}//pixeltogether.ch`);
+      }
+    } catch {
+      // origine mal formée : ignorée par le Set plus bas
+    }
+  }
+
+  return [...new Set([...origins, ...extra])];
+}
+
 /**
  * Crée le serveur de l'application.
  * Configure Express pour gérer les requêtes HTTP de base et le CORS.
@@ -21,14 +48,8 @@ import { registerExportRoute } from './exportRoute.js';
  * @returns {{ httpServer: import('http').Server, io: import('socket.io').Server }}
  */
 export function createServer() {
-  const allowedOrigins = [
-    'http://localhost:4200',
-    process.env.FRONTEND_URL,
-    process.env.FRONTEND_URL2,
-  ].filter(Boolean);
-
   const corsOptions = {
-    origin: allowedOrigins,
+    origin: allowedOrigins(),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   };

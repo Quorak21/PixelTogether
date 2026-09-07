@@ -50,6 +50,25 @@
   </div>
 } @else {
   <div class="flex h-screen flex-col overflow-hidden bg-[#0F172A]">
+    <div
+      class="flex-none border-b border-white/[0.06] bg-slate-950/90 px-4 py-1 text-center backdrop-blur-md"
+      role="status"
+    >
+      <p class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] leading-tight text-slate-400">
+        <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-300">
+          Bêta
+        </span>
+        <span>
+          Application testée en conditions réelles.
+          Bugs, frictions ou idées&nbsp;:
+          <a
+            href="mailto:hello@pixeltogether.ch"
+            class="font-medium text-indigo-300 underline decoration-indigo-300/30 underline-offset-2 transition-colors hover:text-white hover:decoration-white/40"
+          >hello@pixeltogether.ch</a>
+        </span>
+      </p>
+    </div>
+
     <header class="relative z-50 flex-none">
       <app-navbar />
     </header>
@@ -65,12 +84,23 @@
 
     @if (socket.showConnectionBanner()) {
       <div
-        class="fixed inset-x-0 top-16 z-[60] flex items-center justify-center gap-2 border-b border-amber-500/30 bg-slate-950/95 px-4 py-2.5 text-sm text-amber-200 shadow-lg backdrop-blur-sm"
+        class="fixed inset-x-0 top-24 z-[60] flex items-center justify-center gap-3 border-b border-amber-500/30 bg-slate-950/95 px-4 py-2.5 text-sm text-amber-200 shadow-lg backdrop-blur-sm"
         role="status"
         aria-live="polite"
       >
-        <span class="h-2 w-2 shrink-0 rounded-full bg-amber-400 animate-ping" aria-hidden="true"></span>
+        @if (socket.connectionStatus() !== 'unavailable') {
+          <span class="h-2 w-2 shrink-0 rounded-full bg-amber-400 animate-ping" aria-hidden="true"></span>
+        }
         <span>{{ socket.connectionMessage() }}</span>
+        @if (socket.connectionStatus() === 'unavailable') {
+          <button
+            type="button"
+            (click)="socket.retryConnect()"
+            class="shrink-0 rounded-lg border border-amber-400/50 px-3 py-1 text-xs font-semibold text-amber-100 transition-colors hover:bg-amber-400/10"
+          >
+            Réessayer
+          </button>
+        }
       </div>
     }
 

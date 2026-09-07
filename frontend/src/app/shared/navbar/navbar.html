@@ -9,9 +9,16 @@
   <div class="relative z-[2] flex flex-1 items-center gap-4 min-w-0">
     <button
       type="button"
-      class="inline-flex shrink-0 items-center rounded-field bg-transparent px-4 py-2 transition-colors hover:bg-white/[0.06] min-h-10"
+      class="inline-flex shrink-0 items-center gap-2 rounded-field bg-transparent px-4 py-2 transition-colors hover:bg-white/[0.06] min-h-10"
       (click)="handleLogoClick()"
     >
+      <img
+        ngSrc="assets/images/logoPixel500.png"
+        width="32"
+        height="32"
+        alt=""
+        class="h-8 w-8 rounded-md object-contain"
+      />
       <span class="font-display text-sm font-semibold tracking-tight text-white/90 md:text-base">Pixel Together</span>
     </button>
     @if (ui.partyName() && (ui.gameMode() || ui.waitingMode() || ui.currentEventId())) {

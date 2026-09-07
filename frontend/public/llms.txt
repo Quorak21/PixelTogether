@@ -1,0 +1,14 @@
+# PixelTogether
+
+> Team building collaboratif en pixel-art : palette exclusive par joueur, vote, zéro compte.
+
+PixelTogether est une activité de team building B2B par session. Un manager configure la partie (mode, thèmes, durée). Les joueurs dessinent ensemble sur des grilles pixel-art ; chaque membre a une palette exclusive, ce qui force la collaboration. En compétitif, un vote classe les grilles. L'état vit en mémoire et est purgé en fin de partie — pas de compte, pas de base de données.
+
+## Docs
+
+- [Site](https://pixeltogether.ch/) : créer ou rejoindre une partie
+- [Documentation](https://pixeltogether.ch/documentation) : modes, rôles, chat, votes, données
+
+## Contact
+
+- hello@pixeltogether.ch
