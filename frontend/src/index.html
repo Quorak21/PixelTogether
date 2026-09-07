@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr" class="h-full">
+<html lang="fr" class="h-full" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="utf-8" />
     <title>PixelTogether — Team building pixel-art</title>
@@ -22,6 +22,9 @@
     />
     <meta property="og:url" content="https://pixeltogether.ch/" />
     <meta property="og:image" content="https://pixeltogether.ch/assets/images/og-1200x630.png" />
+    <meta property="og:image:secure_url" content="https://pixeltogether.ch/assets/images/og-1200x630.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="PixelTogether — team building pixel-art" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
@@ -60,6 +63,23 @@
       href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <!-- Web Analytics Vercel : pages vues. Les salles (room/lobby/game) sont filtrées. -->
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      window.va('beforeSend', function (event) {
+        var path = '';
+        try {
+          path = new URL(event.url, 'https://pixeltogether.ch').pathname;
+        } catch (e) {
+          return event;
+        }
+        if (/^\/(room|lobby|game)(\/|$)/.test(path)) {
+          return null;
+        }
+        return event;
+      });
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body autocomplete="off" class="h-full m-0 bg-base-100 text-base-content">
     <app-root></app-root>

@@ -32,7 +32,7 @@ Pas de tâches élevées pour le moment
 
 ### INFO
 
-- **ADD-61** — **Mentions minimales** : pied de page ou page courte (éditeur, contact `hello@pixeltogether.ch`, pas de compte / pas de tracking). Utile dès qu'on communique publiquement ; pas bloquant si le bandeau bêta + mail sont en place. lien "qu'est ce qu'on collecte" avec petit pop up qui fait la liste des données qu'on récup, clair et transparent.
+- **ADD-61** — **Mentions minimales** : pied de page ou page courte (éditeur, contact `hello@pixeltogether.ch`, pas de compte). Lien « qu’est-ce qu’on collecte » + petit pop-up : données de partie en mémoire, et **Vercel Web Analytics** (pages vues agrégées, sans cookies pub ; pas les codes de salle). Utile dès qu’on communique publiquement.
 - **ADD-65** — **API sur api.pixeltogether.ch** : le socket prod pointe encore vers `https://api.pixel.dokkcorp.ch` (nginx + cert + DNS VPS). `api.pixeltogether.ch` n’a pas d’enregistrement DNS. Quand le DNS existe : nginx `server_name`, certbot, `environment.ts` / `generate-environment.mjs`. (Peut fusionner dans **FF-16** si le front rejoint le VPS en même origine.)
 
 ## Questionnement, problèmatiques

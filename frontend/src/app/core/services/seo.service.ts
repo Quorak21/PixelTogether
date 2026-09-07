@@ -15,20 +15,39 @@ export interface SeoRouteData {
   canonicalPath?: string;
 }
 
+type VercelAnalyticsFn = (command: string, payload?: unknown) => void;
+
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private readonly router = inject(Router);
   private readonly meta = inject(Meta);
   private readonly title = inject(Title);
   private readonly document = inject(DOCUMENT);
+  /** Le script HTML compte déjà le 1er chargement ; on ne recompte que les navigations SPA. */
+  private skipInitialPageview = true;
 
   constructor() {
     this.apply();
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.apply();
+        this.reportSpaPageview();
       }
     });
+  }
+
+  private reportSpaPageview(): void {
+    if (this.skipInitialPageview) {
+      this.skipInitialPageview = false;
+      return;
+    }
+    if ((globalThis as { ngServerMode?: boolean }).ngServerMode) {
+      return;
+    }
+    const va = (globalThis as { va?: VercelAnalyticsFn }).va;
+    if (typeof va === 'function') {
+      va('event', { type: 'pageview' });
+    }
   }
 
   private apply(): void {
@@ -46,6 +65,9 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:url', content: canonical });
     this.meta.updateTag({ property: 'og:image', content: OG_IMAGE });
+    this.meta.updateTag({ property: 'og:image:secure_url', content: OG_IMAGE });
+    this.meta.updateTag({ property: 'og:image:type', content: 'image/png' });
+    this.meta.updateTag({ property: 'og:image:alt', content: 'PixelTogether — team building pixel-art' });
     this.meta.updateTag({ property: 'og:image:width', content: '1200' });
     this.meta.updateTag({ property: 'og:image:height', content: '630' });
     this.meta.updateTag({ property: 'og:type', content: 'website' });
