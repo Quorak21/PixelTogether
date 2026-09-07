@@ -707,6 +707,6 @@ export function handleEndParty(socket, data, callback, deps) {
   }
 
   callback({ ok: true, eventId: event.id });
-  closeEvent(io, event.id);
+  closeEvent(io, event.id, event.forcedFinalAt ? 'players_left' : 'completed');
   socket.leave(eventId);
 }

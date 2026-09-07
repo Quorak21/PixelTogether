@@ -21,15 +21,19 @@ Pas de tâches critique pour le moment
 
 ### ÉLEVÉ
 
-Pas de tâches élevées pour le moment
+- **ADD-57** — **SEO + GEO** : meta (`title`, description, canonical, Open Graph / Twitter), `robots.txt`, `sitemap.xml`, JSON-LD, `llms.txt` (crawlers IA). Titres par route (landing + documentation). Copy landing actuelle trop générique (« Partagez vos assets ») — l'aligner sur le teambuilding pixel-art. Slice MVP de **FF-06**.
+- **ADD-58** — **Bandeau bêta** : encart visible (landing + app) indiquant que c'est une bêta testée en conditions réelles ; retours bugs / frictions / idées à `hello@pixeltogether.ch`.
+- **ADD-55** — **Favicon PixelTogether** : l’icône d’onglet est redevenue le favicon Angular par défaut (`frontend/public/favicon.ico` / `index.html`). Remettre l’icône PixelTogether (et vérifier qu’un `ng` / rebuild ne la réécrase pas). Bloquant partage / onglets campagne.
 
 ### MOYEN
 
-- **ADD-55** — **Favicon PixelTogether** : l’icône d’onglet est redevenue le favicon Angular par défaut (`frontend/public/favicon.ico` / `index.html`). Remettre l’icône PixelTogether (et vérifier qu’un `ng` / rebuild ne la réécrase pas).
+- **ADD-59** — **Pass go-live campagne** : last check avant ramener du monde (CORS / `FRONTEND_URL` vs `pixeltogether.ch`, favicon, bandeau, meta sociales, logs qui écrivent bien en Docker `USER node`, parcours landing → WR → partie, doc, écran mobile, bannière connexion). Corriger les trous bloquants ; le reste → ticket.
+- **ADD-60** — **Origines prod** : `.env.example` cite encore Vercel / `pixel.dokkcorp.ch`. Vérifier que CORS (`FRONTEND_URL`, `FRONTEND_URL2`) et le front (`runtime-config` / `environment`) ciblent le domaine campagne (`pixeltogether.ch` / API réelle). Le compose VPS a les mêmes origines.
+- **ADD-62** — **Secrets héritage VPS** : le `docker-compose.yml` du VPS (`/home/debian/pixeltogether`) contient encore `JWT_SECRET` et `MONGOURL` (ancienne stack persistante, plus utilisés par le code actuel). Les retirer du compose ; rotator la clé Mongo si le cluster existe encore.
 
 ### INFO
 
-Pas de tâches info pour le moment
+- **ADD-61** — **Mentions minimales** : pied de page ou page courte (éditeur, contact `hello@pixeltogether.ch`, pas de compte / pas de tracking). Utile dès qu'on communique publiquement ; pas bloquant si le bandeau bêta + mail sont en place. lien "qu'est ce qu'on collecte" avec petit pop up qui fait la liste des données qu'on récup, clair et transparent.
 
 ## Questionnement, problèmatiques
 
@@ -39,13 +43,13 @@ Pas de tâches info pour le moment
 
 Idées, évolutions et améliorations secondaires — tri libre.
 
-- **FF-00** - **Logs conservé** Créer un systeme de conservation des logs pour chaque partie a des fins statistiques, uniquement date, heures, durée de la partie, nombre d'user, si la partie est arrivée au bout et sinon qu'est ce qui a provoquer la fin de la partie. Export automatique dans un document perso que je peux accèder depuis n'importe ou comme mon google cloud ou autre service plus simple
+- **FF-00** — **Logs conservés (export distant)** : après **ADD-56** (JSONL local / bot Grok). Export automatique vers un stockage perso accessible de partout (Google Drive, bucket, etc.) + rotation / rétention.
 - **FF-01** — **Emojis d'émotion sur l'avatar** : réactions émotionnelles sur l'avatar.
 - **FF-02** — **Composant modales warning** : composant unique pour toutes les modales de type « warning ».
 - **FF-03** — **Config manager avancée** : taille de grille, pool 20–30 couleurs.
 - **FF-04** — **Journal d'audit par partie** : preuve de service B2B, hors RAM.
 - **FF-05** — **Landing portfolio** : documentation landing + README GitHub + grille de démo 8×8 animée (palettes exclusives joueurs fictifs) pour expliquer le concept en un coup d'œil.
-- **FF-06** — **SEO** : optimisation pour les moteurs de recherche.
+- **FF-06** — **SEO avancé** : après **ADD-57** (meta + GEO de base). Prerender / SSR landing+doc, image OG dédiée, Search Console, hreflang EN quand **FF-15**.
 - **FF-07** — **Mode démo** : 2–4 joueurs (manager inclus), **1 session** uniquement, durée max **15 min**, grille **75×75**. Format essai gratuit (landing / pitch) — friction minimale, distinct du coop et du compétitif payant (voir **FF-13**).
 - **FF-08** — **Récap export PDF** : `recap.pdf` stylé dans le ZIP de fin de partie (en plus du `recap.txt`), modèle avec champs adaptables au nombre de sessions/joueurs — nom de partie, détail par session (groupes, votes), podium dessins + joueurs. Réutiliser `buildRecapData` côté back (`renderRecapPdf` à créer, ex. `pdfkit`).
 - **FF-10** — **Constructeur d'avatar** : personnalisation (peau, chapeau…).

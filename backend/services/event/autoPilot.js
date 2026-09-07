@@ -200,7 +200,7 @@ function schedulePodiumCloseTimer(io, event, eventId, activeEvents) {
     if (!ev.autoPilot?.active || isManagerConnected(ev)) return;
     if (!ev.showingResults) return;
 
-    lifecycle.closeEvent(io, eventId);
+    lifecycle.closeEvent(io, eventId, ev.forcedFinalAt ? 'players_left' : 'auto_pilot');
   });
 }
 

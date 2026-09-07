@@ -7,6 +7,7 @@ import { clearManagerDisconnectTimer } from './participants.js';
 import { clearAutoPilotTimers } from './autoPilot.js';
 import { isCoop } from './gameMode.js';
 import { MAX_ACTIVE_EVENTS } from '../../config/constants.js';
+import { logPartyEnded } from '../log/logger.js';
 
 /**
  * Construit un objet contenant les méta-informations de la session actuelle.
@@ -118,10 +119,13 @@ export function emitGameStarted(io, event) {
  * 
  * @param {Object} io - L'instance du serveur Socket.io.
  * @param {string} eventId - L'identifiant de la partie.
+ * @param {string} [reason='unknown'] - Cause de fermeture (logs JSONL).
  */
-export function closeEvent(io, eventId) {
+export function closeEvent(io, eventId, reason = 'unknown') {
   const event = getEvent(eventId);
   if (!event) return;
+
+  logPartyEnded(event, reason);
 
   clearSessionTimer(event);
   clearManagerDisconnectTimer(event);
@@ -156,7 +160,7 @@ export function sweepInactiveEvents(io, activeEventsMap, ttlMs) {
     if (event && event.lastActivityAt) {
       const inactiveTime = now - event.lastActivityAt;
       if (inactiveTime > ttlMs) {
-        closeEvent(io, eventId);
+        closeEvent(io, eventId, 'inactivity');
       }
     }
   }

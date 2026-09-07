@@ -119,7 +119,7 @@ export function registerLifecycleHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
     if (!event || !isManager(event, socket)) return;
 
-    closeEvent(io, eventId);
+    closeEvent(io, eventId, 'manager_closed');
     socket.leave(eventId);
   });
 

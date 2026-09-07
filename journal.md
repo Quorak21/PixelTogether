@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-56** — **Logs JSONL** : `party.started` / `party.ended` / `error` dans `events.jsonl` (une ligne par event, sans PII) ; `closeEvent(reason)` ; dossier VPS `/var/log/pixeltogether` bind-monté.
+
 - **CONFIG-02** — **Règles Cursor scoped** : `AGENTS.md` mince (always-on) ; conventions front / back / socket dans `.cursor/rules/*.mdc` (globs) ; suppression de `.cursorrules` et des mentions Hermes ; sous-agent `explore` pour une info de l'autre côté.
 
 - **ADD-51** — **Documentation utilisateur** : page `/documentation` (TOC, rendu Markdown via `marked`, swatches palette `{color:#hex}`) alimentée par `public/documentation.md` ; lien depuis la landing ; titre centralisé ; relecture et correction du contenu (modes, rôles, chat, export ZIP).

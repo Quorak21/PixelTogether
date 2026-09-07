@@ -1,6 +1,7 @@
 import { runStartGame } from '../../../services/session/sessionLifecycle.js';
 import { isManager } from '../../../services/event/participants.js';
 import { isCoop, validateStartPlayerCount } from '../../../services/event/gameMode.js';
+import { logPartyStarted } from '../../../services/log/logger.js';
 import { guardAck } from '../socketGuards.js';
 
 export function registerSessionPhaseHandlers(socket, deps) {
@@ -41,6 +42,8 @@ export function registerSessionPhaseHandlers(socket, deps) {
 
     if (!event.partyStarted) {
       event.partyStarted = true;
+      event.startedAt = Date.now();
+      logPartyStarted(event);
     }
 
     callback({ eventId, status: 'started' });

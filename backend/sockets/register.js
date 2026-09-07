@@ -3,6 +3,7 @@ import { registerWaitingRoomHandlers } from './handlers/waitingRoom.handlers.js'
 import { registerGameHandlers } from './handlers/game.handlers.js';
 import { registerLifecycleHandlers } from './handlers/lifecycle.handlers.js';
 import { registerReconnectHandlers } from './handlers/reconnect.handlers.js';
+import { logError } from '../services/log/logger.js';
 
 // branche les handlers à chaque nouvelle connexion
 
@@ -18,43 +19,51 @@ import { registerReconnectHandlers } from './handlers/reconnect.handlers.js';
  */
 export function registerSocketHandlers(io, deps) {
   io.on('connection', (socket) => {
-    socket.emit('connected', { socketId: socket.id });
-
-    // Diffusion initiale de la capacité du serveur au client connecté
-    const maxCapReached = Object.keys(deps.store.activeEvents).length >= deps.constants.MAX_ACTIVE_EVENTS;
-    socket.emit('serverCapacity', { maxCapReached });
-
-    // Validation globale des payloads : bloque tout message custom sans objet valide
-    socket.use(([event, data, callback], next) => {
-      if (['disconnect', 'disconnecting', 'error'].includes(event)) {
-        return next();
-      }
-
-      if (!data || typeof data !== 'object') {
-        if (typeof callback === 'function') {
-          return callback({ error: 'Format de requête invalide.' });
-        }
-        return;
-      }
-      next();
+    socket.on('error', (err) => {
+      logError(err, { eventId: socket.data?.eventId });
     });
 
-    // Intercepteur d'activité : met à jour lastActivityAt à chaque paquet reçu pour un événement lié
-    socket.use((packet, next) => {
-      const eventId = socket.data?.eventId;
-      if (eventId) {
-        const event = deps.store.activeEvents[eventId];
-        if (event) {
-          event.lastActivityAt = Date.now();
-        }
-      }
-      next();
-    });
+    try {
+      socket.emit('connected', { socketId: socket.id });
 
-    registerReconnectHandlers(socket, deps);
-    registerLobbyHandlers(socket, deps);
-    registerWaitingRoomHandlers(socket, deps);
-    registerGameHandlers(socket, deps);
-    registerLifecycleHandlers(socket, deps);
+      // Diffusion initiale de la capacité du serveur au client connecté
+      const maxCapReached = Object.keys(deps.store.activeEvents).length >= deps.constants.MAX_ACTIVE_EVENTS;
+      socket.emit('serverCapacity', { maxCapReached });
+
+      // Validation globale des payloads : bloque tout message custom sans objet valide
+      socket.use(([event, data, callback], next) => {
+        if (['disconnect', 'disconnecting', 'error'].includes(event)) {
+          return next();
+        }
+
+        if (!data || typeof data !== 'object') {
+          if (typeof callback === 'function') {
+            return callback({ error: 'Format de requête invalide.' });
+          }
+          return;
+        }
+        next();
+      });
+
+      // Intercepteur d'activité : met à jour lastActivityAt à chaque paquet reçu pour un événement lié
+      socket.use((packet, next) => {
+        const eventId = socket.data?.eventId;
+        if (eventId) {
+          const event = deps.store.activeEvents[eventId];
+          if (event) {
+            event.lastActivityAt = Date.now();
+          }
+        }
+        next();
+      });
+
+      registerReconnectHandlers(socket, deps);
+      registerLobbyHandlers(socket, deps);
+      registerWaitingRoomHandlers(socket, deps);
+      registerGameHandlers(socket, deps);
+      registerLifecycleHandlers(socket, deps);
+    } catch (err) {
+      logError(err, { eventId: socket.data?.eventId });
+    }
   });
 }

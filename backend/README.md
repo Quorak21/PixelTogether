@@ -46,8 +46,12 @@ backend/
 │   │   ├── groupFinish.js       # Statut « j'ai fini » compétitif (compteur, lobby joueur)
 │   │   ├── sessionLifecycle.js  # Déroulement d'une session de dessin (début, fin)
 │   │   └── sessionTimer.js      # Planification du chronomètre de fin de session
-│   └── vote/
-│       └── voteLifecycle.js     # Logique des votes, calculs de scores et podiums
+│   ├── vote/
+│   │   └── voteLifecycle.js     # Logique des votes, calculs de scores et podiums
+│   └── log/
+│       ├── logger.js            # JSONL une ligne par event (parties + erreurs)
+│       └── SCHEMA.md            # Contrat pour le bot Grok (copié dans LOG_DIR au boot)
+
 ├── sockets/
 │   ├── handlers/
 │   │   ├── game.handlers.js     # Réception du chat, pose de pixels et canvas

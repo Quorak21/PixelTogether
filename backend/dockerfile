@@ -26,7 +26,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 # On copie les fichiers de l'application
 COPY . .
-
+RUN mkdir -p /app/logs && chown node:node /app/logs
 EXPOSE 3000
 USER node 
 # L'application démarre via index.js

@@ -18,8 +18,7 @@ import { registerExportRoute } from './exportRoute.js';
  * Prépare et injecte l'ensemble des dépendances (`deps`) dans les handlers de sockets.
  * Démarre enfin un sweep d'inactivité périodique (garbage collector) pour nettoyer les salons fantômes.
  * 
- * @returns {http.Server} Le serveur HTTP configuré et prêt à écouter.
- * 
+ * @returns {{ httpServer: import('http').Server, io: import('socket.io').Server }}
  */
 export function createServer() {
   const allowedOrigins = [
@@ -63,6 +62,6 @@ export function createServer() {
     sweepInterval.unref();
   }
 
-  return httpServer;
+  return { httpServer, io };
 }
 

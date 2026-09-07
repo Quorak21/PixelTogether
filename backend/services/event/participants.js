@@ -249,7 +249,7 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
       roomId: eventId,
       message: 'Le manager est absent depuis trop longtemps. La partie est fermée.',
     });
-    closeEvent(io, eventId);
+    closeEvent(io, eventId, 'manager_absent');
   }, MANAGER_DISCONNECT_TIMEOUT_MS);
 
   return 'close';

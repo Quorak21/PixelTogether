@@ -37,7 +37,7 @@ test('closeEvent - roomClosed cible uniquement la room eventId', () => {
     },
   };
 
-  closeEvent(mockIo, eventId);
+  closeEvent(mockIo, eventId, 'manager_closed');
 
   assert.ok(roomClosedEmitted, 'roomClosed doit être émis à la room eventId');
   assert.strictEqual(activeEvents[eventId], undefined, "L'event doit être supprimé du store");
