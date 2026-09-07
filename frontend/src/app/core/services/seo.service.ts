@@ -4,10 +4,14 @@ import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 
 export const SITE_ORIGIN = 'https://www.pixeltogether.ch';
-const OG_IMAGE = `${SITE_ORIGIN}/assets/images/og-1200x630.png`;
 const DEFAULT_DESCRIPTION =
   'Team building collaboratif en pixel-art. Palette exclusive par joueur, vote, zéro compte.';
 const DEFAULT_ROBOTS = 'index,follow';
+
+export const PRIVATE_SEO: SeoRouteData = {
+  robots: 'noindex,nofollow',
+  canonicalPath: '/',
+};
 
 export interface SeoRouteData {
   description?: string;
@@ -23,7 +27,7 @@ export class SeoService {
   private readonly meta = inject(Meta);
   private readonly title = inject(Title);
   private readonly document = inject(DOCUMENT);
-  /** Le script HTML compte déjà le 1er chargement ; on ne recompte que les navigations SPA. */
+  /** Le script HTML compte déjà le 1er chargement. */
   private skipInitialPageview = true;
 
   constructor() {
@@ -60,25 +64,9 @@ export class SeoService {
 
     this.meta.updateTag({ name: 'description', content: description });
     this.meta.updateTag({ name: 'robots', content: robots });
-
     this.meta.updateTag({ property: 'og:title', content: pageTitle });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:url', content: canonical });
-    this.meta.updateTag({ property: 'og:image', content: OG_IMAGE });
-    this.meta.updateTag({ property: 'og:image:secure_url', content: OG_IMAGE });
-    this.meta.updateTag({ property: 'og:image:type', content: 'image/png' });
-    this.meta.updateTag({ property: 'og:image:alt', content: 'PixelTogether — team building pixel-art' });
-    this.meta.updateTag({ property: 'og:image:width', content: '1200' });
-    this.meta.updateTag({ property: 'og:image:height', content: '630' });
-    this.meta.updateTag({ property: 'og:type', content: 'website' });
-    this.meta.updateTag({ property: 'og:locale', content: 'fr_FR' });
-    this.meta.updateTag({ property: 'og:site_name', content: 'PixelTogether' });
-
-    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
-    this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
-    this.meta.updateTag({ name: 'twitter:description', content: description });
-    this.meta.updateTag({ name: 'twitter:image', content: OG_IMAGE });
-
     this.setCanonical(canonical);
   }
 

@@ -5,14 +5,7 @@ import { DocumentationPageComponent } from './features/documentation/documentati
 import { LobbyPageComponent } from './features/lobby/lobby-page/lobby-page';
 import { roomGuard } from './core/guards/room.guard';
 import { sessionGuard } from './core/guards/session.guard';
-
-const LANDING_DESCRIPTION =
-  'Team building collaboratif en pixel-art. Palette exclusive par joueur, vote, zéro compte.';
-
-const PRIVATE_SEO = {
-  robots: 'noindex,nofollow',
-  canonicalPath: '/',
-};
+import { PRIVATE_SEO } from './core/services/seo.service';
 
 // parcours : / → /room → /lobby ou /game → retour /room entre sessions
 export const routes: Routes = [
@@ -20,11 +13,6 @@ export const routes: Routes = [
     path: '',
     component: LandingPageComponent,
     title: 'PixelTogether — Team building pixel-art',
-    data: {
-      description: LANDING_DESCRIPTION,
-      robots: 'index,follow',
-      canonicalPath: '/',
-    },
   },
   {
     path: 'documentation',
@@ -33,7 +21,6 @@ export const routes: Routes = [
     data: {
       description:
         'Documentation de PixelTogether : modes coopératif et compétitif, rôles, chat, votes et conservation des données.',
-      robots: 'index,follow',
       canonicalPath: '/documentation',
     },
   },

@@ -7,8 +7,7 @@
     "prebuild": "node scripts/generate-environment.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "vitest run",
-    "serve:ssr:frontend-ng": "node dist/frontend-ng/server/server.mjs"
+    "test": "vitest run"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
