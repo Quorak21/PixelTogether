@@ -4,14 +4,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/frontend-ng/browser",
   "trailingSlash": false,
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.pixeltogether.ch" }],
-      "destination": "https://pixeltogether.ch/:path*",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     { "source": "/room/:path*", "destination": "/index.html" },
     { "source": "/lobby/:path*", "destination": "/index.html" },
