@@ -1,26 +1,25 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { LucideCrown, LucideUsers, LucidePalette } from '@lucide/angular';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
 import { ReconnectService } from '../../../core/services/reconnect.service';
 import { SocketService } from '../../../core/services/socket.service';
 import { PartyCreationModalComponent } from '../party-creation-modal/party-creation-modal';
+import { PartyDemoComponent } from '../party-demo/party-demo';
 import { GridPixelSplashComponent } from '../../../shared/grid-pixel-splash/grid-pixel-splash';
 import { GameMode } from '../../../types/entities';
 import { preloadGameRoutes } from '../../../core/utils/preload-game';
 
 const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 
-export type InfoModalKind = 'why';
-
 // entrée app : reprise auto si token valide, sinon join / création
 @Component({
   selector: 'app-landing-page',
   imports: [
     PartyCreationModalComponent,
-    RouterLink,
+    PartyDemoComponent,
     ReactiveFormsModule,
     LucideCrown,
     LucideUsers,
@@ -42,7 +41,6 @@ export class LandingPageComponent implements OnInit {
   readonly error = signal('');
   readonly showErrors = signal(false);
   readonly formErrors = signal<string[]>([]);
-  readonly infoModal = signal<InfoModalKind | null>(null);
   readonly isResuming = signal(false);
   readonly serverMaxCapReached = signal(false);
   readonly hasActiveSession = this.sessionToken.hasPartyBindingSignal;
@@ -82,14 +80,6 @@ export class LandingPageComponent implements OnInit {
     const payload = args[0] as { maxCapReached: boolean } | undefined;
     this.serverMaxCapReached.set(payload?.maxCapReached ?? false);
   };
-
-  openInfoModal(kind: InfoModalKind): void {
-    this.infoModal.set(kind);
-  }
-
-  closeInfoModal(): void {
-    this.infoModal.set(null);
-  }
 
   openCreateModal(mode: GameMode): void {
     if (this.hasActiveSession()) return;

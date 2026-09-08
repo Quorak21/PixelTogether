@@ -126,11 +126,11 @@ Pendant la phase de dessin, un chat de groupe permet de communiquer avec ses par
 
 ## Ce qui est conservé
 
-Un document est récupéré à la fin de chaque partie. Il contient la date, la durée de la partie, le nombre de participants ainsi que des informations sur son issue : arrivée à terme ou fin anticipée, et dans ce dernier cas, la cause. Le projet étant encore en **bêta-test**, nous avons besoin de ces informations minimales pour vérifier que tout se déroule correctement.
+À chaque démarrage et fin de partie, des **statistiques techniques** sont écrites dans un fichier de log côté serveur. Elles contiennent notamment la date, le mode de jeu, le nombre de joueurs, le nombre de sessions prévues et réalisées, la durée, ainsi que l’issue de la partie (terminée normalement ou interrompue, avec le motif). Ces logs servent à vérifier le bon fonctionnement du service pendant la bêta.
 
 ## Ce qui ne l'est pas
 
-Tout le reste : PixelTogether veille à ce que vos parties restent privées et ne conserve aucune donnée confidentielle — contenu du chat, pseudos ou adresses IP.
+Tout le reste : PixelTogether ne conserve pas le contenu du chat, les pseudos, les grilles pixel par pixel ni les adresses IP.
 
 > 🔓 L'équipe de PixelTogether prône un monde numérique libre et respectueux de la vie privée.
 

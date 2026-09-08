@@ -1,0 +1,136 @@
+<div
+  class="overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900/50 shadow-xl backdrop-blur-xl"
+>
+  <div class="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-2.5">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-landing-muted">
+      Aperçu d’une partie
+    </p>
+    <span
+      class="inline-flex items-center gap-1.5 rounded-full border border-brand-violet/30 bg-brand-violet/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" aria-hidden="true"></span>
+      {{ phaseLabel() }}
+    </span>
+  </div>
+
+  <div class="px-4 py-4">
+    <div
+      class="transition-opacity duration-500 ease-in-out"
+      [class.opacity-0]="!phaseVisible()"
+      [class.opacity-100]="phaseVisible()"
+    >
+      @if (phase() === 'draw') {
+        <div class="flex flex-col items-center gap-3">
+          <div class="flex items-center gap-3">
+            @for (player of players; track player.name) {
+              <div class="flex items-center gap-1.5">
+                <span
+                  class="inline-block size-2.5 rounded-full"
+                  [style.background]="player.color"
+                ></span>
+                <span class="text-[11px] font-medium text-slate-300">{{ player.name }}</span>
+              </div>
+            }
+          </div>
+          <div
+            class="grid aspect-square w-full max-w-[142px] gap-px rounded-lg border border-white/10 bg-slate-950 p-1"
+            [style.gridTemplateColumns]="'repeat(' + gridSize + ', minmax(0, 1fr))'"
+          >
+            @for (cell of drawCells(); track $index) {
+              <div
+                class="aspect-square rounded-[1px]"
+                [style.background]="cell ?? '#ffffff'"
+              ></div>
+            }
+          </div>
+          <p class="text-center text-[11px] text-landing-muted">
+            Chaque joueur a sa palette — on construit ensemble.
+          </p>
+        </div>
+      }
+
+      @if (phase() === 'vote') {
+        <div class="flex flex-col gap-3">
+          <div class="grid grid-cols-3 gap-2">
+            @for (art of artworks; track art.label; let i = $index) {
+              <div
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-white/[0.06] bg-slate-950/50 p-2 transition-colors duration-300"
+                [class.border-brand-coral/40]="voteCounts()[i] === art.votes && art.rank === 1"
+              >
+                <div
+                  class="grid aspect-square w-full gap-px rounded-md border border-white/5 bg-white p-0.5"
+                  [style.gridTemplateColumns]="'repeat(' + gridSize + ', minmax(0, 1fr))'"
+                >
+                  @for (cell of art.cells; track $index) {
+                    <div
+                      class="aspect-square"
+                      [style.background]="cell ?? '#ffffff'"
+                    ></div>
+                  }
+                </div>
+                <p class="truncate text-[10px] font-semibold text-white">{{ art.label }}</p>
+                <p class="text-[11px] font-bold text-brand-coral">
+                  ♥ {{ voteCounts()[i] }}
+                </p>
+              </div>
+            }
+          </div>
+          <p class="text-center text-[11px] text-landing-muted">
+            Tout le monde vote pour sa grille préférée.
+          </p>
+        </div>
+      }
+
+      @if (phase() === 'podium') {
+        <div class="flex flex-col gap-3">
+          <div class="grid grid-cols-3 items-end gap-2 pt-2">
+            @for (art of podiumArts(); track art.label) {
+              <div
+                class="relative flex flex-col items-center rounded-xl border bg-slate-950/60 p-2 text-center"
+                [class.border-yellow-400/40]="art.rank === 1"
+                [class.border-slate-400/30]="art.rank === 2"
+                [class.border-amber-700/40]="art.rank === 3"
+                [class.pb-3]="art.rank === 1"
+                [class.translate-y-1]="art.rank !== 1"
+              >
+                <span
+                  class="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full border bg-slate-900 px-2 py-0.5 text-[9px] font-black uppercase"
+                  [class.border-yellow-400/40]="art.rank === 1"
+                  [class.text-yellow-400]="art.rank === 1"
+                  [class.border-slate-400/30]="art.rank === 2"
+                  [class.text-slate-300]="art.rank === 2"
+                  [class.border-amber-700/40]="art.rank === 3"
+                  [class.text-amber-600]="art.rank === 3"
+                >
+                  @if (art.rank === 1) {
+                    1er
+                  } @else if (art.rank === 2) {
+                    2e
+                  } @else {
+                    3e
+                  }
+                </span>
+                <div
+                  class="mt-2 grid aspect-square w-full gap-px rounded-md border border-white/5 bg-white p-0.5"
+                  [style.gridTemplateColumns]="'repeat(' + gridSize + ', minmax(0, 1fr))'"
+                >
+                  @for (cell of art.cells; track $index) {
+                    <div
+                      class="aspect-square"
+                      [style.background]="cell ?? '#ffffff'"
+                    ></div>
+                  }
+                </div>
+                <p class="mt-1.5 truncate text-[10px] font-bold text-white">{{ art.label }}</p>
+                <p class="text-[10px] text-landing-muted">{{ art.votes }} votes</p>
+              </div>
+            }
+          </div>
+          <p class="text-center text-[11px] text-landing-muted">
+            Classement final des créations.
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { WaitingRoomPageComponent } from './features/waiting/waiting-room-page/waiting-room-page';
 import { LandingPageComponent } from './features/landing/landing-page/landing-page';
 import { DocumentationPageComponent } from './features/documentation/documentation-page/documentation-page';
+import { MentionsPageComponent } from './features/mentions/mentions-page/mentions-page';
 import { LobbyPageComponent } from './features/lobby/lobby-page/lobby-page';
 import { roomGuard } from './core/guards/room.guard';
 import { sessionGuard } from './core/guards/session.guard';
@@ -22,6 +23,16 @@ export const routes: Routes = [
       description:
         'Documentation de PixelTogether : modes coopératif et compétitif, rôles, chat, votes et conservation des données.',
       canonicalPath: '/documentation',
+    },
+  },
+  {
+    path: 'mentions',
+    component: MentionsPageComponent,
+    title: 'Mentions | PixelTogether',
+    data: {
+      description:
+        'Mentions PixelTogether : éditeur, contact, mesure d’audience et données de partie.',
+      canonicalPath: '/mentions',
     },
   },
   {

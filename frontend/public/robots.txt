@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Allow: /documentation
+Allow: /mentions
 Disallow: /room/
 Disallow: /lobby/
 Disallow: /game/

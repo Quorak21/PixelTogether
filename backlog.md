@@ -32,12 +32,11 @@ Pas de tâches élevées pour le moment
 
 ### INFO
 
-- **ADD-61** — **Mentions minimales** : pied de page ou page courte (éditeur, contact `hello@pixeltogether.ch`, pas de compte). Lien « qu’est-ce qu’on collecte » + petit pop-up : données de partie en mémoire, et **Vercel Web Analytics** (pages vues agrégées, sans cookies pub ; pas les codes de salle). Utile dès qu’on communique publiquement.
 - **ADD-65** — **API sur api.pixeltogether.ch** : le socket prod pointe encore vers `https://api.pixel.dokkcorp.ch` (nginx + cert + DNS VPS). `api.pixeltogether.ch` n’a pas d’enregistrement DNS. Quand le DNS existe : nginx `server_name`, certbot, `environment.ts` / `generate-environment.mjs`. (Peut fusionner dans **FF-16** si le front rejoint le VPS en même origine.)
 
 ## Questionnement, problèmatiques
 
-- La limitation des couleurs pourraient exclure passivement certains joueurs s'ils ont des couleurs inutiles. Particulierement en coop a 8 joueur. (pret ?) 
+- La limitation des couleurs pourraient exclure passivement certains joueurs s'ils ont des couleurs inutiles. Particulierement en coop a 8 joueur. (preter ?) 
 
 ## FF
 
