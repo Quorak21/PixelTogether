@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const DEFAULT_API_URL = 'https://api.pixel.dokkcorp.ch';
+const DEFAULT_API_URL = 'https://api.pixeltogether.ch';
 
 const apiUrl = (
   process.env.VITE_API_URL ??
