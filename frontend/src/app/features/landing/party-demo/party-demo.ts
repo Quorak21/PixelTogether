@@ -35,6 +35,9 @@ export class PartyDemoComponent {
   readonly gridSize = DEMO_GRID;
   readonly players = DEMO_PLAYERS;
   readonly artworks = DEMO_ARTWORKS;
+  /** Taille unique des 3 miniatures (vote + podium). */
+  readonly thumbClass =
+    'grid h-24 w-24 min-h-24 min-w-24 shrink-0 overflow-hidden gap-px rounded-md border border-white/5 bg-white p-0.5';
 
   readonly phase = signal<DemoPhase>('draw');
   readonly phaseVisible = signal(true);

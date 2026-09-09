@@ -13,6 +13,10 @@
 
 ## Entrées
 
+- **ADD-66** — **Halo canvas** : contours `#ddd` seulement grille vide + liseré du blanc peint contre le fond ; plus de cadre autour des pixels colorés.
+
+- **ADD-64** — **Encart « à venir » landing** : panneau à droite (détaché, entre démo et cartes), badge Bêta, teaser FF-10 / FF-01 / FF-03 / FF-11 / FF-08.
+
 - **ADD-62** — **Secrets héritage VPS** : `JWT_SECRET` et `MONGOURL` retirés du `docker-compose.yml` VPS ; container recréé (CORS only). Rotation / pause cluster Atlas `pixeltogether.*.mongodb.net` à faire à la main (pas d’accès console ici).
 
 - **ADD-68** — **Architecture corporate-friendly** : `transports: ['polling', 'websocket']` explicite côté client ; pas de pinning ; API déjà en 443 (ADD-65) ; vérif prod polling `/socket.io/` OK.

@@ -14,6 +14,35 @@ import { preloadGameRoutes } from '../../../core/utils/preload-game';
 
 const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
 
+/** Teaser version définitive — pas tout le FF, seulement ce qui donne envie. */
+const COMING_SOON_ITEMS = [
+  {
+    title: "Un constructeur d'avatar",
+    text: 'Pour que vous soyez encore plus unique.',
+    color: '#6366F1',
+  },
+  {
+    title: 'Des interactions plus poussées',
+    text: 'Montrez que vous adorez la créativité de vos collègues avec des emojis dynamiques.',
+    color: '#F43F5E',
+  },
+  {
+    title: 'Une grille modulable',
+    text: 'Plus de flexibilité pour vos parties.',
+    color: '#38BDF8',
+  },
+  {
+    title: 'Un peu de musique ?',
+    text: 'Le manager aura accès à des sons et musiques pour instaurer une ambiance rien que pour vous.',
+    color: '#14B8A6',
+  },
+  {
+    title: 'Un beau récapitulatif final de la partie',
+    text: 'Un vrai document qui relatera votre épopée, à épingler à côté de la machine à café avec vos œuvres.',
+    color: '#FBBF24',
+  },
+] as const;
+
 // entrée app : reprise auto si token valide, sinon join / création
 @Component({
   selector: 'app-landing-page',
@@ -44,6 +73,8 @@ export class LandingPageComponent implements OnInit {
   readonly isResuming = signal(false);
   readonly serverMaxCapReached = signal(false);
   readonly hasActiveSession = this.sessionToken.hasPartyBindingSignal;
+
+  readonly comingSoonItems = COMING_SOON_ITEMS;
 
   readonly form = this.fb.nonNullable.group({
     code: [

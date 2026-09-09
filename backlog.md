@@ -17,20 +17,20 @@ Bugs, risques, dettes et chantiers actifs. L'agent peut y ajouter un ticket si u
 
 ### CRITIQUE
 
-- **ADD-Final- Beta** — **Pass go-live campagne** : last check avant ramener du monde (favicon, bandeau, meta sociales, logs, parcours landing → WR → partie, doc, écran mobile, bannière connexion). Corriger les trous bloquants ; le reste → ticket.
+- **ADD-Final- Beta** — **Pass go-live campagne** : last check avant ramener du monde (favicon, bandeau, meta sociales, logs, parcours landing → WR → partie, doc, écran mobile, bannière connexion). Corriger les trous bloquants ; le reste → ticket. **Ne pas officialiser** tant que **ADD-69** (FortiGate + tests réseau) et **ADD-70** (vignette + logo) ne sont pas faits.
 
 ### ÉLEVÉ
 
-Pas de tâches élevées pour le moment
+- **ADD-69** — **Catégorisation FortiGate + tests réseau (avant bêta)** :  **Gate bêta** : attendre la **confirmation FortiGate** du changement de catégorie, puis **tester en milieu pro et école** (accès landing + socket) avant d’officialiser.
+- **ADD-70** — **Vignette démo + logo final (avant bêta)** : avant d’officialiser la bêta — (1) `party-demo` landing (`party-demo.util.ts`) : œuvres 8×8 lisibles, palettes exclusives par joueur fictif mais couleurs **harmonieuses** (pas un mélange chaotique cellule par cellule) ; (2) **logo définitif** à produire et brancher (navbar, favicons, `og-1200x630.png`) — avance **FF-18** pour la bêta.
 
 ### MOYEN
 
-- **ADD-64** — **Encart « à venir » landing** : panneau à droite des cartes Coop / Compétitif, listant des features prévues avant la version définitive (teaser, pas tout le FF). Ton bêta, cohérent avec le bandeau. Desktop only.
-- **ADD-66** — **Halo / carré clair autour des pixels (canvas jeu)** : depuis **ADD-46**, `strokeSelectiveGrid` trace des arêtes `#ddd` entre cellules de couleurs différentes — un pixel isolé a un cadre blanc-gris moche au zoom. Absent du PNG / rendu final (preview/export). Revoir le trait (plus discret, seulement la grille vide, ou option off). `frontend/src/app/features/game/canvas/canvas-grid.util.ts`.
+Pas de tâches moyennes pour le moment
 
 ### INFO
 
-- **ADD-69** — **Catégorisation domaines sécurité** : soumettre `www.pixeltogether.ch`, `pixeltogether.ch`, `api.pixeltogether.ch`. **Constat DGEP** : catégorie **Games**. Cible FortiGuard : **Education** (fallback Web-based Applications / Business). Formulaire : https://www.fortiguard.com/faq/wfratingsubmit — Talos : https://www.talosintel.com/reputation_center/web_categorization — Palo Alto : https://urlfiltering.paloaltonetworks.com/ . Pitch EN : « PixelTogether is a B2B team-building web app for companies and schools: collaborative pixel-art sessions (exclusive color palettes per player), timed rounds, voting, and manager export. Not consumer gaming. Miscategorized as Games; blocked on school networks (DGEP). Please reclassify to Education. » Contact : `hello@pixeltogether.ch` / Dokk Corp. Captcha à valider à la main.
+Pas de tâches info pour le moment
 
 ## Questionnement, problèmatiques
 
@@ -51,7 +51,7 @@ Idées, évolutions et améliorations secondaires — tri libre.
 - **FF-15** — **Traduction EN** : passer l’app (et la doc) en anglais. Vrai step-up marché hors Romandie / Europe FR ; c’est là qu’on ajoute hreflang + copy EN (suite de **ADD-67**).
 - **FF-16** — **Site vitrine + CTA Jouer** : `/` devient une grande page (présentation, doc, preuves) avec un gros bouton **Jouer** toujours visible au scroll. Le bouton mène à la landing actuelle (création coop/compét + code). La page `/documentation` peut être absorbée ou rester un ancre de cette vitrine.
 - **FF-17** — **Self-host VPS** : front nginx à côté du back, quitter Vercel, GitHub privé OK, Java Dokk ailleurs (ex. mini-pc). **Revoir la sécu VPS** (SSH, firewall, updates — secrets compose nettoyés en **ADD-62**). **Cloudflare** en façade (DNS / proxy / DDoS) plutôt au moment de **MON-02**, pour un setup plus pro.
-- **FF-18** — **Identité visuelle** : remplacer d’un coup le logo vite-fait (`logoPixel500.png`), favicons, icône navbar et `og-1200x630.png` (carte LinkedIn) quand le visuel définitif existe.
+- **FF-18** — **Identité visuelle** : remplacer d’un coup le logo vite-fait (`logoPixel500.png`), favicons, icône navbar et `og-1200x630.png` (carte LinkedIn) quand le visuel définitif existe. Logo + assets pour la bêta → **ADD-70** ; ce ticket reste pour un rebrand plus large si besoin.
 
 ## Monétisation
 

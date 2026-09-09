@@ -6,18 +6,14 @@ export function getCellColor(pixelMap: Map<string, string>, x: number, y: number
   return pixelMap.get(`${x},${y}`) ?? null;
 }
 
-/** Détermine si une arête entre deux cellules doit être tracée. */
+/** Arête seulement : grille vide, ou liseré du blanc peint contre le fond. */
 export function shouldDrawEdge(colorA: string | null, colorB: string | null): boolean {
-  if (colorA === null && colorB === null) {
+  const aEmpty = colorA === null;
+  const bEmpty = colorB === null;
+  if (aEmpty && bEmpty) {
     return true;
   }
-  if (isPaintedWhite(colorA) && isPaintedWhite(colorB)) {
-    return false;
-  }
-  if (colorA !== null && colorB !== null && colorA.toLowerCase() === colorB.toLowerCase()) {
-    return false;
-  }
-  return true;
+  return (isPaintedWhite(colorA) && bEmpty) || (isPaintedWhite(colorB) && aEmpty);
 }
 
 /** Trace les arêtes internes et le contour de la grille selon les couleurs adjacentes. */
