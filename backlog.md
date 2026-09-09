@@ -21,7 +21,7 @@ Bugs, risques, dettes et chantiers actifs. L'agent peut y ajouter un ticket si u
 
 ### ÉLEVÉ
 
-- **ADD-69** — **Catégorisation FortiGate + tests réseau (avant bêta)** :  **Gate bêta** : attendre la **confirmation FortiGate** du changement de catégorie, puis **tester en milieu pro et école** (accès landing + socket) avant d’officialiser.
+- **ADD-69** — **Catégorisation FortiGate + tests réseau (avant bêta)** : **Gate bêta**. Vendors : **Cisco Talos** OK · **Palo Alto** `api.pixeltogether.ch` Games → **training-and-tools** (DB `20260909.20249` ; business-and-economy refusé) · **FortiGuard** `www.pixeltogether.ch` **encore Games** (9 Sep 2026, Education/Business refusés). JSON-LD `applicationCategory` passé à `BusinessApplication` (déployer avant le recours). Recours Fortinet à relancer sur **Web-based Applications** (pas Education). Puis **tester en milieu pro et école** (landing + socket) avant d’officialiser.
 - **ADD-70** — **Vignette démo + logo final (avant bêta)** : avant d’officialiser la bêta — (1) `party-demo` landing (`party-demo.util.ts`) : œuvres 8×8 lisibles, palettes exclusives par joueur fictif mais couleurs **harmonieuses** (pas un mélange chaotique cellule par cellule) ; (2) **logo définitif** à produire et brancher (navbar, favicons, `og-1200x630.png`) — avance **FF-18** pour la bêta.
 
 ### MOYEN
