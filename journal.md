@@ -13,6 +13,10 @@
 
 ## Entrées
 
+- **ADD-62** — **Secrets héritage VPS** : `JWT_SECRET` et `MONGOURL` retirés du `docker-compose.yml` VPS ; container recréé (CORS only). Rotation / pause cluster Atlas `pixeltogether.*.mongodb.net` à faire à la main (pas d’accès console ici).
+
+- **ADD-68** — **Architecture corporate-friendly** : `transports: ['polling', 'websocket']` explicite côté client ; pas de pinning ; API déjà en 443 (ADD-65) ; vérif prod polling `/socket.io/` OK.
+
 - **ADD-65** — **API sur api.pixeltogether.ch** : DNS Infomaniak A → VPS, nginx + Let’s Encrypt, front prod (`environment` / `generate-environment`) ; ancien vhost `api.pixel.dokkcorp.ch` retiré. À faire côté Infomaniak dokkcorp : supprimer seulement l’A `api.pixel` (garder `api.dokkcorp.ch` = dashboard).
 
 - **ADD-61** — **Mentions minimales** : page `/mentions` (éditeur, contact, analytics, token reconnexion, renvoi doc conservation) ; Documentation + Mentions dans le footer ; retrait Why/Doc de la landing.

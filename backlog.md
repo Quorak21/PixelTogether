@@ -25,10 +25,8 @@ Pas de tâches élevées pour le moment
 
 ### MOYEN
 
-- **ADD-62** — **Secrets héritage VPS** : le `docker-compose.yml` du VPS (`/home/debian/pixeltogether`) contient encore `JWT_SECRET` et `MONGOURL` (ancienne stack persistante, plus utilisés par le code actuel). Les retirer du compose ; rotator la clé Mongo si le cluster existe encore.
 - **ADD-64** — **Encart « à venir » landing** : panneau à droite des cartes Coop / Compétitif, listant des features prévues avant la version définitive (teaser, pas tout le FF). Ton bêta, cohérent avec le bandeau. Desktop only.
 - **ADD-66** — **Halo / carré clair autour des pixels (canvas jeu)** : depuis **ADD-46**, `strokeSelectiveGrid` trace des arêtes `#ddd` entre cellules de couleurs différentes — un pixel isolé a un cadre blanc-gris moche au zoom. Absent du PNG / rendu final (preview/export). Revoir le trait (plus discret, seulement la grille vide, ou option off). `frontend/src/app/features/game/canvas/canvas-grid.util.ts`.
-- **ADD-68** — **Architecture corporate-friendly** : trafic uniquement en **443** HTTPS, chaîne TLS publique complète ; pas de certificate pinning (casse la deep inspection même si la CA Fortinet est trusted) ; Socket.io en **websocket + polling** (le polling sauve les proxies qui coupent le WS). Vérifier / documenter le fallback polling en prod derrière firewall entreprise.
 
 ### INFO
 
@@ -52,7 +50,7 @@ Idées, évolutions et améliorations secondaires — tri libre.
 - **FF-14** — **Pixels posés par joueur dans le récap** : dans le récap final (`recap.txt` / export ZIP, et **FF-08** si PDF), afficher le nombre de pixels placés par joueur (par session et/ou total partie). S'appuyer sur `buildRecapData` — compter côté back à la fin de session ou agréger depuis l'état grille.
 - **FF-15** — **Traduction EN** : passer l’app (et la doc) en anglais. Vrai step-up marché hors Romandie / Europe FR ; c’est là qu’on ajoute hreflang + copy EN (suite de **ADD-67**).
 - **FF-16** — **Site vitrine + CTA Jouer** : `/` devient une grande page (présentation, doc, preuves) avec un gros bouton **Jouer** toujours visible au scroll. Le bouton mène à la landing actuelle (création coop/compét + code). La page `/documentation` peut être absorbée ou rester un ancre de cette vitrine.
-- **FF-17** — **Self-host VPS** : front nginx à côté du back, quitter Vercel, GitHub privé OK, Java Dokk ailleurs (ex. mini-pc). **Revoir la sécu VPS** (SSH, firewall, updates, secrets — voir aussi **ADD-62**). **Cloudflare** en façade (DNS / proxy / DDoS) plutôt au moment de **MON-02**, pour un setup plus pro.
+- **FF-17** — **Self-host VPS** : front nginx à côté du back, quitter Vercel, GitHub privé OK, Java Dokk ailleurs (ex. mini-pc). **Revoir la sécu VPS** (SSH, firewall, updates — secrets compose nettoyés en **ADD-62**). **Cloudflare** en façade (DNS / proxy / DDoS) plutôt au moment de **MON-02**, pour un setup plus pro.
 - **FF-18** — **Identité visuelle** : remplacer d’un coup le logo vite-fait (`logoPixel500.png`), favicons, icône navbar et `og-1200x630.png` (carte LinkedIn) quand le visuel définitif existe.
 
 ## Monétisation

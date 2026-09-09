@@ -18,7 +18,11 @@ export class SocketService {
   private static readonly UNAVAILABLE_AFTER_MS = 12_000;
 
   private readonly socket: Socket | null = isBrowserRuntime()
-    ? io(getApiUrl(), { autoConnect: true })
+    ? io(getApiUrl(), {
+        autoConnect: true,
+        // polling d'abord : passe derrière beaucoup de proxies qui bloquent le WS
+        transports: ['polling', 'websocket'],
+      })
     : null;
   private hasConnectedOnce = false;
   private bannerTimer: ReturnType<typeof setTimeout> | null = null;

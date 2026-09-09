@@ -1,4 +1,4 @@
-# --- Dépendances (Le plus important, c'est très lourd) ---
+# --- Dépendances  ---
 node_modules/
 .pnp
 .pnp.js
@@ -10,7 +10,7 @@ coverage/
 frontend/dist/
 frontend/.angular/cache/
 
-# --- Variables d'environnement (SÉCURITÉ MAXIMALE) ---
+# --- Variables d'environnement  ---
 .env
 .env.local
 .env.development.local
@@ -34,8 +34,3 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
-
-# --- Fichiers Temporaires Word (Vu sur ton screen) ---
-# Ça évite de commiter les fichiers cachés bizarres quand ton Word est ouvert
-~$*.docx
-~$*.doc

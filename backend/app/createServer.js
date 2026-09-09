@@ -58,6 +58,7 @@ export function createServer() {
   app.use(cors(corsOptions));
 
   const httpServer = createHttpServer(app);
+  // Pas de restriction transports : polling + websocket (défaut) pour les proxies d'entreprise
   const io = new Server(httpServer, { cors: corsOptions });
 
   // sac partagé injecté dans tous les handlers (évite les imports circulaires)
