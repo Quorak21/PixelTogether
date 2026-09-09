@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **ADD-65** — **API sur api.pixeltogether.ch** : DNS Infomaniak A → VPS, nginx + Let’s Encrypt, front prod (`environment` / `generate-environment`) ; ancien vhost `api.pixel.dokkcorp.ch` retiré. À faire côté Infomaniak dokkcorp : supprimer seulement l’A `api.pixel` (garder `api.dokkcorp.ch` = dashboard).
+
 - **ADD-61** — **Mentions minimales** : page `/mentions` (éditeur, contact, analytics, token reconnexion, renvoi doc conservation) ; Documentation + Mentions dans le footer ; retrait Why/Doc de la landing.
 
 - **ADD-67** — **SEO avancé** : prerender `/` et `/documentation`, carte OG 1200×630 temporaire, socket/SEO safe hors navigateur. Search Console à faire à la main (propriété domaine + sitemap). Logo définitif → **FF-18**.

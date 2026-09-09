@@ -17,7 +17,7 @@ Bugs, risques, dettes et chantiers actifs. L'agent peut y ajouter un ticket si u
 
 ### CRITIQUE
 
-Pas de tâches critique pour le moment
+- **ADD-Final- Beta** — **Pass go-live campagne** : last check avant ramener du monde (favicon, bandeau, meta sociales, logs, parcours landing → WR → partie, doc, écran mobile, bannière connexion). Corriger les trous bloquants ; le reste → ticket.
 
 ### ÉLEVÉ
 
@@ -25,14 +25,14 @@ Pas de tâches élevées pour le moment
 
 ### MOYEN
 
-- **ADD-59** — **Pass go-live campagne** : last check avant ramener du monde (favicon, bandeau, meta sociales, logs, parcours landing → WR → partie, doc, écran mobile, bannière connexion). Corriger les trous bloquants ; le reste → ticket.
 - **ADD-62** — **Secrets héritage VPS** : le `docker-compose.yml` du VPS (`/home/debian/pixeltogether`) contient encore `JWT_SECRET` et `MONGOURL` (ancienne stack persistante, plus utilisés par le code actuel). Les retirer du compose ; rotator la clé Mongo si le cluster existe encore.
 - **ADD-64** — **Encart « à venir » landing** : panneau à droite des cartes Coop / Compétitif, listant des features prévues avant la version définitive (teaser, pas tout le FF). Ton bêta, cohérent avec le bandeau. Desktop only.
 - **ADD-66** — **Halo / carré clair autour des pixels (canvas jeu)** : depuis **ADD-46**, `strokeSelectiveGrid` trace des arêtes `#ddd` entre cellules de couleurs différentes — un pixel isolé a un cadre blanc-gris moche au zoom. Absent du PNG / rendu final (preview/export). Revoir le trait (plus discret, seulement la grille vide, ou option off). `frontend/src/app/features/game/canvas/canvas-grid.util.ts`.
+- **ADD-68** — **Architecture corporate-friendly** : trafic uniquement en **443** HTTPS, chaîne TLS publique complète ; pas de certificate pinning (casse la deep inspection même si la CA Fortinet est trusted) ; Socket.io en **websocket + polling** (le polling sauve les proxies qui coupent le WS). Vérifier / documenter le fallback polling en prod derrière firewall entreprise.
 
 ### INFO
 
-- **ADD-65** — **API sur api.pixeltogether.ch** : le socket prod pointe encore vers `https://api.pixel.dokkcorp.ch` (nginx + cert + DNS VPS). `api.pixeltogether.ch` n’a pas d’enregistrement DNS. Quand le DNS existe : nginx `server_name`, certbot, `environment.ts` / `generate-environment.mjs`. (Peut fusionner dans **FF-16** si le front rejoint le VPS en même origine.)
+- **ADD-69** — **Catégorisation domaines sécurité** : soumettre `www.pixeltogether.ch`, `pixeltogether.ch`, `api.pixeltogether.ch`. **Constat DGEP** : catégorie **Games**. Cible FortiGuard : **Education** (fallback Web-based Applications / Business). Formulaire : https://www.fortiguard.com/faq/wfratingsubmit — Talos : https://www.talosintel.com/reputation_center/web_categorization — Palo Alto : https://urlfiltering.paloaltonetworks.com/ . Pitch EN : « PixelTogether is a B2B team-building web app for companies and schools: collaborative pixel-art sessions (exclusive color palettes per player), timed rounds, voting, and manager export. Not consumer gaming. Miscategorized as Games; blocked on school networks (DGEP). Please reclassify to Education. » Contact : `hello@pixeltogether.ch` / Dokk Corp. Captcha à valider à la main.
 
 ## Questionnement, problèmatiques
 
