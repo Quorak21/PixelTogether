@@ -73,7 +73,7 @@ export class PartyCreationModalComponent {
   readonly isCoop = computed(() => this.creationMode() === GAME_MODE_COOP);
 
   readonly modalTitle = computed(() =>
-    this.isCoop() ? 'Nouvelle partie coopérative' : 'Nouvelle partie compétitive',
+    this.isCoop() ? 'Nouvelle partie coopérative' : 'Nouvelle partie défi',
   );
 
   readonly sessionCountMin = computed(() =>
