@@ -603,7 +603,7 @@ export function handleCloseVote(socket, data, callback, deps) {
   }
 
   if (!isManager(event, socket)) {
-    return callback({ error: 'Seul l'animateur peut clôturer le vote.' });
+    return callback({ error: "Seul l'animateur peut clôturer le vote." });
   }
 
   const result = closeVote(event);
@@ -656,7 +656,7 @@ export function handleShowResults(socket, data, callback, deps) {
   }
 
   if (!isManager(event, socket)) {
-    return callback({ error: 'Seul l'animateur peut afficher les résultats.' });
+    return callback({ error: "Seul l'animateur peut afficher les résultats." });
   }
 
   const result = openResults(event);
@@ -694,16 +694,16 @@ export function handleEndParty(socket, data, callback, deps) {
       event.coopWrMode === 'gallery' &&
       isRegistered(event, socket.id, playerId);
     if (!coopOverride) {
-      return callback({ error: 'Seul l'animateur peut terminer l'atelier.' });
+      return callback({ error: "Seul l'animateur peut terminer l'atelier." });
     }
   }
 
   if (isCoop(event)) {
     if (event.coopWrMode !== 'gallery') {
-      return callback({ error: 'Terminez toutes les sessions avant de fermer l'atelier.' });
+      return callback({ error: "Terminez toutes les sessions avant de fermer l'atelier." });
     }
   } else if (!event.showingResults) {
-    return callback({ error: 'Affichez les résultats avant de terminer l'atelier.' });
+    return callback({ error: "Affichez les résultats avant de terminer l'atelier." });
   }
 
   callback({ ok: true, eventId: event.id });

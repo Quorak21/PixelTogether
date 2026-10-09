@@ -18,11 +18,11 @@ export function registerSessionPhaseHandlers(socket, deps) {
     }
 
     if (!isManager(event, socket)) {
-      return callback({ error: 'Seul l'animateur peut démarrer l'atelier.' });
+      return callback({ error: "Seul l'animateur peut démarrer l'atelier." });
     }
 
     if (!event.managerProfile) {
-      return callback({ error: 'L'animateur doit compléter son profil avant de démarrer.' });
+      return callback({ error: "L'animateur doit compléter son profil avant de démarrer." });
     }
 
     if (!event.partyStarted) {

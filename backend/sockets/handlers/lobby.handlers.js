@@ -82,7 +82,7 @@ export function registerLobbyHandlers(socket, deps) {
 
     if (Object.keys(activeEvents).length >= MAX_ACTIVE_EVENTS) {
       return callback({
-        error: 'Le serveur a atteint sa capacité maximale d'ateliers actifs. Veuillez patienter.',
+        error: "Le serveur a atteint sa capacité maximale d'ateliers actifs. Veuillez patienter.",
       });
     }
 
@@ -96,7 +96,7 @@ export function registerLobbyHandlers(socket, deps) {
 
     const gameMode = parseGameMode(data?.gameMode);
     if (!gameMode) {
-      return callback({ error: 'Format d'atelier invalide.' });
+      return callback({ error: "Format d'atelier invalide." });
     }
 
     let sessionDurationMinutes = null;

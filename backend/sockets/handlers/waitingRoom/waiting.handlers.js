@@ -137,7 +137,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
   socket.on('enterWaitingRoom', (data, callback) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     if (!eventId) {
-      const error = 'Code d'atelier invalide.';
+      const error = "Code d'atelier invalide.";
       if (typeof callback === 'function') callback({ error });
       socket.emit('waitingRoomError', { error });
       return;
@@ -152,7 +152,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     }
 
     if (event.status === 'started') {
-      const error = 'L'atelier a déjà commencé.';
+      const error = "L'atelier a déjà commencé.";
       if (typeof callback === 'function') callback({ error });
       socket.emit('waitingRoomError', { error });
       return;
@@ -192,7 +192,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     }
 
     if (event.status === 'started' || event.partyStarted) {
-      return callback({ error: 'L'atelier a déjà commencé.' });
+      return callback({ error: "L'atelier a déjà commencé." });
     }
 
     const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
@@ -262,11 +262,11 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     }
 
     if (!isManager(event, socket)) {
-      return callback({ error: 'Action réservée à l'animateur.' });
+      return callback({ error: "Action réservée à l'animateur." });
     }
 
     if (event.status === 'started' || event.partyStarted) {
-      return callback({ error: 'L'atelier a déjà commencé.' });
+      return callback({ error: "L'atelier a déjà commencé." });
     }
 
     const targetPlayerId = typeof data?.playerId === 'string' ? data.playerId.trim() : '';

@@ -153,7 +153,7 @@ export function runStartGame(io, event, deps) {
   }
 
   if (event.status !== 'waiting') {
-    return { error: 'L'atelier est déjà lancé.' };
+    return { error: "L'atelier est déjà lancé." };
   }
 
   event.status = 'started';
@@ -188,7 +188,7 @@ export function handleEndSession(socket, data, callback, deps) {
     const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
     const coopOverride = isCoop(event) && event.coopManagerAbsent && isRegistered(event, socket.id, playerId);
     if (!coopOverride) {
-      if (typeof callback === 'function') callback({ error: 'Seul l'animateur peut terminer la session.' });
+      if (typeof callback === 'function') callback({ error: "Seul l'animateur peut terminer la session." });
       return;
     }
   }
