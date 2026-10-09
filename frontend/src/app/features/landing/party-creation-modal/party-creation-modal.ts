@@ -73,7 +73,7 @@ export class PartyCreationModalComponent {
   readonly isCoop = computed(() => this.creationMode() === GAME_MODE_COOP);
 
   readonly modalTitle = computed(() =>
-    this.isCoop() ? 'Nouvelle partie coopérative' : 'Nouvelle partie défi',
+    this.isCoop() ? 'Nouvel atelier coopératif' : 'Nouvel atelier en équipes',
   );
 
   readonly sessionCountMin = computed(() =>
@@ -172,7 +172,7 @@ export class PartyCreationModalComponent {
     }
 
     if (response.error || !response.id || response.role !== 'manager') {
-      this.error.set(response.error ?? 'Erreur lors de la création de la partie.');
+      this.error.set(response.error ?? 'Erreur lors de la création de l\'atelier.');
       this.isSubmitting.set(false);
       return;
     }
@@ -192,11 +192,11 @@ export class PartyCreationModalComponent {
 
     const name = this.form.controls.partyName;
     if (name.hasError('required')) {
-      errors.push('Veuillez renseigner le nom de la partie.');
+      errors.push('Veuillez renseigner le nom de l\'atelier.');
     } else if (name.hasError('minlength')) {
-      errors.push('Le nom de la partie doit contenir au moins 3 caractères.');
+      errors.push('Le nom de l\'atelier doit contenir au moins 3 caractères.');
     } else if (name.hasError('maxlength')) {
-      errors.push('Le nom de la partie ne peut pas dépasser 30 caractères.');
+      errors.push('Le nom de l\'atelier ne peut pas dépasser 30 caractères.');
     }
 
     const count = this.form.controls.sessionCount;

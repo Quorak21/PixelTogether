@@ -1,6 +1,6 @@
 @if (wrMode() === 'players') {
   @if (players().length === 0 && pendingPlayers().length === 0) {
-    <p class="py-8 text-center text-landing-muted">En attente des joueurs…</p>
+    <p class="py-8 text-center text-landing-muted">En attente des participants…</p>
   } @else {
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
       @for (player of players(); track player.socketId) {
@@ -73,13 +73,13 @@
       <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning">
         Égalité — tirage au sort…
       </span>
-      <p class="mt-2 text-sm text-landing-muted">Le gagnant est tiré automatiquement.</p>
+      <p class="mt-2 text-sm text-landing-muted">La création retenue est tirée au sort.</p>
     } @else {
       <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-warning">
-        Égalité ! Le manager choisit le gagnant.
+        Égalité ! L'animateur désigne la création retenue.
       </span>
       @if (!isManager()) {
-        <p class="mt-2 text-sm text-landing-muted">Les grilles ex æquo sont affichées ci-dessous — seul le manager peut trancher.</p>
+        <p class="mt-2 text-sm text-landing-muted">Les grilles ex æquo sont affichées ci-dessous — seul l'animateur peut trancher.</p>
       }
     }
   </div>
@@ -147,7 +147,7 @@
     @if (winner(); as w) {
       <div class="select-none space-y-2 text-center">
         <span class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-warning shadow-[0_0_20px_-4px] shadow-warning/30">
-          🏆 Gagnant de la session
+          Création la plus appréciée
         </span>
         @if (sessionTheme()) {
           <p class="text-sm text-landing-muted">
@@ -159,7 +159,7 @@
 
       <div
         class="group relative w-full cursor-zoom-in overflow-hidden rounded-2xl border-2 border-warning/40 bg-gradient-to-b from-warning/10 via-slate-900/50 to-slate-900/40 p-4 shadow-[0_0_40px_-8px] shadow-warning/25 backdrop-blur-xl transition-all duration-300 hover:border-warning/60 hover:shadow-warning/35 animate-scale-up"
-        (click)="onEnlarge(w.image ?? winnerImage(), 'Gagnant : ' + w.label, w.players)"
+        (click)="onEnlarge(w.image ?? winnerImage(), 'Création retenue : ' + w.label, w.players)"
       >
         <div class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-warning/20 bg-slate-950/70 p-4">
           <div class="pointer-events-none absolute inset-0 bg-radial-gradient from-warning/15 via-transparent to-transparent opacity-80"></div>

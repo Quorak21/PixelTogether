@@ -65,7 +65,7 @@ export class UiStateService {
   /** Libellé textuel correspondant au mode de jeu du salon. */
   readonly partyModeLabel = computed(() => {
     if (this.partyGameMode() === GAME_MODE_COOP) return 'Coopératif';
-    if (this.partyGameMode() === GAME_MODE_COMPETITIVE) return 'Compétitif';
+    if (this.partyGameMode() === GAME_MODE_COMPETITIVE) return 'Présentation et vote';
     return '';
   });
 
@@ -397,7 +397,7 @@ export class UiStateService {
       const secs = Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
       const mm = String(Math.floor(secs / 60)).padStart(2, '0');
       const ss = String(secs % 60).padStart(2, '0');
-      this.managerAbsentBanner.set(`La partie se termine dans ${mm}:${ss}`);
+      this.managerAbsentBanner.set(`L'atelier se termine dans ${mm}:${ss}`);
       if (secs <= 0) {
         this.stopManagerAbsentBannerCountdown();
       }

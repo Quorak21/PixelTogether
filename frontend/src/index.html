@@ -2,12 +2,12 @@
 <html lang="fr" class="h-full">
   <head>
     <meta charset="utf-8" />
-    <title>PixelTogether — Team building pixel-art</title>
+    <title>PixelTogether — Atelier collaboratif de team building pour équipes</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Team building collaboratif en pixel-art pour entreprises et écoles. Palette exclusive par participant, vote d'équipe, zéro compte."
+      content="Atelier d'équipe en ligne : vos collaborateurs créent une œuvre commune en pixel-art, avec des couleurs réparties entre eux pour travailler la communication et la coordination. Sans compte, données effacées à la fin de la session. Projet personnel de Dokk, Suisse."
     />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://www.pixeltogether.ch/" />
@@ -15,14 +15,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content="PixelTogether" />
-    <meta property="og:title" content="PixelTogether - Team building pixel-art" />
+    <meta property="og:title" content="PixelTogether — Atelier collaboratif de team building pour équipes" />
     <meta
       property="og:description"
-      content="Team building collaboratif en pixel-art pour entreprises et écoles. Palette exclusive par participant, vote d'équipe, zéro compte."
+      content="Atelier d'équipe en ligne : vos collaborateurs créent une œuvre commune en pixel-art, avec des couleurs réparties entre eux pour travailler la communication et la coordination. Sans compte, données effacées à la fin de la session. Projet personnel de Dokk, Suisse."
     />
     <meta property="og:url" content="https://www.pixeltogether.ch/" />
     <meta property="og:image" content="https://www.pixeltogether.ch/assets/images/og-1200x630.png" />
-    <meta property="og:image:alt" content="PixelTogether — team building pixel-art" />
+    <meta property="og:image:alt" content="PixelTogether — atelier collaboratif de team building" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
@@ -32,17 +32,29 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "PixelTogether",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "inLanguage": "fr",
-        "url": "https://www.pixeltogether.ch/",
-        "description": "Team building collaboratif en pixel-art pour entreprises et écoles. Palette exclusive par participant, vote d'équipe, zéro compte.",
-        "publisher": {
-          "@type": "Organization",
-          "name": "Dokk Corp"
-        }
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "PixelTogether",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "inLanguage": "fr",
+            "url": "https://www.pixeltogether.ch/",
+            "description": "Atelier d'équipe en ligne : vos collaborateurs créent une œuvre commune en pixel-art, avec des couleurs réparties entre eux pour travailler la communication et la coordination. Sans compte, données effacées à la fin de la session. Projet personnel de Dokk, Suisse.",
+            "publisher": { "@id": "https://www.pixeltogether.ch/#dokk" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://www.pixeltogether.ch/#dokk",
+            "name": "Dokk",
+            "email": "hello@pixeltogether.ch",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "CH"
+            },
+            "description": "Personne physique en Suisse. PixelTogether est un projet personnel en version bêta, sans société."
+          }
+        ]
       }
     </script>
 
@@ -56,7 +68,7 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <!-- Web Analytics Vercel : pages vues. Les salles (room/lobby/game) sont filtrées. -->
+    <!-- Web Analytics Vercel : pages vues. Les sessions en direct sont filtrées. -->
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
       window.va('beforeSend', function (event) {
@@ -66,7 +78,7 @@
         } catch (e) {
           return event;
         }
-        if (/^\/(room|lobby|game)(\/|$)/.test(path)) {
+        if (/^\/(room|lobby|session)(\/|$)/.test(path)) {
           return null;
         }
         return event;

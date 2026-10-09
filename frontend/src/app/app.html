@@ -1,4 +1,4 @@
-@if (isUnsupportedDevice()) {
+@if (blockSessionOnMobile()) {
   <!-- Écran magnifique d'avertissement mobile -->
   <div class="relative flex min-h-screen flex-col items-center justify-center bg-[#0F172A] px-6 py-12 text-center text-white select-none overflow-hidden">
     <!-- Fond lumineux pulsant esthétique (mesh pulse et gradients) -->
@@ -15,7 +15,7 @@
 
       <!-- Badge de statut style pilule de design premium -->
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold tracking-wider uppercase text-indigo-400">
-        <span>Desktop Recommandé</span>
+        <span>Ordinateur requis</span>
       </div>
 
       <!-- Titre principal avec dégradé texte -->
@@ -24,17 +24,17 @@
           PixelTogether
         </h1>
         <h2 class="text-lg font-medium text-slate-300">
-          L'aventure vous attend sur grand écran
+          L'atelier se déroule sur ordinateur
         </h2>
       </div>
 
       <!-- Description textuelle -->
       <div class="space-y-4 text-landing-muted leading-relaxed text-sm">
         <p>
-          PixelTogether est un espace de dessin collaboratif et interactif en temps réel. Pour vous offrir la meilleure expérience possible, il est optimisé pour les interfaces clavier/souris et les grands écrans.
+          PixelTogether est un atelier de dessin collaboratif en temps réel. Il est prévu pour le clavier, la souris et un grand écran.
         </p>
         <p class="text-slate-400">
-          Les contrôles tactiles sur smartphones et tablettes ne sont pas encore optimisés. Rejoignez la partie depuis votre ordinateur !
+          Les contrôles tactiles sur smartphones et tablettes ne sont pas encore adaptés. Ouvrez la session depuis un ordinateur.
         </p>
       </div>
 
@@ -42,9 +42,15 @@
       <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent my-2"></div>
 
       <!-- Sous-badge rassurant -->
+      <a
+        routerLink="/"
+        class="inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+      >
+        Retour à l'accueil
+      </a>
       <div class="inline-flex items-center gap-2 text-xs text-landing-muted/70 bg-slate-900/40 px-3 py-1.5 rounded-lg border border-slate-800/40">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-        <span>Version mobile en cours de réflexion 🚀</span>
+        <span>Les pages d'information restent lisibles sur téléphone</span>
       </div>
     </div>
   </div>

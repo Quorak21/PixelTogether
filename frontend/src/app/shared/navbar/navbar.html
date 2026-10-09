@@ -29,7 +29,7 @@
         }
         @if (ui.waitingRoomMode() === 'podium' || ui.waitingRoomMode() === 'gallery') {
           <span class="truncate text-xs text-landing-muted">
-            Partie terminée
+            Atelier terminé
           </span>
         } @else if (ui.sessionCount() > 1 || ui.partyStarted()) {
           <span class="truncate text-xs text-landing-muted">
@@ -119,7 +119,7 @@
                     </span>
                   }
                   @if (isPartyManager(visitor.playerId)) {
-                    <span class="shrink-0 text-sm leading-none" title="Manager">👑</span>
+                    <span class="shrink-0 text-sm leading-none" title="Animateur">👑</span>
                   }
                   <span class="min-w-0 truncate text-sm font-semibold text-landing-muted">{{
                     visitor.pseudo
@@ -202,7 +202,7 @@
                 class="w-full px-4 py-2.5 text-left text-sm text-red-300 transition-colors hover:bg-white/[0.06]"
                 (click)="onProfileCloseClick()"
               >
-                Fermer la partie
+                Fermer l'atelier
               </button>
             } @else {
               <button
@@ -211,7 +211,7 @@
                 class="w-full px-4 py-2.5 text-left text-sm text-landing-muted transition-colors hover:bg-white/[0.06] hover:text-white"
                 (click)="onProfileQuitClick()"
               >
-                Quitter la partie
+                Quitter l'atelier
               </button>
             }
           </div>

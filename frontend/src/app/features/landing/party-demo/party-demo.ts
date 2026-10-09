@@ -85,7 +85,7 @@ export class PartyDemoComponent {
       setTimeout(() => {
         this.phase.set(phase);
         this.phaseLabel.set(
-          phase === 'draw' ? 'Dessin collaboratif' : phase === 'vote' ? 'Vote' : 'Résultats',
+          phase === 'draw' ? 'Dessin collaboratif' : phase === 'vote' ? 'Présentation' : 'Récapitulatif',
         );
         onReady();
         // laisse le DOM peindre en opacity 0 avant le fade-in

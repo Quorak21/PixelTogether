@@ -1,5 +1,5 @@
 @if (players().length === 0 && pendingPlayers().length === 0) {
-  <p class="py-8 text-center text-landing-muted">En attente des premiers joueurs…</p>
+  <p class="py-8 text-center text-landing-muted">En attente des premiers participants…</p>
 } @else {
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
     @for (player of players(); track player.socketId) {

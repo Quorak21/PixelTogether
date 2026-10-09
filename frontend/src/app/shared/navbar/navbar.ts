@@ -142,13 +142,13 @@ export class NavbarComponent {
   });
 
   readonly partyConfirmTitle = computed(() =>
-    this.partyConfirmAction() === 'close' ? 'Fermer la partie ?' : 'Quitter la partie ?',
+    this.partyConfirmAction() === 'close' ? 'Fermer l\'atelier ?' : 'Quitter l\'atelier ?',
   );
 
   readonly partyConfirmBody = computed(() =>
     this.partyConfirmAction() === 'close'
-      ? 'La partie sera fermée pour tous les participants. Cette action est irréversible.'
-      : 'Vous quitterez définitivement la partie. Vous ne pourrez pas revenir.',
+      ? 'L\'atelier sera fermé pour tous les participants. Cette action est irréversible.'
+      : 'Vous quitterez définitivement l\'atelier. Vous ne pourrez pas revenir.',
   );
 
   readonly endSessionConfirmOpen = signal(false);

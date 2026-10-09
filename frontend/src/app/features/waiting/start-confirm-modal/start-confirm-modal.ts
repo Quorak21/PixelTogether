@@ -7,8 +7,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 })
 export class StartConfirmModalComponent {
   readonly open = input.required<boolean>();
-  readonly title = input('Démarrer la partie ?');
-  readonly hint = input('Les joueurs ne pourront plus rejoindre une fois la partie débutée.');
+  readonly title = input('Démarrer l\'atelier ?');
+  readonly hint = input('Les participants ne pourront plus rejoindre une fois l\'atelier débuté.');
   readonly error = input<string>('');
   readonly isSubmitting = input(false);
 

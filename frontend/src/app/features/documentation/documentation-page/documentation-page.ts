@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, PLATFORM_ID, signal, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { LucideArrowLeft } from '@lucide/angular';
+import { DOCUMENTATION_MARKDOWN } from '../documentation.content';
 import { DOC_PAGE_TITLE } from '../documentation.constants';
 import { DocTocEntry, parseDocumentation } from '../documentation.parse';
 
@@ -19,7 +19,6 @@ interface DocView {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DocumentationPageComponent {
-  private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly scrollContainer = viewChild.required<ElementRef<HTMLElement>>('scrollContainer');
@@ -28,17 +27,14 @@ export class DocumentationPageComponent {
   readonly doc = signal<DocView | null>(null);
 
   constructor() {
-    if (!this.isBrowser) {
-      return;
-    }
-    this.http.get('/documentation.md', { responseType: 'text' }).subscribe((source) => {
-      const parsed = parseDocumentation(source);
-      this.doc.set({
-        toc: parsed.toc,
-        html: this.sanitizer.bypassSecurityTrustHtml(parsed.html),
-      });
-      setTimeout(() => this.scrollToHash());
+    const parsed = parseDocumentation(DOCUMENTATION_MARKDOWN);
+    this.doc.set({
+      toc: parsed.toc,
+      html: this.sanitizer.bypassSecurityTrustHtml(parsed.html),
     });
+    if (this.isBrowser) {
+      setTimeout(() => this.scrollToHash());
+    }
   }
 
   onArticleClick(event: Event): void {

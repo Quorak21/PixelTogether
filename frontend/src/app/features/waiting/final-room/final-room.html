@@ -1,10 +1,10 @@
 @if (wrMode() === 'podium') {
   <div class="mb-4 text-center">
     <span class="inline-flex items-center gap-1.5 rounded-full border border-brand-coral/30 bg-brand-coral/25 px-4 py-1 text-xs font-bold uppercase tracking-wider text-brand-coral">
-      Partie terminée
+      Atelier terminé
     </span>
     <h3 class="font-display bg-gradient-to-r from-brand-violet via-[#A5B4FC] to-brand-coral bg-clip-text text-2xl font-black tracking-tight text-transparent md:text-3xl mt-1">
-      Classement final
+      Récapitulatif
     </h3>
   </div>
 
@@ -20,7 +20,7 @@
         [class.hover:text-white]="activeTab() !== 'drawings'"
         (click)="activeTab.set('drawings')"
       >
-        🏆 Top Dessins
+        Créations appréciées
       </button>
       <button
         type="button"
@@ -31,7 +31,7 @@
         [class.hover:text-white]="activeTab() !== 'players'"
         (click)="activeTab.set('players')"
       >
-        👤 Top Joueurs
+        Votes reçus
       </button>
     </div>
   </div>
@@ -45,7 +45,7 @@
 
       @if (topGrids().length === 0) {
         <div class="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-slate-900/20 py-8 italic text-landing-muted">
-          <p>Aucun dessin classé.</p>
+          <p>Aucune création pour l'instant.</p>
         </div>
       } @else {
         <div class="grid grid-cols-3 gap-4 items-end justify-center pt-2">
@@ -162,18 +162,18 @@
   }
 
   @if (activeTab() === 'players') {
-    <!-- Contenu Joueurs -->
+    <!-- Votes reçus -->
     <div class="space-y-6 max-w-3xl mx-auto animate-fade-in">
       <div class="text-center">
-        <p class="text-[10px] text-landing-muted">Les artistes ayant cumulé le plus de points</p>
+        <p class="text-[10px] text-landing-muted">Les participants ayant reçu le plus de votes</p>
       </div>
 
       @if (topPlayers().length === 0) {
         <div class="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-slate-900/20 py-8 italic text-landing-muted">
-          <p>Aucun joueur classé.</p>
+          <p>Aucun participant pour l'instant.</p>
         </div>
       } @else {
-        <!-- Podium des 3 premiers joueurs -->
+        <!-- Trois participants les plus cités -->
         <div class="grid grid-cols-3 gap-4 items-end justify-center pt-4 max-w-md mx-auto">
           <!-- 2ème Place (Silver) -->
           @if (secondPlayer(); as player) {
@@ -189,7 +189,7 @@
               <!-- Name and Points -->
               <div class="w-full min-w-0">
                 <h5 class="truncate text-xs font-bold text-white">{{ player.pseudo }}</h5>
-                <p class="text-[10px] font-bold text-slate-300 mt-0.5">{{ player.voteTotal }} pt{{ player.voteTotal > 1 ? 's' : '' }}</p>
+                <p class="text-[10px] font-bold text-slate-300 mt-0.5">{{ player.voteTotal }} vote{{ player.voteTotal > 1 ? 's reçus' : ' reçu' }}</p>
               </div>
             </div>
           } @else {
@@ -211,7 +211,7 @@
               <!-- Name and Points -->
               <div class="w-full min-w-0">
                 <h5 class="truncate text-xs font-extrabold text-yellow-400">{{ player.pseudo }}</h5>
-                <p class="text-xs font-black text-yellow-300 mt-0.5">{{ player.voteTotal }} pt{{ player.voteTotal > 1 ? 's' : '' }}</p>
+                <p class="text-xs font-black text-yellow-300 mt-0.5">{{ player.voteTotal }} vote{{ player.voteTotal > 1 ? 's reçus' : ' reçu' }}</p>
               </div>
             </div>
           } @else {
@@ -232,7 +232,7 @@
               <!-- Name and Points -->
               <div class="w-full min-w-0">
                 <h5 class="truncate text-xs font-bold text-white">{{ player.pseudo }}</h5>
-                <p class="text-[10px] font-bold text-amber-500 mt-0.5">{{ player.voteTotal }} pt{{ player.voteTotal > 1 ? 's' : '' }}</p>
+                <p class="text-[10px] font-bold text-amber-500 mt-0.5">{{ player.voteTotal }} vote{{ player.voteTotal > 1 ? 's reçus' : ' reçu' }}</p>
               </div>
             </div>
           } @else {
@@ -253,7 +253,7 @@
                 <!-- Pseudo -->
                 <span class="mt-2 text-[10px] font-bold text-slate-300 truncate w-full" [title]="p.pseudo">{{ p.pseudo }}</span>
                 <!-- Points below -->
-                <span class="text-[10px] font-black text-slate-400 mt-0.5">{{ p.voteTotal }} pt{{ p.voteTotal > 1 ? 's' : '' }}</span>
+                <span class="text-[10px] font-black text-slate-400 mt-0.5">{{ p.voteTotal }} vote{{ p.voteTotal > 1 ? 's reçus' : ' reçu' }}</span>
               </div>
             }
           </div>
@@ -272,7 +272,7 @@
   } @else {
     <div class="mb-8 select-none space-y-2 text-center">
       <span class="inline-flex items-center gap-1.5 rounded-full border border-brand-coral/30 bg-brand-coral/25 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-coral">
-        Partie terminée ! Galerie finale
+        Atelier terminé — galerie des créations
       </span>
     </div>
 
@@ -348,7 +348,7 @@
       @if (isEndingParty()) {
         <span class="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
       } @else {
-        Terminer la partie
+        Terminer l'atelier
       }
     </button>
     @if (partyError()) {

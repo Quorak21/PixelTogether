@@ -5,7 +5,7 @@ import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 
 export const SITE_ORIGIN = 'https://www.pixeltogether.ch';
 const DEFAULT_DESCRIPTION =
-  'Team building collaboratif en pixel-art. Palette exclusive par joueur, vote, zéro compte.';
+  'Atelier d\'équipe en ligne : vos collaborateurs créent une œuvre commune en pixel-art, avec des couleurs réparties entre eux pour travailler la communication et la coordination. Sans compte, données effacées à la fin de la session. Projet personnel de Dokk, Suisse.';
 const DEFAULT_ROBOTS = 'index,follow';
 
 export const PRIVATE_SEO: SeoRouteData = {

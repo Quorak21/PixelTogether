@@ -45,7 +45,7 @@ export class ChatboxComponent {
     const onReceiveMessage = (data: ChatMessage) =>
       this.chatMessages.update((prev) => [
         ...prev,
-        { ...data, pseudo: data.pseudo ?? 'Joueur' },
+        { ...data, pseudo: data.pseudo ?? 'Participant' },
       ]);
 
     this.destroyRef.onDestroy(this.socket.on<ChatMessage[]>('chatMessages', onChatMessages));

@@ -22,9 +22,38 @@
         Pixel Together
       </h1>
       <p class="max-w-xl text-sm leading-relaxed text-landing-muted md:text-base">
-        Team building collaboratif en pixel-art.
+        Atelier collaboratif de team building pour les équipes et les organisations.
       </p>
     </div>
+
+    <section
+      class="w-full max-w-3xl rounded-2xl border border-white/[0.08] bg-slate-900/50 p-6 text-center shadow-xl backdrop-blur-xl md:p-8"
+      aria-labelledby="equipes-title"
+    >
+      <h2 id="equipes-title" class="font-display text-xl font-black text-white md:text-2xl">
+        Pour les équipes et les entreprises
+      </h2>
+      <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-landing-muted">
+        Vos collaborateurs créent une œuvre commune en pixel-art. Les couleurs sont
+        réparties entre les participants, pour travailler la communication et la
+        coordination. Sans compte. Les données sont effacées à la fin de la session.
+        Projet personnel de Dokk, en Suisse, en version bêta.
+      </p>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <a
+          routerLink="/entreprises"
+          class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02]"
+        >
+          Ateliers pour les organisations
+        </a>
+        <a
+          routerLink="/a-propos"
+          class="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+        >
+          À propos
+        </a>
+      </div>
+    </section>
 
     <div class="relative flex w-full max-w-[53.2rem] flex-col items-center gap-6">
       <app-party-demo />
@@ -60,14 +89,26 @@
         </ul>
       </aside>
 
-    @if (isResuming()) {
-      <p class="text-sm text-landing-muted">Reconnexion à votre partie…</p>
+    @if (device.isUnsupportedDevice()) {
+      <div
+        class="w-full rounded-2xl border border-white/10 bg-slate-900/40 p-8 text-center shadow-xl backdrop-blur-xl">
+        <p class="text-base font-semibold text-white">L'atelier se lance depuis un ordinateur</p>
+        <p class="mt-2 text-sm text-landing-muted">
+          @if (hasActiveSession()) {
+            Une session est déjà ouverte sur cet appareil. Reprenez-la depuis un ordinateur.
+          } @else {
+            Ces pages restent lisibles sur téléphone. Créer ou rejoindre une session nécessite un clavier et une souris.
+          }
+        </p>
+      </div>
+    } @else if (isResuming()) {
+      <p class="text-sm text-landing-muted">Reconnexion à votre session…</p>
     } @else if (hasActiveSession()) {
       <div
         class="w-full rounded-2xl border border-brand-violet/40 bg-slate-900/40 p-8 text-center shadow-xl backdrop-blur-xl">
-        <p class="text-base font-semibold text-white">Vous êtes déjà dans une partie</p>
+        <p class="text-base font-semibold text-white">Vous êtes déjà dans une session</p>
         <p class="mt-2 text-sm text-landing-muted">
-          Rechargez la page pour reprendre, ou quittez la partie depuis la salle d'attente.
+          Rechargez la page pour reprendre, ou quittez la session depuis la salle d'attente.
         </p>
       </div>
     } @else {
@@ -78,7 +119,7 @@
               ⚠️ Le serveur est actuellement complet
             </p>
             <p class="mt-1 text-xs text-amber-200/80">
-              La capacité maximale de parties actives simultanées est atteinte. Veuillez patienter qu'un créneau se libère pour créer une partie.
+              La capacité maximale de sessions actives simultanées est atteinte. Veuillez patienter qu'un créneau se libère pour créer un atelier.
             </p>
           </div>
         }
@@ -93,7 +134,7 @@
             <h2 class="font-display text-[1.07rem] font-black uppercase text-white">Coopératif</h2>
             <div class="flex flex-wrap justify-center gap-[0.35rem]">
               <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-[0.7rem] py-[0.2rem] text-[0.7rem] font-semibold text-brand-violet">
-                3-8 participants (manager inclus)
+                3-8 participants (animateur inclus)
               </span>
               <span class="inline-flex items-center rounded-full border border-brand-violet/30 bg-brand-violet/10 px-[0.7rem] py-[0.2rem] text-[0.7rem] font-semibold text-brand-violet">
                 1 grille en commun
@@ -107,7 +148,7 @@
             </div>
             <button type="button" (click)="openCreateModal('coop')" [disabled]="serverMaxCapReached()"
               class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-violet to-[#5558E8] px-[1.425rem] py-[0.6rem] font-semibold text-white shadow-[0_4px_20px_rgba(99,102,241,0.35)] transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:scale-100">
-              Créer une partie coop
+              Créer un atelier coopératif
             </button>
           </div>
 
@@ -116,13 +157,13 @@
             <div class="flex h-[2.625rem] w-[2.625rem] items-center justify-center rounded-full bg-brand-coral/20 text-brand-coral transition-all group-hover:scale-110">
               <svg lucideCrown class="h-[1.425rem] w-[1.425rem]" aria-hidden="true"></svg>
             </div>
-            <h2 class="font-display text-[1.07rem] font-black uppercase text-white">Défi créatif</h2>
+            <h2 class="font-display text-[1.07rem] font-black uppercase text-white">Présentation et vote</h2>
             <div class="flex flex-wrap justify-center gap-[0.35rem]">
               <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-[0.7rem] py-[0.2rem] text-[0.7rem] font-semibold text-brand-coral">
                 Min. 6 participants (groupes aléatoires)
               </span>
               <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-[0.7rem] py-[0.2rem] text-[0.7rem] font-semibold text-brand-coral">
-                Vote des équipes
+                Les équipes présentent leurs créations
               </span>
               <span class="inline-flex items-center rounded-full border border-brand-coral/30 bg-brand-coral/10 px-[0.7rem] py-[0.2rem] text-[0.7rem] font-semibold text-brand-coral">
                 Limite de temps
@@ -133,7 +174,7 @@
             </div>
             <button type="button" (click)="openCreateModal('competitive')" [disabled]="serverMaxCapReached()"
               class="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-coral to-rose-600 px-[1.425rem] py-[0.6rem] font-semibold text-white shadow-[0_4px_20px_rgba(244,63,94,0.35)] transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:scale-100">
-              Créer une partie défi
+              Créer un atelier en équipes
             </button>
           </div>
 
@@ -144,7 +185,7 @@
             </div>
             <h2 class="font-display text-[1.07rem] font-black uppercase text-white">Rejoindre</h2>
             <p class="text-[0.7rem] leading-snug text-landing-muted">
-              Entrez le code fourni par votre manager
+              Entrez le code fourni par votre animateur
             </p>
             <form [formGroup]="form" (ngSubmit)="joinRoom()" class="mt-auto flex w-full flex-col gap-2" autocomplete="off">
               <input type="text" formControlName="code" placeholder="CODE (EX: ABC123)" maxlength="6" autocomplete="off"

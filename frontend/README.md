@@ -105,7 +105,7 @@ Voici comment se déroule l'initialisation et la reconnexion automatique d'un jo
    * S'il y a une session locale, le client envoie l'événement socket `reconnectSession` contenant le jeton.
    * Le backend valide le jeton de reconnexion en mémoire.
 4. **Restauration et Navigation** :
-   * **Si le jeton est valide** : Le serveur renvoie l'état complet du jeu. Le client hydrate son `UiStateService` (rôle, couleurs, joueurs, chronomètres) et le redirige automatiquement vers la bonne page (salle d'attente `/room`, canvas `/game` ou lobby manager `/lobby`).
+   * **Si le jeton est valide** : Le serveur renvoie l'état complet de la session. Le client hydrate son `UiStateService` (rôle, couleurs, participants, chronomètres) et le redirige automatiquement vers la bonne page (salle d'attente `/room`, zone de dessin `/session` ou supervision `/lobby`).
    * **Si le jeton est invalide ou expiré** : Le client efface la session locale et laisse l'utilisateur sur la page d'accueil pour qu'il puisse rejoindre ou créer un nouveau salon.
 
 ---
@@ -114,8 +114,8 @@ Voici comment se déroule l'initialisation et la reconnexion automatique d'un jo
 
 1. **La puissance des Signals d'Angular** : Nous n'utilisons pas RxJS (comme les `BehaviorSubject`) ni de gestionnaires d'état lourds comme NgRx pour l'état global de l'UI. Tout passe par les **Angular Signals** (`signal`, `computed`). C'est beaucoup plus simple à lire et à mettre à jour. Si tu dois ajouter une information globale, ajoute un signal dans [ui-state.service.ts](./src/app/core/services/ui-state.service.ts).
 2. **Ne réinstancie pas de Socket** : La connexion en temps réel est centralisée dans le [socket.service.ts](./src/app/core/services/socket.service.ts). Injecte simplement ce service là où tu en as besoin. Les méthodes `emitWithAck` te permettent de faire des appels requêtes-réponses asynchrones (comme des requêtes HTTP mais sur WebSocket).
-3. **Le mécanisme de reconnexion** : Quand un utilisateur actualise la page ou subit une coupure internet temporaire, il ne perd pas sa partie. Tout est sauvegardé dans le `localStorage` du navigateur via [session-token.service.ts](./src/app/core/services/session-token.service.ts). Au chargement, le [reconnect.service.ts](./src/app/core/services/reconnect.service.ts) s'occupe de renvoyer le token au serveur pour récupérer l'état exact de la partie.
-4. **Optimisation du Canvas** : Le canvas de dessin ([canvas.ts](./src/app/features/game/canvas/canvas.ts)) est optimisé pour ne redessiner que les pixels qui changent lors de la réception des événements `drawPixel`, évitant ainsi de reconstruire toute la grille à chaque action d'un joueur.
-5. **Pré-chargement des routes** : Pour éviter les temps de latence au moment où le manager clique sur "Lancer la partie", le code pré-charge en tâche de fond le module de jeu (les composants de dessin) dès qu'il arrive sur le lobby grâce à `preloadGameRoutes()` dans [preload-game.ts](./src/app/core/utils/preload-game.ts).
+3. **Le mécanisme de reconnexion** : Quand un utilisateur actualise la page ou subit une coupure internet temporaire, il ne perd pas sa session. Tout est sauvegardé dans le `localStorage` du navigateur via [session-token.service.ts](./src/app/core/services/session-token.service.ts). Au chargement, le [reconnect.service.ts](./src/app/core/services/reconnect.service.ts) s'occupe de renvoyer le token au serveur pour récupérer l'état exact de la session.
+4. **Optimisation du Canvas** : Le canvas de dessin ([canvas.ts](./src/app/features/game/canvas/canvas.ts)) est optimisé pour ne redessiner que les pixels qui changent lors de la réception des événements `drawPixel`, évitant ainsi de reconstruire toute la grille à chaque action d'un participant.
+5. **Pré-chargement des routes** : Pour éviter les temps de latence au moment où l'animateur lance la session, le code pré-charge en tâche de fond le module de dessin dès l'arrivée sur l'accueil grâce à `preloadGameRoutes()` dans [preload-game.ts](./src/app/core/utils/preload-game.ts).
 
 

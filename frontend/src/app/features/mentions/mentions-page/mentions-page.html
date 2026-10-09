@@ -18,7 +18,12 @@
       <section class="space-y-2">
         <h2 class="text-base font-bold text-white">Éditeur</h2>
         <p>
-          PixelTogether est édité par <span class="text-white">Dokk Corp.</span>
+          PixelTogether est un projet personnel en version bêta, édité par
+          <span class="text-white">Dokk</span>, personne physique, en Suisse.
+        </p>
+        <p>
+          Ce n'est pas une société. Il n'y a pas de forme juridique ni de numéro
+          d'identification des entreprises (IDE/UID).
         </p>
       </section>
 
@@ -33,36 +38,44 @@
       </section>
 
       <section class="space-y-2">
-        <h2 class="text-base font-bold text-white">Mesure d’audience</h2>
+        <h2 class="text-base font-bold text-white">Hébergement</h2>
         <p>
-          Nous comptons les pages vues de façon agrégée, sans cookies
-          publicitaires.
+          Le site www.pixeltogether.ch est hébergé par Vercel.
+        </p>
+        <p>
+          Les sessions en temps réel passent par le serveur d'API
+          <span class="text-white">https://api.pixeltogether.ch</span>.
         </p>
       </section>
 
       <section class="space-y-2">
-        <h2 class="text-base font-bold text-white">Session navigateur</h2>
+        <h2 class="text-base font-bold text-white">Confidentialité</h2>
+        <p>Aucun compte n'est créé.</p>
+        <p>
+          La mesure d'audience compte les pages vues de façon agrégée, sans
+          cookies publicitaires.
+        </p>
         <p>
           Un jeton de reconnexion est stocké dans le
           <span class="text-white">localStorage</span> du navigateur. Il sert
-          uniquement à reprendre une partie après un rechargement ou une
-          coupure, et est supprimé à la fin de la partie.
+          uniquement à reprendre une session après un rechargement ou une
+          coupure, et est supprimé à la fin de la session.
         </p>
-      </section>
-
-      <section class="space-y-2">
-        <h2 class="text-base font-bold text-white">Données de partie</h2>
         <p>
-          Pendant une partie, les infos (pseudos, dessins, chat…) restent sur
-          le serveur uniquement le temps du jeu, puis sont effacées. Le détail
-          de ce qui peut être conservé côté technique est décrit dans la
-          documentation&nbsp;:
+          Pendant une session, les informations (pseudos, dessins, chat) restent
+          sur le serveur le temps de l'atelier, puis sont effacées. Le détail
+          technique est dans la
           <a
             routerLink="/documentation"
             fragment="conservation-des-donnees"
             class="font-medium text-indigo-300 underline decoration-indigo-300/30 underline-offset-2 transition-colors hover:text-white hover:decoration-white/40"
-          >Conservation des données</a>.
+          >documentation</a>.
         </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-base font-bold text-white">Version</h2>
+        <p>Version bêta 0.1.0.</p>
       </section>
     </article>
   </div>

@@ -1,11 +1,15 @@
 <div
   class="relative flex min-h-10 flex-col items-center justify-center gap-1 overflow-hidden border-t border-white/[0.06] bg-[#0F172A]/80 px-4 py-2 backdrop-blur-md sm:flex-row sm:gap-4">
   <div class="relative z-[2] flex items-center gap-2">
-    <img ngSrc="assets/images/logoDokkCorp.png" width="24" height="24" alt="Logo de la Dokk Corp."
+    <img ngSrc="assets/images/logoDokkCorp.png" width="24" height="24" alt="Dokk"
       class="h-5 w-5 opacity-70" />
-    <h2 class="text-sm font-medium text-[#64748B]">Dokk Corp. &copy; 2026</h2>
+    <h2 class="text-sm font-medium text-[#64748B]">Dokk &copy; 2026</h2>
   </div>
-  <nav class="relative z-[2] flex items-center gap-3 text-xs text-[#64748B]" aria-label="Informations">
+  <nav class="relative z-[2] flex flex-wrap items-center justify-center gap-3 text-xs text-[#64748B]" aria-label="Informations">
+    <a routerLink="/entreprises" class="transition-colors hover:text-slate-300">Équipes</a>
+    <span class="text-[#334155]" aria-hidden="true">·</span>
+    <a routerLink="/a-propos" class="transition-colors hover:text-slate-300">À propos</a>
+    <span class="text-[#334155]" aria-hidden="true">·</span>
     <a routerLink="/documentation" class="transition-colors hover:text-slate-300">Documentation</a>
     <span class="text-[#334155]" aria-hidden="true">·</span>
     <a routerLink="/mentions" class="transition-colors hover:text-slate-300">Mentions</a>
