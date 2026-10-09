@@ -75,13 +75,13 @@ export function validateStartPlayerCount(event) {
       return { error: `Au moins ${COOP_GUESTS_MIN} invités sont requis pour démarrer (${COOP_GUESTS_MIN + 1} sur la grille avec vous).` };
     }
     if (count > COOP_GUESTS_MAX) {
-      return { error: 'Partie complète.' };
+      return { error: 'Atelier complet.' };
     }
     return null;
   }
 
   if (count < COMPETITIVE_PLAYERS_MIN) {
-    return { error: `Au moins ${COMPETITIVE_PLAYERS_MIN} joueurs sont requis pour démarrer.` };
+    return { error: `Au moins ${COMPETITIVE_PLAYERS_MIN} participants sont requis pour démarrer.` };
   }
   return null;
 }
@@ -94,11 +94,11 @@ export function validateStartPlayerCount(event) {
  */
 export function validateGuestRegistration(event) {
   if (isCoop(event) && event.players.length >= COOP_GUESTS_MAX) {
-    return { error: 'Partie complète.' };
+    return { error: 'Atelier complet.' };
   }
 
   if (event.players.length >= EVENT_PLAYERS_MAX) {
-    return { error: 'La salle ne peut pas accueillir de joueurs supplémentaires.' };
+    return { error: 'La salle ne peut pas accueillir de participants supplémentaires.' };
   }
 
   return null;

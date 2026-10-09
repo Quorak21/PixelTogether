@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { GalleryGrid, PlayerProfile, PodiumGrid, PodiumPlayer, WrMode } from '../../../types/entities';
 
 @Component({
@@ -22,14 +22,6 @@ export class FinalRoomComponent {
   readonly downloadExport = output<void>();
   readonly endParty = output<void>();
   readonly enlargeImage = output<{ url: string; title: string; players?: PlayerProfile[] }>();
-
-  readonly firstGrid = computed(() => this.topGrids().find((g) => g.rank === 1));
-  readonly secondGrid = computed(() => this.topGrids().find((g) => g.rank === 2));
-  readonly thirdGrid = computed(() => this.topGrids().find((g) => g.rank === 3));
-
-  readonly firstPlayer = computed(() => this.topPlayers().find((p) => p.rank === 1));
-  readonly secondPlayer = computed(() => this.topPlayers().find((p) => p.rank === 2));
-  readonly thirdPlayer = computed(() => this.topPlayers().find((p) => p.rank === 3));
 
   onEnlarge(url: string | null, title: string, players?: PlayerProfile[]): void {
     if (!url) return;

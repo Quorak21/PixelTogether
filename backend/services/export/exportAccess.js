@@ -11,7 +11,7 @@ const EXPORTABLE_MODES = new Set(['podium', 'gallery']);
 export function assertCanDownloadExport({ activeEvents, normalizeEventId, eventId, token }) {
   const normalizedId = normalizeEventId(eventId);
   if (!normalizedId) {
-    return { error: 'Partie invalide.', status: 400 };
+    return { error: 'Atelier invalide.', status: 400 };
   }
 
   const session = validateToken(token);
@@ -20,16 +20,16 @@ export function assertCanDownloadExport({ activeEvents, normalizeEventId, eventI
   }
 
   if (session.eventId !== normalizedId) {
-    return { error: 'Accès refusé à cette partie.', status: 403 };
+    return { error: 'Accès refusé à cet atelier.', status: 403 };
   }
 
   const event = activeEvents[normalizedId];
   if (!event) {
-    return { error: 'La partie n\'existe pas ou est terminée.', status: 404 };
+    return { error: 'L\'atelier n\'existe pas ou est terminé.', status: 404 };
   }
 
   if (!isRegistered(event, session.socketId, session.playerId)) {
-    return { error: 'Vous n\'êtes pas inscrit à cette partie.', status: 403 };
+    return { error: 'Vous n\'êtes pas inscrit à cet atelier.', status: 403 };
   }
 
   const wrMode = getWrMode(event);

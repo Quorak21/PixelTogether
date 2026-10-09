@@ -25,8 +25,8 @@ import {
 import { validateGuestRegistration } from '../../../services/event/gameMode.js';
 import { guardAck } from '../socketGuards.js';
 
-const BAN_ERROR = 'Vous avez été exclu de cette partie.';
-const KICK_MESSAGE = "Vous avez été retiré de la salle d'attente par le manager.";
+const BAN_ERROR = 'Vous avez été exclu de cet atelier.';
+const KICK_MESSAGE = "Vous avez été retiré de la salle d'attente par l'animateur.";
 
 function attachSessionFields(state, session) {
   return {
@@ -44,7 +44,7 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
 
   if (token) {
     if (hasActiveSessionOnOtherEvent(token, eventId)) {
-      return { error: 'Vous êtes déjà dans une autre partie.' };
+      return { error: 'Vous êtes déjà dans un autre atelier.' };
     }
 
     const session = validateToken(token);
@@ -99,7 +99,7 @@ export function handleWaitingRoomEntry(socket, event, eventId, data, deps) {
   }
 
   if (token && validateToken(token)) {
-    return { error: 'Vous êtes déjà dans une autre partie.' };
+    return { error: 'Vous êtes déjà dans un autre atelier.' };
   }
 
   const capacityError = validateGuestRegistration(event);
@@ -137,7 +137,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
   socket.on('enterWaitingRoom', (data, callback) => {
     const eventId = normalizeEventId(data?.roomId ?? data?.eventId);
     if (!eventId) {
-      const error = 'Code de partie invalide.';
+      const error = 'Code d'atelier invalide.';
       if (typeof callback === 'function') callback({ error });
       socket.emit('waitingRoomError', { error });
       return;
@@ -145,14 +145,14 @@ export function registerWaitingPhaseHandlers(socket, deps) {
 
     const event = activeEvents[eventId];
     if (!event) {
-      const error = "La partie n'existe pas.";
+      const error = "L'atelier n'existe pas.";
       if (typeof callback === 'function') callback({ error });
       socket.emit('waitingRoomError', { error });
       return;
     }
 
     if (event.status === 'started') {
-      const error = 'La partie a déjà commencé.';
+      const error = 'L'atelier a déjà commencé.';
       if (typeof callback === 'function') callback({ error });
       socket.emit('waitingRoomError', { error });
       return;
@@ -188,11 +188,11 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
 
     if (!event) {
-      return callback({ error: "La partie n'existe pas." });
+      return callback({ error: "L'atelier n'existe pas." });
     }
 
     if (event.status === 'started' || event.partyStarted) {
-      return callback({ error: 'La partie a déjà commencé.' });
+      return callback({ error: 'L'atelier a déjà commencé.' });
     }
 
     const playerId = socket.data?.playerId ?? resolvePlayerId(event, socket.id);
@@ -258,25 +258,25 @@ export function registerWaitingPhaseHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
 
     if (!event) {
-      return callback({ error: "La partie n'existe pas." });
+      return callback({ error: "L'atelier n'existe pas." });
     }
 
     if (!isManager(event, socket)) {
-      return callback({ error: 'Action réservée au manager.' });
+      return callback({ error: 'Action réservée à l'animateur.' });
     }
 
     if (event.status === 'started' || event.partyStarted) {
-      return callback({ error: 'La partie a déjà commencé.' });
+      return callback({ error: 'L'atelier a déjà commencé.' });
     }
 
     const targetPlayerId = typeof data?.playerId === 'string' ? data.playerId.trim() : '';
     if (!targetPlayerId || targetPlayerId === event.managerPlayerId) {
-      return callback({ error: 'Joueur introuvable.' });
+      return callback({ error: 'Participant introuvable.' });
     }
 
     const target = event.players.find((player) => player.playerId === targetPlayerId);
     if (!target) {
-      return callback({ error: 'Joueur introuvable.' });
+      return callback({ error: 'Participant introuvable.' });
     }
 
     const session = getSessionByPlayerId(targetPlayerId);
@@ -315,7 +315,7 @@ export function registerWaitingPhaseHandlers(socket, deps) {
 
     if (event.partyStarted) {
       if (typeof callback === 'function') {
-        callback({ error: 'Utilisez leaveParty pour quitter une partie en cours.' });
+        callback({ error: 'Utilisez leaveParty pour quitter un atelier en cours.' });
       }
       return;
     }

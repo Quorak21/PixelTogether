@@ -41,7 +41,7 @@ export function registerLobbyHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
 
     if (!event) {
-      const error = "La partie n'existe pas.";
+      const error = "L'atelier n'existe pas.";
       socket.emit('eventLobbyError', { error });
       if (typeof callback === 'function') callback({ error });
       return;
@@ -77,12 +77,12 @@ export function registerLobbyHandlers(socket, deps) {
     if (!guardAck(callback)) return;
     const existingToken = typeof data?.token === 'string' ? data.token.trim() : '';
     if (existingToken && validateToken(existingToken)) {
-      return callback({ error: 'Vous êtes déjà dans une partie.' });
+      return callback({ error: 'Vous êtes déjà dans un atelier.' });
     }
 
     if (Object.keys(activeEvents).length >= MAX_ACTIVE_EVENTS) {
       return callback({
-        error: 'Le serveur a atteint sa capacité maximale de parties actives. Veuillez patienter.',
+        error: 'Le serveur a atteint sa capacité maximale d'ateliers actifs. Veuillez patienter.',
       });
     }
 
@@ -90,13 +90,13 @@ export function registerLobbyHandlers(socket, deps) {
 
     if (!LABEL_REGEX.test(partyName)) {
       return callback({
-        error: `Le nom de partie doit contenir entre ${LABEL_MIN} et ${LABEL_MAX} caractères.`,
+        error: `Le nom de l'atelier doit contenir entre ${LABEL_MIN} et ${LABEL_MAX} caractères.`,
       });
     }
 
     const gameMode = parseGameMode(data?.gameMode);
     if (!gameMode) {
-      return callback({ error: 'Mode de jeu invalide.' });
+      return callback({ error: 'Format d'atelier invalide.' });
     }
 
     let sessionDurationMinutes = null;

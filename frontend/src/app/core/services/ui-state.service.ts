@@ -356,7 +356,7 @@ export class UiStateService {
   showManagerAbsentWarning(
     message: string,
     closesInMs: number,
-    title = 'Manager absent',
+    title = 'Animateur absent',
   ): void {
     this.clearManagerAbsentWarning();
     const secondsLeft = Math.max(1, Math.ceil(closesInMs / 1000));
