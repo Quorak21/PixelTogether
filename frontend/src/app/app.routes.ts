@@ -25,7 +25,7 @@ export const routes: Routes = [
     title: 'Pour les équipes et les organisations | PixelTogether',
     data: {
       description:
-        'Atelier de team building pour les organisations : publics, objectifs, déroulé de 30 à 60 minutes, formats et prérequis techniques.',
+        'Atelier de team building pour les organisations : publics, objectifs, déroulé de 30 à 60 minutes et formats.',
       canonicalPath: '/entreprises',
     },
   },
@@ -35,7 +35,7 @@ export const routes: Routes = [
     title: 'À propos | PixelTogether',
     data: {
       description:
-        'PixelTogether est un atelier collaboratif de team building, projet personnel de Dokk en Suisse, en version bêta.',
+        'PixelTogether est un atelier de team building en ligne pour les écoles et les entreprises. Projet personnel de Dokk, en version bêta.',
       canonicalPath: '/a-propos',
     },
   },
@@ -55,7 +55,7 @@ export const routes: Routes = [
     title: 'Mentions | PixelTogether',
     data: {
       description:
-        'Mentions de PixelTogether : éditeur, contact, hébergement et confidentialité. Projet personnel en bêta.',
+        'Mentions de PixelTogether : éditeur, contact et données. Projet personnel en bêta, sans compte.',
       canonicalPath: '/mentions',
     },
   },

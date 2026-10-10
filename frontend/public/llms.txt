@@ -2,15 +2,15 @@
 
 > Atelier collaboratif de team building pour les équipes et les organisations. Œuvre commune en pixel-art, couleurs réparties entre les participants, sans compte.
 
-PixelTogether est un outil d'atelier en ligne. Un animateur prépare la session (format, thèmes, durée). Les participants dessinent ensemble sur des grilles pixel-art ; chacun a des couleurs qui lui sont réservées, ce qui demande de se coordonner. Un format optionnel permet aux équipes de présenter leurs créations. L'état vit en mémoire et est purgé en fin de session — pas de compte, pas de base de données.
+PixelTogether est un outil d'atelier en ligne pour les écoles et les entreprises. Un animateur prépare la session (format, thèmes, durée). Les participants dessinent ensemble sur des grilles pixel-art ; chacun a des couleurs qui lui sont réservées, ce qui demande de se coordonner. Un format optionnel permet aux équipes de présenter leurs créations. Aucun compte n'est créé. Le contenu de la session n'est pas conservé ensuite ; seules des statistiques anonymes le sont pendant la bêta.
 
 ## Docs
 
 - [Site](https://www.pixeltogether.ch/) : présenter l'atelier, le créer ou le rejoindre
-- [Pour les équipes](https://www.pixeltogether.ch/entreprises) : publics, déroulé, formats, prérequis
+- [Pour les équipes](https://www.pixeltogether.ch/entreprises) : publics, déroulé, formats
 - [À propos](https://www.pixeltogether.ch/a-propos) : Dokk, projet personnel, Suisse
 - [Documentation](https://www.pixeltogether.ch/documentation) : formats, rôles, chat, données
-- [Mentions](https://www.pixeltogether.ch/mentions) : éditeur, hébergement, confidentialité
+- [Mentions](https://www.pixeltogether.ch/mentions) : éditeur, contact et données
 
 ## Contact
 
