@@ -2,7 +2,7 @@
 
 > Atelier collaboratif de team building pour les équipes et les organisations. Œuvre commune en pixel-art, couleurs réparties entre les participants, sans compte.
 
-PixelTogether est un outil d'atelier en ligne pour les écoles et les entreprises. Un animateur prépare la session (format, thèmes, durée). Les participants dessinent ensemble sur des grilles pixel-art ; chacun a des couleurs qui lui sont réservées, ce qui demande de se coordonner. Un format optionnel permet aux équipes de présenter leurs créations. Aucun compte n'est créé, et rien n'est conservé après la session.
+PixelTogether est un outil d'atelier en ligne pour les écoles et les entreprises. Un animateur prépare la session (format, thèmes, durée). Les participants dessinent ensemble sur des grilles pixel-art ; chacun a des couleurs qui lui sont réservées, ce qui demande de se coordonner. Un format optionnel permet aux équipes de présenter leurs créations. Aucun compte n'est créé. Le contenu de la session n'est pas conservé ensuite ; seules des statistiques anonymes le sont pendant la bêta.
 
 ## Docs
 

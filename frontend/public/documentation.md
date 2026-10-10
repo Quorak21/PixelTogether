@@ -126,11 +126,11 @@ Pendant la phase de dessin, un chat de groupe permet de communiquer avec ses par
 
 ## Ce qui est conservé
 
-Pendant la bêta, PixelTogether retient pour chaque atelier la date, le format, le nombre de participants, le nombre de sessions prévues et réalisées, la durée, et si l'atelier s'est terminé normalement ou a été interrompu. Ces informations servent à vérifier le bon déroulement.
+Pendant la bêta, seules des statistiques anonymes sont gardées pour chaque atelier : la date, le format, le nombre de participants, le nombre de sessions prévues et réalisées, la durée, et si l'atelier s'est terminé normalement ou a été interrompu. Elles ne permettent pas d'identifier une personne.
 
 ## Ce qui ne l'est pas
 
-Tout le reste : PixelTogether ne conserve pas le contenu du chat, les pseudos, les grilles pixel par pixel ni les adresses IP.
+Aucun contenu n'est conservé après la session : les dessins, les pseudos, le chat et les adresses IP.
 
 > 🔓 L'équipe de PixelTogether prône un monde numérique libre et respectueux de la vie privée.
 
