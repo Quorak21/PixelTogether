@@ -126,7 +126,7 @@ Pendant la phase de dessin, un chat de groupe permet de communiquer avec ses par
 
 ## Ce qui est conservé
 
-À chaque démarrage et fin d'atelier, des **statistiques techniques** sont écrites dans un fichier de log côté serveur. Elles contiennent notamment la date, le format d'atelier, le nombre de participants, le nombre de sessions prévues et réalisées, la durée, ainsi que l'issue de l'atelier (terminé normalement ou interrompu, avec le motif). Ces logs servent à vérifier le bon fonctionnement du service pendant la bêta.
+Pendant la bêta, PixelTogether retient pour chaque atelier la date, le format, le nombre de participants, le nombre de sessions prévues et réalisées, la durée, et si l'atelier s'est terminé normalement ou a été interrompu. Ces informations servent à vérifier le bon déroulement.
 
 ## Ce qui ne l'est pas
 
