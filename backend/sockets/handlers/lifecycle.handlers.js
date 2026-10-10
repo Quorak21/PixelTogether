@@ -86,8 +86,8 @@ function maybeScheduleForcedFinal(io, event, eventId, activeEvents) {
   io.to(eventId).emit('managerAbsentWarning', {
     eventId,
     roomId: eventId,
-    title: 'Fin de partie',
-    message: 'Plus assez de joueurs disponibles, la partie va se terminer.',
+    title: 'Fin d\'atelier',
+    message: 'Plus assez de participants disponibles, l\'atelier va se terminer.',
     closesInMs: MANAGER_ABSENT_WARNING_MS,
   });
 
@@ -131,11 +131,11 @@ export function registerLifecycleHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
 
     if (!event) {
-      return callback({ error: "La partie n'existe pas." });
+      return callback({ error: "L'atelier n'existe pas." });
     }
 
     if (isManager(event, socket)) {
-      return callback({ error: 'Le manager doit fermer la partie.' });
+      return callback({ error: 'L\'animateur doit fermer l\'atelier.' });
     }
 
     if (!event.partyStarted) {

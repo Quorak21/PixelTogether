@@ -4,9 +4,16 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/frontend-ng/browser",
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/game/:path*",
+      "destination": "/session/:path*",
+      "statusCode": 301
+    }
+  ],
   "rewrites": [
     { "source": "/room/:path*", "destination": "/index.html" },
     { "source": "/lobby/:path*", "destination": "/index.html" },
-    { "source": "/game/:path*", "destination": "/index.html" }
+    { "source": "/session/:path*", "destination": "/index.html" }
   ]
 }

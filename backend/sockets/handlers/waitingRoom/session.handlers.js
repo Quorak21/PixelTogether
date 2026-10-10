@@ -14,15 +14,15 @@ export function registerSessionPhaseHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
 
     if (!event) {
-      return callback({ error: "La partie n'existe pas." });
+      return callback({ error: "L'atelier n'existe pas." });
     }
 
     if (!isManager(event, socket)) {
-      return callback({ error: 'Seul le manager peut démarrer la partie.' });
+      return callback({ error: "Seul l'animateur peut démarrer l'atelier." });
     }
 
     if (!event.managerProfile) {
-      return callback({ error: 'Le manager doit compléter son profil avant de démarrer.' });
+      return callback({ error: "L'animateur doit compléter son profil avant de démarrer." });
     }
 
     if (!event.partyStarted) {

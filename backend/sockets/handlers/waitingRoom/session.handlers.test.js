@@ -86,7 +86,7 @@ test('startGame rejects a second synchronous call (double-start guard)', () => {
   assert.ok(Object.keys(groupsAfterFirst).length > 0, 'beginSession should create groups');
   assert.deepStrictEqual(event.groups, groupsAfterFirst, 'groups should not be reshuffled on second call');
   assert.strictEqual(emitGameStartedCount, 1, 'emitGameStarted should run only once');
-  assert.strictEqual(secondResponse?.error, 'La partie est déjà lancée.');
+  assert.strictEqual(secondResponse?.error, 'L\'atelier est déjà lancé.');
   assert.strictEqual(event.status, 'started');
   assert.strictEqual(event.partyStarted, true);
 });

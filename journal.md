@@ -13,6 +13,8 @@
 
 ## Entrées
 
+- **Vocabulaire public + écran mobile** — le site se présente comme un atelier d'équipe (pages /entreprises et /a-propos, doc pré-rendue, /game → /session en 301). L'atelier en direct est de nouveau bloqué sur téléphone ; les pages d'information restent lisibles.
+
 - **ADD-66** — **Halo canvas** : contours `#ddd` seulement grille vide + liseré du blanc peint contre le fond ; plus de cadre autour des pixels colorés.
 
 - **ADD-64** — **Encart « à venir » landing** : panneau à droite (détaché, entre démo et cartes), badge Bêta, teaser FF-10 / FF-01 / FF-03 / FF-11 / FF-08.

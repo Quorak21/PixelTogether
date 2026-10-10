@@ -196,15 +196,15 @@ export class WaitingRoomPageComponent {
     if (this.isCoop()) {
       return `${this.coopGridCount()} / ${COOP_GRID_MAX} · min. ${COOP_GUESTS_MIN + 1} sur la grille`;
     }
-    return `${this.playerCount()} joueur${this.playerCount() > 1 ? 's' : ''} · min. ${COMPETITIVE_PLAYERS_MIN}`;
+    return `${this.playerCount()} participant${this.playerCount() > 1 ? 's' : ''} · min. ${COMPETITIVE_PLAYERS_MIN}`;
   });
 
   readonly startConfirmTitle = computed(() =>
-    this.isCoop() ? 'Démarrer la partie coopérative ?' : 'Démarrer la partie compétitive ?',
+    this.isCoop() ? 'Démarrer l\'atelier coopératif ?' : 'Démarrer l\'atelier en équipes ?',
   );
 
   readonly startConfirmHint = computed(
-    () => 'Plus personne ne pourra rejoindre une fois la partie lancée.',
+    () => 'Plus personne ne pourra rejoindre une fois l\'atelier lancé.',
   );
 
   readonly canStart = computed(
@@ -240,19 +240,19 @@ export class WaitingRoomPageComponent {
       case 'tieBreak':
         return this.rouletteStartedAt()
           ? 'Égalité — tirage au sort…'
-          : 'Égalité — le manager tranche !';
+          : 'Égalité — l\'animateur tranche !';
       case 'voteResult':
-        return 'Le gagnant de la session !';
+        return 'La création la plus appréciée';
       case 'sessionResult':
         return 'Le dessin de la session';
       case 'gallery':
-        return 'Galerie des dessins';
+        return 'Galerie des créations';
       case 'podium':
-        return 'Classement final';
+        return 'Récapitulatif';
       default:
         return this.partyStarted()
           ? 'En attente de la session suivante…'
-          : 'En attente du début de la partie…';
+          : 'En attente du début de l\'atelier…';
     }
   });
   readonly partySubtitle = computed(() => {
@@ -298,7 +298,7 @@ export class WaitingRoomPageComponent {
     if (phase === 'podium') {
       const mm = String(Math.floor(secs / 60)).padStart(2, '0');
       const ss = String(secs % 60).padStart(2, '0');
-      return `La partie se termine dans ${mm}:${ss}`;
+      return `L'atelier se termine dans ${mm}:${ss}`;
     }
     return null;
   });
@@ -311,7 +311,7 @@ export class WaitingRoomPageComponent {
       return '';
     }
     if (this.wrMode() === 'gallery') {
-      return 'Retrouvez toutes les créations de la partie.';
+      return 'Retrouvez toutes les créations de l\'atelier.';
     }
     return '';
   });
@@ -372,7 +372,7 @@ export class WaitingRoomPageComponent {
         this.ui.showPodiumEndCountdownBanner(deadline);
       } else {
         this.ui.showManagerAbsentBanner(
-          'Le manager est absent — la partie continue automatiquement.',
+          'L\'animateur est absent — l\'atelier continue automatiquement.',
         );
       }
     });
@@ -412,7 +412,7 @@ export class WaitingRoomPageComponent {
         this.startError.set(response.error);
       }
     } catch {
-      this.startError.set('Impossible de retirer ce joueur. Réessayez.');
+      this.startError.set('Impossible de retirer ce participant. Réessayez.');
     }
   }
 
@@ -510,7 +510,7 @@ export class WaitingRoomPageComponent {
 
     const session = this.sessionToken.read();
     if (!session?.token) {
-      this.exportError.set('Session invalide. Reconnectez-vous à la partie.');
+      this.exportError.set('Session invalide. Reconnectez-vous à l\'atelier.');
       return;
     }
 
@@ -872,7 +872,7 @@ export class WaitingRoomPageComponent {
         this.sessionToken.updateGroupCode(groupCode);
         this.ui.beginGameCanvasLoading();
         this.ui.joinGame(payload.eventId, groupCode);
-        void this.router.navigateByUrl(`/game/${payload.eventId}/${groupCode}`);
+        void this.router.navigateByUrl(`/session/${payload.eventId}/${groupCode}`);
         return;
       }
 
@@ -906,7 +906,7 @@ export class WaitingRoomPageComponent {
         this.sessionToken.updateGroupCode(payload.groupCode);
         this.ui.beginGameCanvasLoading();
         this.ui.joinGame(payload.eventId, payload.groupCode);
-        void this.router.navigateByUrl(`/game/${payload.eventId}/${payload.groupCode}`);
+        void this.router.navigateByUrl(`/session/${payload.eventId}/${payload.groupCode}`);
       }
     };
 

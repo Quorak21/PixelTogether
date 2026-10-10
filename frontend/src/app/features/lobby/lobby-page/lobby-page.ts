@@ -88,7 +88,7 @@ export class LobbyPageComponent {
   );
 
   readonly endSessionButtonLabel = computed(() =>
-    this.isLastSession() ? 'Terminer la partie' : 'Terminer la session',
+    this.isLastSession() ? 'Terminer l\'atelier' : 'Terminer la session',
   );
 
   readonly transitionActive = signal(Boolean(this.ui.groupTransition()));
@@ -189,7 +189,7 @@ export class LobbyPageComponent {
     this.ui.groupLabel.set(group.label);
     this.ui.beginGameCanvasLoading();
     this.ui.joinGame(group.eventId, group.groupCode);
-    void this.router.navigateByUrl(`/game/${group.eventId}/${group.groupCode}`);
+    void this.router.navigateByUrl(`/session/${group.eventId}/${group.groupCode}`);
   }
 
   onTransitionDismissed(): void {

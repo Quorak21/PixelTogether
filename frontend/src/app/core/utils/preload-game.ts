@@ -1,4 +1,4 @@
-/** Précharge le chunk lazy-load game.routes (PERF-04). */
+/** Précharge le chunk de la zone de dessin (PERF-04). */
 export function preloadGameRoutes(): void {
-  void import('../../features/game/game.routes');
+  void import('../../features/game/session.routes');
 }

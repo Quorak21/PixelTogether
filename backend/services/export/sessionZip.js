@@ -19,7 +19,7 @@ function decodePngDataUrl(dataUrl) {
 }
 
 function buildZipFilename(event) {
-  const slug = slugify(event.partyName ?? 'partie');
+  const slug = slugify(event.partyName ?? 'atelier');
   return `pixeltogether-${slug}.zip`;
 }
 

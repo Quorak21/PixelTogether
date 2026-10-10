@@ -529,7 +529,7 @@ export function handleCastVote(socket, data, callback, deps) {
   const event = eventId ? activeEvents[eventId] : null;
 
   if (!event) {
-    return callback({ error: "La partie n'existe pas." });
+    return callback({ error: "L'atelier n'existe pas." });
   }
 
   if (isCoop(event)) {
@@ -595,7 +595,7 @@ export function handleCloseVote(socket, data, callback, deps) {
   const event = eventId ? activeEvents[eventId] : null;
 
   if (!event) {
-    return callback({ error: "La partie n'existe pas." });
+    return callback({ error: "L'atelier n'existe pas." });
   }
 
   if (isCoop(event)) {
@@ -603,7 +603,7 @@ export function handleCloseVote(socket, data, callback, deps) {
   }
 
   if (!isManager(event, socket)) {
-    return callback({ error: 'Seul le manager peut clôturer le vote.' });
+    return callback({ error: "Seul l'animateur peut clôturer le vote." });
   }
 
   const result = closeVote(event);
@@ -648,15 +648,15 @@ export function handleShowResults(socket, data, callback, deps) {
   const event = eventId ? activeEvents[eventId] : null;
 
   if (!event) {
-    return callback({ error: "La partie n'existe pas." });
+    return callback({ error: "L'atelier n'existe pas." });
   }
 
   if (isCoop(event)) {
-    return callback({ error: 'Pas de podium en mode coopératif.' });
+    return callback({ error: 'Indisponible en coopération.' });
   }
 
   if (!isManager(event, socket)) {
-    return callback({ error: 'Seul le manager peut afficher les résultats.' });
+    return callback({ error: "Seul l'animateur peut afficher les résultats." });
   }
 
   const result = openResults(event);
@@ -683,7 +683,7 @@ export function handleEndParty(socket, data, callback, deps) {
   const event = eventId ? activeEvents[eventId] : null;
 
   if (!event) {
-    return callback({ error: "La partie n'existe pas." });
+    return callback({ error: "L'atelier n'existe pas." });
   }
 
   if (!isManager(event, socket)) {
@@ -694,16 +694,16 @@ export function handleEndParty(socket, data, callback, deps) {
       event.coopWrMode === 'gallery' &&
       isRegistered(event, socket.id, playerId);
     if (!coopOverride) {
-      return callback({ error: 'Seul le manager peut terminer la partie.' });
+      return callback({ error: "Seul l'animateur peut terminer l'atelier." });
     }
   }
 
   if (isCoop(event)) {
     if (event.coopWrMode !== 'gallery') {
-      return callback({ error: 'Terminez toutes les sessions avant de fermer la partie.' });
+      return callback({ error: "Terminez toutes les sessions avant de fermer l'atelier." });
     }
   } else if (!event.showingResults) {
-    return callback({ error: 'Affichez les résultats avant de terminer la partie.' });
+    return callback({ error: "Affichez les résultats avant de terminer l'atelier." });
   }
 
   callback({ ok: true, eventId: event.id });

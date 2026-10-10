@@ -181,7 +181,7 @@ export class ReconnectService {
   }
 
   private isPartyRoute(): boolean {
-    return /^\/(room|lobby|game)\//i.test(this.router.url.split('?')[0]);
+    return /^\/(room|lobby|session|game)\//i.test(this.router.url.split('?')[0]);
   }
 
   private async navigateToLandingAfterPartyGone(): Promise<void> {
@@ -191,7 +191,7 @@ export class ReconnectService {
   }
 
   private parseGameRoute(url: string): { eventId: string; groupCode: string } | null {
-    const match = url.match(/^\/game\/([^/]+)\/([^/]+)/i);
+    const match = url.match(/^\/(?:session|game)\/([^/]+)\/([^/]+)/i);
     if (!match) return null;
     return { eventId: match[1], groupCode: match[2] };
   }
@@ -223,7 +223,7 @@ export class ReconnectService {
       this.ui.beginGameCanvasLoading();
       this.hydrateGridState(response.gridState);
       this.ui.joinGame(eventId, response.groupCode);
-      await this.router.navigateByUrl(`/game/${eventId}/${response.groupCode}`);
+      await this.router.navigateByUrl(`/session/${eventId}/${response.groupCode}`);
       return true;
     }
 

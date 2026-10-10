@@ -1,5 +1,5 @@
 const MANAGER_PLACEHOLDER = '{manager}';
-const MANAGER_FALLBACK = 'Votre manager';
+const MANAGER_FALLBACK = 'Votre animateur';
 
 /** Pool de sous-titres WR — tirage aléatoire à chaque entrée en salle. */
 export const WAITING_ROOM_SUBTITLE_TEMPLATES = [
@@ -21,7 +21,7 @@ export const WAITING_ROOM_SUBTITLE_TEMPLATES = [
   '{manager} a rédigé le cahier des charges. Version artistique, bien sûr.',
   '{manager} a choisi. Vous allez découvrir si vous êtes vraiment une équipe.',
   '{manager} a parlé. Le reste, c\'est entre vous et les pixels.',
-  '{manager} a lancé le défi. Ces thèmes ne se dessineront pas tout seuls.',
+  '{manager} a lancé l\'atelier. Ces thèmes ne se dessineront pas tout seuls.',
 ] as const;
 
 export type ThemeScheduleStatus = 'upcoming' | 'current' | 'done';

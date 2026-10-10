@@ -36,7 +36,7 @@ export function buildRecapData(event) {
 
   const data = {
     mode: coop ? 'coop' : 'competitive',
-    partyName: event.partyName ?? 'Partie',
+    partyName: event.partyName ?? 'Atelier',
     managerPseudo: event.managerProfile?.pseudo ?? null,
     participants: (event.players ?? []).map((p) => p.pseudo),
     sessions,
@@ -71,12 +71,12 @@ function extractGroupLabel(compositeLabel) {
  */
 export function renderRecapTxt(data) {
   const lines = [];
-  const modeLabel = data.mode === 'coop' ? 'Coopératif' : 'Compétitif';
+  const modeLabel = data.mode === 'coop' ? 'Coopératif' : 'Présentation et vote';
 
-  lines.push('PixelTogether — Récapitulatif de partie');
-  lines.push(`Partie : ${data.partyName}`);
+  lines.push('PixelTogether — Récapitulatif d\'atelier');
+  lines.push(`Atelier : ${data.partyName}`);
   if (data.managerPseudo) {
-    lines.push(`Manager : ${data.managerPseudo}`);
+    lines.push(`Animateur : ${data.managerPseudo}`);
   }
   lines.push(`Mode : ${modeLabel}`);
   lines.push('');
@@ -101,27 +101,27 @@ export function renderRecapTxt(data) {
 
     session.groups.forEach((group, index) => {
       lines.push(`  ${index + 1}. ${group.label} — ${group.voteCount} vote${group.voteCount > 1 ? 's' : ''}`);
-      lines.push(`     Joueurs : ${group.players.join(', ')}`);
+      lines.push(`     Participants : ${group.players.join(', ')}`);
     });
     lines.push('');
   }
 
-  lines.push('── Classement final ──');
+  lines.push('── Créations ──');
   lines.push('');
-  lines.push('Top dessins :');
+  lines.push('Œuvres :');
 
   for (const grid of data.topGrids ?? []) {
     lines.push(
-      `  ${grid.rank}. Thème : ${grid.theme} - ${grid.label} — ${grid.voteCount} vote${grid.voteCount > 1 ? 's' : ''}`,
+      `  Thème : ${grid.theme} - ${grid.label} — ${grid.voteCount} vote${grid.voteCount > 1 ? 's reçus' : ' reçu'}`,
     );
   }
 
   lines.push('');
-  lines.push('Top joueurs :');
+  lines.push('Votes reçus :');
 
   for (const player of data.topPlayers ?? []) {
     lines.push(
-      `  ${player.rank}. ${player.pseudo} — ${player.voteTotal} vote${player.voteTotal > 1 ? 's' : ''}`,
+      `  ${player.pseudo} — ${player.voteTotal} vote${player.voteTotal > 1 ? 's reçus' : ' reçu'}`,
     );
   }
 

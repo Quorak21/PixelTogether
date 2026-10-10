@@ -3,7 +3,6 @@ import {
   Component,
   DestroyRef,
   PLATFORM_ID,
-  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -35,7 +34,7 @@ export class PartyDemoComponent {
   readonly gridSize = DEMO_GRID;
   readonly players = DEMO_PLAYERS;
   readonly artworks = DEMO_ARTWORKS;
-  /** Taille unique des 3 miniatures (vote + podium). */
+  /** Taille unique des miniatures (présentation et galerie). */
   readonly thumbClass =
     'grid h-24 w-24 min-h-24 min-w-24 shrink-0 overflow-hidden gap-px rounded-md border border-white/5 bg-white p-0.5';
 
@@ -44,12 +43,6 @@ export class PartyDemoComponent {
   readonly drawCells = signal<(string | null)[]>(emptyGrid());
   readonly voteCounts = signal<number[]>([0, 0, 0]);
   readonly phaseLabel = signal('Dessin collaboratif');
-
-  /** Ordre d’affichage podium : 2e | 1er | 3e */
-  readonly podiumArts = computed(() => {
-    const byRank = [...DEMO_ARTWORKS].sort((a, b) => a.rank - b.rank);
-    return [byRank[1], byRank[0], byRank[2]];
-  });
 
   private timers: ReturnType<typeof setTimeout>[] = [];
   private intervals: ReturnType<typeof setInterval>[] = [];
@@ -85,7 +78,7 @@ export class PartyDemoComponent {
       setTimeout(() => {
         this.phase.set(phase);
         this.phaseLabel.set(
-          phase === 'draw' ? 'Dessin collaboratif' : phase === 'vote' ? 'Vote' : 'Résultats',
+          phase === 'draw' ? 'Dessin collaboratif' : phase === 'vote' ? 'Présentation' : 'Récapitulatif',
         );
         onReady();
         // laisse le DOM peindre en opacity 0 avant le fade-in

@@ -52,7 +52,7 @@ export function handleReconnectSession(socket, data, callback, deps) {
   }
 
   if (isBannedFromEvent(session, session.eventId)) {
-    return callback({ error: 'Vous avez été exclu de cette partie.' });
+    return callback({ error: 'Vous avez été exclu de cet atelier.' });
   }
 
   const event = activeEvents[session.eventId];

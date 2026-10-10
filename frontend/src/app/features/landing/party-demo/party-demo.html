@@ -3,7 +3,7 @@
 >
   <div class="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-2.5">
     <p class="text-[11px] font-semibold uppercase tracking-wider text-landing-muted">
-      Aperçu d’une partie
+      Aperçu d’un atelier
     </p>
     <span
       class="inline-flex items-center gap-1.5 rounded-full border border-brand-violet/30 bg-brand-violet/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300"
@@ -54,8 +54,7 @@
           <div class="grid grid-cols-3 gap-2">
             @for (art of artworks; track art.label; let i = $index) {
               <div
-                class="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/[0.06] bg-slate-950/50 p-2 transition-colors duration-300"
-                [class.border-brand-coral/40]="voteCounts()[i] === art.votes && art.rank === 1"
+                class="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/[0.06] bg-slate-950/50 p-2"
               >
                 <div
                   [class]="thumbClass"
@@ -76,40 +75,20 @@
             }
           </div>
           <p class="text-center text-[11px] text-landing-muted">
-            Tout le monde vote pour sa grille préférée.
+            Les équipes présentent leurs créations.
           </p>
         </div>
       }
 
       @if (phase() === 'podium') {
         <div class="flex flex-col gap-3">
-          <div class="grid grid-cols-3 items-start gap-2 pt-2">
-            @for (art of podiumArts(); track art.label) {
+          <div class="grid grid-cols-3 gap-2">
+            @for (art of artworks; track art.label) {
               <div
-                class="relative flex min-w-0 flex-col items-center rounded-xl border bg-slate-950/60 p-2 text-center"
-                [class.border-yellow-400/40]="art.rank === 1"
-                [class.border-slate-400/30]="art.rank === 2"
-                [class.border-amber-700/40]="art.rank === 3"
+                class="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-white/[0.06] bg-slate-950/50 p-2 text-center"
               >
-                <span
-                  class="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full border bg-slate-900 px-2 py-0.5 text-[9px] font-black uppercase"
-                  [class.border-yellow-400/40]="art.rank === 1"
-                  [class.text-yellow-400]="art.rank === 1"
-                  [class.border-slate-400/30]="art.rank === 2"
-                  [class.text-slate-300]="art.rank === 2"
-                  [class.border-amber-700/40]="art.rank === 3"
-                  [class.text-amber-600]="art.rank === 3"
-                >
-                  @if (art.rank === 1) {
-                    1er
-                  } @else if (art.rank === 2) {
-                    2e
-                  } @else {
-                    3e
-                  }
-                </span>
                 <div
-                  [class]="thumbClass + ' mt-2'"
+                  [class]="thumbClass"
                   [style.gridTemplateColumns]="'repeat(' + gridSize + ', minmax(0, 1fr))'"
                 >
                   @for (cell of art.cells; track $index) {
@@ -119,13 +98,12 @@
                     ></div>
                   }
                 </div>
-                <p class="mt-1.5 truncate text-[10px] font-bold text-white">{{ art.label }}</p>
-                <p class="text-[10px] text-landing-muted">{{ art.votes }} votes</p>
+                <p class="truncate text-[10px] font-semibold text-white">{{ art.label }}</p>
               </div>
             }
           </div>
           <p class="text-center text-[11px] text-landing-muted">
-            Résultat du vote des créations.
+            Galerie des créations.
           </p>
         </div>
       }

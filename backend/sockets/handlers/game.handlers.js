@@ -59,24 +59,24 @@ function handleJoinGroup(socket, data, deps) {
   const groupCode = normalizeGroupCode(data?.groupCode);
 
   if (!eventId || !groupCode) {
-    socket.emit('joinRoomError', { error: 'Identifiant de sous-partie invalide.' });
+    socket.emit('joinRoomError', { error: 'Identifiant de groupe invalide.' });
     return;
   }
 
   const event = activeEvents[eventId];
   if (!event) {
-    socket.emit('joinRoomError', { error: "La partie n'existe pas" });
+    socket.emit('joinRoomError', { error: "L'atelier n'existe pas" });
     return;
   }
 
   if (event.status !== 'started') {
-    socket.emit('joinRoomError', { error: "La partie n'a pas encore démarré." });
+    socket.emit('joinRoomError', { error: "L'atelier n'a pas encore démarré." });
     return;
   }
 
   const group = getGroup(event, groupCode);
   if (!group) {
-    socket.emit('joinRoomError', { error: "Cette sous-partie n'existe pas." });
+    socket.emit('joinRoomError', { error: "Ce groupe n'existe pas." });
     return;
   }
 
@@ -196,12 +196,12 @@ export function registerGameHandlers(socket, deps) {
     const event = eventId ? activeEvents[eventId] : null;
 
     if (!event) {
-      socket.emit('joinRoomError', { error: "La partie n'existe pas" });
+      socket.emit('joinRoomError', { error: "L'atelier n'existe pas" });
       return;
     }
 
     if (event.status !== 'started') {
-      socket.emit('joinRoomError', { error: "La partie n'a pas encore démarré." });
+      socket.emit('joinRoomError', { error: "L'atelier n'a pas encore démarré." });
       return;
     }
 
@@ -215,7 +215,7 @@ export function registerGameHandlers(socket, deps) {
         return;
       }
       socket.emit('joinRoomError', {
-        error: 'Utilisez le lobby pour rejoindre une sous-partie.',
+        error: 'Utilisez le lobby pour rejoindre un groupe.',
       });
       return;
     }
@@ -240,11 +240,11 @@ export function registerGameHandlers(socket, deps) {
     const group = getGroup(event, groupCode);
 
     if (!event || !group) {
-      return callback({ error: "La partie n'existe pas." });
+      return callback({ error: "L'atelier n'existe pas." });
     }
 
     if (event.status !== 'started') {
-      return callback({ error: "La partie n'a pas encore démarré." });
+      return callback({ error: "L'atelier n'a pas encore démarré." });
     }
 
     if (isCoop(event)) {
@@ -252,7 +252,7 @@ export function registerGameHandlers(socket, deps) {
     }
 
     if (isManager(event, socket)) {
-      return callback({ error: 'Réservé aux joueurs.' });
+      return callback({ error: 'Réservé aux participants.' });
     }
 
     if (group.finished) {

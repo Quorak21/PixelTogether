@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LucideCrown, LucideUsers, LucidePalette } from '@lucide/angular';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { SessionTokenService } from '../../../core/services/session-token.service';
@@ -11,37 +11,10 @@ import { PartyDemoComponent } from '../party-demo/party-demo';
 import { GridPixelSplashComponent } from '../../../shared/grid-pixel-splash/grid-pixel-splash';
 import { GameMode } from '../../../types/entities';
 import { preloadGameRoutes } from '../../../core/utils/preload-game';
+import { DeviceSupportService } from '../../../core/services/device-support.service';
+import { isUnsupportedMobileDevice, readDeviceSignals } from '../../../core/utils/device-support';
 
 const ROOM_CODE_REGEX = /^[A-HJ-NP-Z2-9]{6}$/;
-
-/** Teaser version définitive — pas tout le FF, seulement ce qui donne envie. */
-const COMING_SOON_ITEMS = [
-  {
-    title: "Un constructeur d'avatar",
-    text: 'Pour que vous soyez encore plus unique.',
-    color: '#6366F1',
-  },
-  {
-    title: 'Des interactions plus poussées',
-    text: 'Montrez que vous adorez la créativité de vos collègues avec des emojis dynamiques.',
-    color: '#F43F5E',
-  },
-  {
-    title: 'Une grille modulable',
-    text: 'Plus de flexibilité pour vos parties.',
-    color: '#38BDF8',
-  },
-  {
-    title: 'Un peu de musique ?',
-    text: 'Le manager aura accès à des sons et musiques pour instaurer une ambiance rien que pour vous.',
-    color: '#14B8A6',
-  },
-  {
-    title: 'Un beau récapitulatif final de la partie',
-    text: 'Un vrai document qui relatera votre épopée, à épingler à côté de la machine à café avec vos œuvres.',
-    color: '#FBBF24',
-  },
-] as const;
 
 // entrée app : reprise auto si token valide, sinon join / création
 @Component({
@@ -50,6 +23,7 @@ const COMING_SOON_ITEMS = [
     PartyCreationModalComponent,
     PartyDemoComponent,
     ReactiveFormsModule,
+    RouterLink,
     LucideCrown,
     LucideUsers,
     LucidePalette,
@@ -66,6 +40,7 @@ export class LandingPageComponent implements OnInit {
   private readonly reconnect = inject(ReconnectService);
   private readonly socket = inject(SocketService);
   private readonly destroyRef = inject(DestroyRef);
+  readonly device = inject(DeviceSupportService);
 
   readonly error = signal('');
   readonly showErrors = signal(false);
@@ -73,8 +48,6 @@ export class LandingPageComponent implements OnInit {
   readonly isResuming = signal(false);
   readonly serverMaxCapReached = signal(false);
   readonly hasActiveSession = this.sessionToken.hasPartyBindingSignal;
-
-  readonly comingSoonItems = COMING_SOON_ITEMS;
 
   readonly form = this.fb.nonNullable.group({
     code: [
@@ -113,12 +86,12 @@ export class LandingPageComponent implements OnInit {
   };
 
   openCreateModal(mode: GameMode): void {
-    if (this.hasActiveSession()) return;
+    if (this.hasActiveSession() || isUnsupportedMobileDevice(readDeviceSignals())) return;
     this.ui.openPartyCreation(mode);
   }
 
   joinRoom(): void {
-    if (this.hasActiveSession()) {
+    if (this.hasActiveSession() || isUnsupportedMobileDevice(readDeviceSignals())) {
       return;
     }
 
@@ -151,7 +124,7 @@ export class LandingPageComponent implements OnInit {
     const code = this.form.controls.code;
 
     if (code.hasError('required')) {
-      errors.push('Veuillez renseigner le code de la partie.');
+      errors.push('Veuillez renseigner le code de l\'atelier.');
     } else if (code.hasError('minlength') || code.hasError('maxlength')) {
       errors.push('Le code doit contenir exactement 6 caractères.');
     } else if (code.hasError('pattern')) {
@@ -163,6 +136,9 @@ export class LandingPageComponent implements OnInit {
 
   private async tryResumeSession(): Promise<void> {
     if (!this.sessionToken.isBoundToParty()) {
+      return;
+    }
+    if (isUnsupportedMobileDevice(readDeviceSignals())) {
       return;
     }
 

@@ -3,17 +3,41 @@ import { WaitingRoomPageComponent } from './features/waiting/waiting-room-page/w
 import { LandingPageComponent } from './features/landing/landing-page/landing-page';
 import { DocumentationPageComponent } from './features/documentation/documentation-page/documentation-page';
 import { MentionsPageComponent } from './features/mentions/mentions-page/mentions-page';
+import { EntreprisesPageComponent } from './features/entreprises/entreprises-page/entreprises-page';
+import { AboutPageComponent } from './features/about/about-page/about-page';
 import { LobbyPageComponent } from './features/lobby/lobby-page/lobby-page';
 import { roomGuard } from './core/guards/room.guard';
 import { sessionGuard } from './core/guards/session.guard';
 import { PRIVATE_SEO } from './core/services/seo.service';
 
-// parcours : / → /room → /lobby ou /game → retour /room entre sessions
+const PAGE_TITLE = 'PixelTogether — Atelier collaboratif de team building pour équipes';
+
+// parcours : / → /room → /lobby ou /session → retour /room entre sessions
 export const routes: Routes = [
   {
     path: '',
     component: LandingPageComponent,
-    title: 'PixelTogether — Team building pixel-art',
+    title: PAGE_TITLE,
+  },
+  {
+    path: 'entreprises',
+    component: EntreprisesPageComponent,
+    title: 'Pour les équipes et les organisations | PixelTogether',
+    data: {
+      description:
+        'Atelier de team building pour les organisations : publics, objectifs, déroulé de 30 à 60 minutes, formats et prérequis techniques.',
+      canonicalPath: '/entreprises',
+    },
+  },
+  {
+    path: 'a-propos',
+    component: AboutPageComponent,
+    title: 'À propos | PixelTogether',
+    data: {
+      description:
+        'PixelTogether est un atelier collaboratif de team building, projet personnel de Dokk en Suisse, en version bêta.',
+      canonicalPath: '/a-propos',
+    },
   },
   {
     path: 'documentation',
@@ -21,7 +45,7 @@ export const routes: Routes = [
     title: 'Documentation | PixelTogether',
     data: {
       description:
-        'Documentation de PixelTogether : modes coopératif et compétitif, rôles, chat, votes et conservation des données.',
+        'Documentation de PixelTogether : formats d’atelier, rôles, chat et conservation des données.',
       canonicalPath: '/documentation',
     },
   },
@@ -31,7 +55,7 @@ export const routes: Routes = [
     title: 'Mentions | PixelTogether',
     data: {
       description:
-        'Mentions PixelTogether : éditeur, contact, mesure d’audience et données de partie.',
+        'Mentions de PixelTogether : éditeur, contact, hébergement et confidentialité. Projet personnel en bêta.',
       canonicalPath: '/mentions',
     },
   },
@@ -50,12 +74,17 @@ export const routes: Routes = [
     data: PRIVATE_SEO,
   },
   {
-    path: 'game/:eventId/:groupCode',
+    path: 'session/:eventId/:groupCode',
     loadChildren: () =>
-      import('./features/game/game.routes').then((m) => m.GAME_ROUTES),
+      import('./features/game/session.routes').then((m) => m.GAME_ROUTES),
     canActivate: [sessionGuard],
     title: 'PixelTogether',
     data: PRIVATE_SEO,
+  },
+  {
+    path: 'game/:eventId/:groupCode',
+    redirectTo: 'session/:eventId/:groupCode',
+    pathMatch: 'full',
   },
   {
     path: '**',

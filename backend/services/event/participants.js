@@ -213,7 +213,7 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
         io.to(eventId).emit('managerAbsentBanner', {
           eventId,
           roomId: eventId,
-          message: 'Le manager est absent — la partie continue automatiquement.',
+          message: 'L\'animateur est absent — l\'atelier continue automatiquement.',
           mode: 'competitive',
         });
       }
@@ -226,7 +226,7 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
       io.to(eventId).emit('managerAbsentCoop', {
         eventId,
         roomId: eventId,
-        message: 'Le manager est absent — les joueurs peuvent terminer la session à tout moment.',
+        message: 'L\'animateur est absent — les participants peuvent terminer la session à tout moment.',
       });
     }, COOP_MANAGER_ABSENT_MODAL_MS);
     return 'coop_wait';
@@ -238,7 +238,7 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
     io.to(eventId).emit('managerAbsentWarning', {
       eventId,
       roomId: eventId,
-      message: 'Le manager est absent. La partie va se fermer dans quelques secondes.',
+      message: 'L\'animateur est absent. L\'atelier va se fermer dans quelques secondes.',
       closesInMs: MANAGER_ABSENT_WARNING_MS,
     });
   }, warningDelay);
@@ -247,7 +247,7 @@ export function scheduleManagerAbsentClose(io, event, eventId, closeEvent) {
     io.to(eventId).emit('managerAbsent', {
       eventId,
       roomId: eventId,
-      message: 'Le manager est absent depuis trop longtemps. La partie est fermée.',
+      message: 'L\'animateur est absent depuis trop longtemps. L\'atelier est fermé.',
     });
     closeEvent(io, eventId, 'manager_absent');
   }, MANAGER_DISCONNECT_TIMEOUT_MS);
